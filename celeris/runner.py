@@ -127,11 +127,13 @@ class Evolve:
         start_time = time.time()
 
         for i in range(self.maxsteps):
-            compTime = time.time() - start_time
-            print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
             self.Evolve_Steps(i)
+            if i==1:
+                start_time = time.time() - 0.00001  # reset the "start" time as there is overhead before loop starts, and add small shift to prevent float divide by zero
 
-            if i==0 or (i%100)==0:
+            if i==1 or (i%100)==0:
+                compTime = time.time() - start_time
+                print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
                 if self.solver.outdir:
                     state=self.solver.State.to_numpy()
                     np.save('{}/state_{}.npy'.format(self.outdir,int(i)),state)
@@ -192,11 +194,6 @@ class Evolve:
         start_time = time.time()
 
         while window.running:
-          
-            # Time evolution set later
-            compTime = time.time() - start_time
-            print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
-            
             self.paint()
             #self.paint_new()
             canvas.contour(self.solver.pixel,cmap_name=cmap) # Same functionality as set cmap-pixel-to np
@@ -204,8 +201,12 @@ class Evolve:
             self.Evolve_Steps(i)
             
             window.show()
-            
-            if i==0 or (i%100)==0:
+            if i==1:
+                start_time = time.time() - 0.00001  # reset the "start" time as there is overhead before loop starts, and add small shift to prevent float divide by zero
+
+            if i==1 or (i%100)==0:
+                compTime = time.time() - start_time
+                print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
                 if self.saveimg:
                     window.save_image('./plots/frame_{}.png'.format(i))
                 
