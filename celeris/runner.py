@@ -188,7 +188,7 @@ class Evolve:
             # TODO : Formal error handling and logging
             print("GGUI not available, reverting to legacy Taichi GUI.")
             use_ggui = False
-            use_fast_gui = True
+            use_fast_gui = False # Need ti.Vector.field equiv to self.solver.pixel to use fast_gui
             window = ti.GUI(  # noqa: F405
                 'CelerisAi', (self.solver.nx, self.solver.ny), fast_gui=use_fast_gui
                 ) # fast_gui - display directly on frame buffer if not drawing shapes or text
