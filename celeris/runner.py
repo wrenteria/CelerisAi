@@ -177,10 +177,26 @@ class Evolve:
         if not os.path.exists(plotpath):
             os.makedirs(plotpath) 
         i = 0.0
+        use_ggui = None
+        window = None
+        canvas = None
+        try:
+            window = ti.ui.Window("CelerisAi", (self.solver.nx,self.solver.ny))
+            canvas = window.get_canvas()
+            use_ggui = True
+        except:
+            # TODO : Formal error handling and logging
+            print("GGUI not available, reverting to legacy Taichi GUI.")
+            use_ggui = False
+            use_fast_gui = False # Need ti.Vector.field equiv to self.solver.pixel to use fast_gui
+            window = ti.GUI(  # noqa: F405
+                'CelerisAi', (self.solver.nx, self.solver.ny), fast_gui=use_fast_gui
+                ) # fast_gui - display directly on frame buffer if not drawing shapes or text
+            canvas = None
+            print("Legacy GUI initialized.")
+        else:
+            print("GGUI initialized without issues.")
 
-        window = ti.ui.Window("CelerisAi", (self.solver.nx,self.solver.ny))
-        canvas = window.get_canvas()
-               
         # Customized colormap
         if showSediment:
             cmap = celeris_matplotlib(water=cmapWater,sediment='afmhot_r', SedTrans=self.solver.useSedTransModel )  
@@ -196,8 +212,15 @@ class Evolve:
         while window.running:
             self.paint()
             #self.paint_new()
-            canvas.contour(self.solver.pixel,cmap_name=cmap) # Same functionality as set cmap-pixel-to np
-            #canvas.contour(self.solver.pixel,cmap_name='plasma') # Same functionality as set cmap-pixel-to np
+            if use_ggui:
+                canvas.contour(
+                    self.solver.pixel, cmap_name=cmap
+                ) # Same functionality as set cmap-pixel-to np
+                # canvas.contour(self.solver.pixel,cmap_name='plasma') # Same functionality as set cmap-pixel-to np
+            else:
+                window.set_image(
+                    self.solver.pixel
+                )
             self.Evolve_Steps(i)
             
             window.show()
