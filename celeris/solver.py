@@ -1458,12 +1458,12 @@ class Solver:
                 predicted = self.predictedGradients[i,j]
                 newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
 
-            #if self.showBreaking ==True :
+            if self.showBreaking ==True :
                 # add breaking source
-                #newState.a = ti.max(newState.a, breaking_B) # use the B value from Kennedy et al as a foam intensity
-            #elif self.showBreaking == 2 :
-            #     contaminent_source = self.ContSource[pi , pj].x
-            #     newState.a = ti.min(1.0, newState.a + contaminent_source)
+                newState.w = ti.max(newState.w, breaking_B) # use the B value from Kennedy et al as a foam intensity
+            elif self.showBreaking == 2 :
+                 contaminent_source = self.ContSource[i , j].x
+                 newState.w = ti.min(1.0, newState.w + contaminent_source)
     
             self.NewState[i,j] = newState
             self.dU_by_dt[i,j] = d_by_dt   
