@@ -1,6 +1,15 @@
 from celeris.solver import *
 from celeris.utils import *
+from taichi import tools # For saving images
+import imageio # For creating GIFs
+import os
 import time
+
+# Done at top of translation unit for now, clean-up later - JB
+base_frame_dir = './plots/' # ! Assumes we are in CelerisAi/ directory
+os.makedirs(base_frame_dir, exist_ok=True) # Ensure base_frame_dir exists
+frame_paths = [] # List of frame paths for later use, i.e. making gifs/mp4s
+
 
 @ti.data_oriented
 class Evolve:
@@ -230,13 +239,57 @@ class Evolve:
             if i==1 or (i%100)==0:
                 compTime = time.time() - start_time
                 print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
+                frame = int(i)
+                frame_filename = 'frame_{}.png'.format(frame)
+                frame_path = os.path.join(base_frame_dir, frame_filename)
+                frame_paths.append(frame_path)
                 if self.saveimg:
-                    window.save_image('./plots/frame_{}.png'.format(i))
+                    if use_ggui:
+                        window.save_image(frame_path)
+                    else:
+                        tools.imwrite(self.solver.pixel.to_numpy(), frame_path)
+                
+
+                # if self.saveimg and not use_ggui:
+                #     try:
+                #         window.show(frame_path)
+                #     except Exception as e:
+                #         print(f"Error showing frame: {e},  fallback to tools.imwrite...")
+                #         try:
+                #             tools.imwrite(self.solver.pixel.to_numpy(), frame_path)
+                #             frame_paths.append(frame_path)
+                #         except Exception as e:
+                #             print(f"Error writing frame with tools.imwrite: {e}")
+                #     else:
+                #         frame_paths.append(frame_path)
+                # elif self.saveimg and use_ggui:
+                #     try:
+                #         tools.imwrite(self.solver.pixel.to_numpy(), frame_path)
+                #         frame_paths.append(frame_path)
+                #     except Exception as e:
+                #         print(f"Error writing frame with tools.imwrite: {e}")
+                # elif not use_ggui and not self.saveimg:
+                #     window.show()
+                # else:
+                #     print("WARNING - No output method selected, frame not saved or displayed...")
+                # if not use_ggui:
+                #     continue
                 
                 #window.show()
                 if self.solver.outdir:
                     state=self.solver.State.to_numpy()
                     np.save('{}/state_{}.npy'.format(self.outdir,int(i)),state)
-            if i> self.maxsteps:
+            if i > self.maxsteps:
+                if frame_paths: # Check if there are frames to create a GIF
+                    gif_filename = f"video.gif"
+                    gif_path = os.path.join(base_frame_dir, gif_filename)
+                    try:
+                        with imageio.get_writer(gif_path, mode='I', duration=0.1) as writer:
+                            for frame_path in frame_paths:
+                                image = imageio.imread(frame_path)
+                                writer.append_data(image)
+                        print(f"GIF created at {gif_path}")
+                    except Exception as e:
+                        print(f"Error creating GIF: {e}")
                 break
             i = i+1
