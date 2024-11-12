@@ -4,7 +4,7 @@ from celeris.solver import Solver
 from celeris.runner import Evolve
 import time
 
-ti.init(arch = ti.cuda)
+ti.init(arch = ti.gpu, advanced_optimization = True, kernel_profiler = False)
 
 # 1) Set the topography data
 baty = Topodata(datatype='celeris',path='./examples/Balboa') 
@@ -19,7 +19,12 @@ d = Domain(topodata=baty)
 solver = Solver(domain=d, boundary_conditions=bc)
 
 # 5) Execution
-run = Evolve(solver = solver, maxsteps= 10000)
+# print("Cold start")
+# run = Evolve(solver = solver, maxsteps= 100)
+# run = None
+# time.sleep(1)
+# print("Warm start")
+run = Evolve(solver = solver, maxsteps= 10000, saveimg=True)
 
 # run.Evolve_Headless() # Faster , no visualization
 
