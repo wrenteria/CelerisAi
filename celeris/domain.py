@@ -21,7 +21,7 @@ class Topodata:
         self.filename = filename
         self.datatype = datatype
         self.path = path
-        
+
     def z(self):
         if self.datatype == 'xyz':
             if self.path!=None:
@@ -29,7 +29,7 @@ class Topodata:
             else:
                 return np.loadtxt(self.filename)
         if self.datatype == 'celeris':
-                bathy =  np.loadtxt(os.path.join(self.path, 'bathy.txt'))   
+                bathy =  np.loadtxt(os.path.join(self.path, 'bathy.txt'))
                 return bathy*-1
         else:
             return 'No supported format'
@@ -45,7 +45,7 @@ class BoundaryConditions:
                  South=None,
                  East =None,
                  West =None,
-                 WaveType=2,
+                 WaveType=-1,
                  Amplitude = 0.5,
                  path = './scratch',
                  filename='waves.txt',
@@ -57,7 +57,7 @@ class BoundaryConditions:
         self.South = South
         self.East = East
         self.West = West
-        self.WaveType = WaveType # Wave type:: 1:SineWaves  3:SolitaryWave
+        self.WaveType = WaveType # -1 to read from a file
         self.sine_wave = sine_wave
         self.data = np.zeros((2,4))
         self.N_data  = 2
@@ -75,19 +75,19 @@ class BoundaryConditions:
                 self.BoundaryWidth = int(self.configfile['BoundaryWidth'])
             else:
                 self.BoundaryWidth=BoundaryWidth
-            if checjson('north_boundary_type',self.configfile)==1:                
+            if checjson('north_boundary_type',self.configfile)==1:
                 self.North = int(self.configfile['north_boundary_type'])
             else:
                 self.North = North
-            if checjson('south_boundary_type',self.configfile)==1:                
+            if checjson('south_boundary_type',self.configfile)==1:
                 self.South = int(self.configfile['south_boundary_type'])
             else:
                 self.South = South
-            if checjson('east_boundary_type',self.configfile)==1:                
+            if checjson('east_boundary_type',self.configfile)==1:
                 self.East = int(self.configfile['east_boundary_type'])
             else:
                 self.East = East
-            if checjson('west_boundary_type',self.configfile)==1:                
+            if checjson('west_boundary_type',self.configfile)==1:
                 self.West = int(self.configfile['west_boundary_type'])
             else:
                 self.West = West
@@ -98,24 +98,24 @@ class BoundaryConditions:
             self.West = West
             self.East = East
 
-        if self.WaveType==2:
+        if self.WaveType==-1:
             self.filename = os.path.join(path,filename)
 
-        
-    
+
+
     def Sponge(self,width=None):
         return width
-        
+
     def SineWave(self):
         return np.array(self.sine_wave)
-    
+
     def tseries(self):
         R = False
         if self.filename!=None:
             R = True
         return R
     def load_data(self):
-        if self.WaveType==2:
+        if self.WaveType==-1:
             with open(self.filename,'r') as wavefile:
                 for line in wavefile:
                     if 'NumberOfWaves' in line:
@@ -131,7 +131,7 @@ class BoundaryConditions:
         else:
             pass
     def get_data(self):
-        if self.WaveType==2:
+        if self.WaveType==-1:
             self.load_data()
         data = ti.field(ti.f32,shape=(self.N_data,4))
         data.from_numpy(self.data)
@@ -170,7 +170,7 @@ class Domain:
         self.east_sl  = east_sl
         self.west_sl  = west_sl
         self.seaLevel = 0.0
-        self.g = 9.80665     
+        self.g = 9.80665
         self.configfile=None
         self.Boundary_shift=BoundaryShift
         if self.topodata.datatype=='celeris':
@@ -214,11 +214,11 @@ class Domain:
             self.isManning = isManning
             self.friction = friction
             self.Courant = Courant
-            self.base_depth_ = base_depth   
+            self.base_depth_ = base_depth
 
-            
+
         self.pixels = ti.field(float, shape=(self.Nx,self.Ny))
-    
+
     def topofield(self):
         if self.topodata.datatype=='celeris':
             x_out, y_out = np.meshgrid( np.arange( 0.0, self.Nx*self.dx , self.dx),np.arange(0, self.Ny*self.dy,self.dy))
@@ -234,44 +234,44 @@ class Domain:
         nbottom = np.zeros((4,self.Nx,self.Ny),dtype=np.float32)
         nbottom[2] =-1.0* self.topofield()[2]
         nbottom[3] = 99.   # To be used in neardry
-               
+
         bottom = ti.field(ti.f32,shape=(4,self.Nx,self.Ny,))
         bottom.from_numpy(nbottom)
         return bottom
-    
+
     def grid(self):
         xx = self.topofield()[0]
         yy = self.topofield()[1]
         zz = self.topofield()[2]
         return xx,yy,zz
-    
+
     def maxdepth(self):
         if self.base_depth_ ==None:
             return np.max(self.topofield()[2])
         else:
-            return self.base_depth_   
-    
+            return self.base_depth_
+
     def maxtopo(self):
-        return np.min(self.topofield()[2])      
-        
+        return np.min(self.topofield()[2])
+
     def dt(self):
         maxdepth = self.maxdepth()
         return self.Courant*self.dx/np.sqrt(self.g*self.maxdepth())
-        
+
     def reflect_x(self):
         return 2*(self.Nx-3)
-        
+
     def reflect_y(self):
         return 2*(self.Ny-3)
-            
+
     def states(self):
         foo = ti.Vector.field(4,ti.f32,shape=(self.Nx,self.Ny,))
         return foo
-    
+
     def states_one(self):
         foo = ti.Vector.field(1,ti.f32,shape=(self.Nx,self.Ny,))
         return foo
-    
+
 
 if __name__ == "__main__":
     print('Domain module used in Celeris')
