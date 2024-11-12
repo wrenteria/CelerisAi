@@ -67,7 +67,7 @@ class Solver:
         self.bc  = boundary_conditions
         self.useSedTransModel = useSedTransModel
         self.clearConc = clearCon
-        self.Bottom = self.domain.bottom()                  # Bottom [BN, BE, B, Dry/Wet] # B->bottom 
+        self.Bottom = self.domain.bottom()                  # Bottom [BN, BE, B, Dry/Wet] # B->bottom
         #self.temp_bottom = self.domain.bottom()
         # Physical "state" values, eval at center of cell
         self.State = self.domain.states()                   # stores the state[eta, P, Q, hc] at t = n
@@ -76,7 +76,7 @@ class Solver:
         self.stateUVstar =self.domain.states()              # the values of the current (n) bous-grouped state, or eta, U, V, and c
         self.current_stateUVstar =self.domain.states()      # next bous-grouped state
         # State variables, texture gives values along cell edges
-        self.Hnear = self.domain.states()                   # 
+        self.Hnear = self.domain.states()                   #
         self.H = self.domain.states()                       # water depth
         self.U = self.domain.states()                       # E-W velocity
         self.V = self.domain.states()                       # N-S velocity
@@ -88,7 +88,7 @@ class Solver:
         self.oldOldGradients= self.domain.states()          # stores d(state)/dt values from two time steps ago
         self.predictedGradients = self.domain.states()      # stores d(state)/dt values found in the predictor step
         self.dU_by_dt = self.domain.states()                # stores d(state)/dt values output from Pass3 calls - Posible can be replaced by self.predictedGradients
-        
+
         # Bouss
         self.predictedF_G_star = self.domain.states()           # stores F*, G* (bous only) found in predictor step
         self.F_G_star_oldGradients = self.domain.states()       # stores F*, G* (bous only) found at previous time step
@@ -96,8 +96,8 @@ class Solver:
         # Parallel Cyclic Reduction
         self.coefMatx = self.domain.states()                    # tridiagonal coefficients for x-dir (bous only)
         self.coefMaty = self.domain.states()                    # tridiagonal coefficients for y-dir (bous only)
-        self.temp_PCRx1 = self.domain.states()               # temp storage for PCR x-dir PCR reduced tridiagonal coefficients for x-dir (bous only) 
-        self.temp_PCRy1 = self.domain.states()               # temp storage for PCR y-dir PCR reduced tridiagonal coefficients for y-dir (bous only) 
+        self.temp_PCRx1 = self.domain.states()               # temp storage for PCR x-dir PCR reduced tridiagonal coefficients for x-dir (bous only)
+        self.temp_PCRy1 = self.domain.states()               # temp storage for PCR y-dir PCR reduced tridiagonal coefficients for y-dir (bous only)
         self.temp_PCRx2 = self.domain.states()               # temp storage for PCR x-dir
         self.temp_PCRy2 = self.domain.states()               # temp storage for PCR y-dir
         self.temp2_PCRx = self.domain.states()              # temp storage for P solution
@@ -125,7 +125,7 @@ class Solver:
         self.DissipationFlux = self.domain.states()
         self.ContSource = self.domain.states_one()
         self.Breaking = self.domain.states()
-        
+
         self.R_x  = self.domain.reflect_x()
         self.R_y  = self.domain.reflect_y()
         self.BCShift = self.domain.Boundary_shift
@@ -138,7 +138,7 @@ class Solver:
         self.eSL  = self.domain.east_sl
         self.wSL  = self.domain.west_sl
         self.seaLevel = self.domain.seaLevel
-        self.base_depth = self.domain.maxdepth() 
+        self.base_depth = self.domain.maxdepth()
         self.maxtopo = self.domain.maxtopo()
         self.WaveData = self.bc.get_data()
         self.Nwaves   = self.bc.N_data
@@ -173,7 +173,7 @@ class Solver:
         self.bcEast=self.bc.East
         self.bcWest=self.bc.West
         # Breaking parameters
-        self.T_star_coef = T_star_coef      
+        self.T_star_coef = T_star_coef
         self.dzdt_F_coef = dzdt_F_coef
         self.dzdt_I_coef = dzdt_I_coef
 
@@ -182,12 +182,12 @@ class Solver:
                 self.whiteWaterDecayRate = float(self.bc.configfile['whiteWaterDecayRate'])
             else:
                 self.whiteWaterDecayRate = whiteWaterDecayRate
-            
+
             if checjson('whiteWaterDispersion',self.bc.configfile)==1:
                 self.whiteWaterDispersion = float(self.bc.configfile['whiteWaterDispersion'])
             else:
                 self.whiteWaterDispersion = whiteWaterDispersion
-            
+
             if checjson('dissipation_threshold',self.bc.configfile)==1:
                 self.dissipation_threshold = float(self.bc.configfile['dissipation_threshold'])
             else:
@@ -202,41 +202,41 @@ class Solver:
                 self.theta = float(self.bc.configfile['Theta'])
             else:
                 self.theta = theta
-            
+
             if checjson('Bcoef',self.bc.configfile)==1:
                 self.Bcoef = float(self.bc.configfile['Bcoef'])
             else:
                 self.Bcoef = Bcoef
-            
+
             if checjson('dt',self.bc.configfile)==1:
                 self.dt = float(self.bc.configfile['dt'])
             else:
                 self.dt = self.domain.dt()
-            
+
             if checjson('timeScheme',self.bc.configfile)==1:
                 self.timeScheme = int(float(self.bc.configfile['timeScheme']))
             else:
                 self.timeScheme = self.timeScheme
-            
+
             if checjson('delta',self.bc.configfile)==1:
                 self.delta = float(self.bc.configfile['delta'])
             else:
                 self.delta = ti.min(0.005, self.base_depth / 5000.0)
-            
+
             if checjson('epsilon',self.bc.configfile)==1:
                 self.epsilon = float(self.bc.configfile['epsilon'])
             else:
                 self.epsilon  = ti.pow(self.delta,2)
-            
+
             if checjson('Px',self.bc.configfile)==1:
                 self.Px = int(self.bc.configfile['Px'])
             else:
                 self.Px = int(ti.ceil(ti.log(self.nx) / ti.log(2)))
-            
+
             if checjson('Py',self.bc.configfile)==1:
                 self.Py = int(self.bc.configfile['Py'])
             else:
-                self.Py = int(ti.ceil(ti.log(self.ny) / ti.log(2)))  
+                self.Py = int(ti.ceil(ti.log(self.ny) / ti.log(2)))
 
             if checjson('friction',self.bc.configfile)==1:
                 self.friction = int(self.bc.configfile['friction'])
@@ -252,7 +252,7 @@ class Solver:
                 # defines length of time until breaking becomes fully developed
                 self.T_star_coef = float(self.bc.configfile['T_star_coef'])
             else:
-                self.T_star_coef = T_star_coef      
+                self.T_star_coef = T_star_coef
 
             if checjson('dzdt_I_coef',self.bc.configfile)==1:
                 # start breaking parameter
@@ -265,7 +265,7 @@ class Solver:
                 self.dzdt_F_coef = float(self.bc.configfile['dzdt_F_coef'])
             else:
                 self.dzdt_F_coef = dzdt_F_coef
-            
+
             if checjson('useSedTransModel',self.bc.configfile)==1:
                 self.useSedTransModel = bool(int(self.bc.configfile['useSedTransModel']))
             else:
@@ -294,8 +294,8 @@ class Solver:
                 self.sediment.C_erosion = self.sediment.psi*ti.pow(self.sediment.d50/1000.,-0.2)
                 self.sediment.C_settling = ti.sqrt( 4.0 / 3.0 * 9.81 * self.sediment.d50/1000. / 0.2 * (self.sediment.rhorat - 1.0) )
                 self.sediment.C_rho_sat =  (self.sediment.p + self.sediment.rhorat*( 1-self.sediment.p ))/1000.
-                
-               
+
+
 
         # COMPUTATION OF PARAMETERS
         self.one_over_dx = 1/self.dx
@@ -320,7 +320,7 @@ class Solver:
         for i,j in self.State:
             self.State[i,j] = ti.Vector([0.0,0.0,0.0,0.0])
             self.stateUVstar[i,j]= ti.Vector([0.0,0.0,0.0,0.0])
-           
+
     @ti.kernel
     def fill_bottom_field(self):
         lengthCheck = 3
@@ -336,15 +336,15 @@ class Solver:
 
                     if self.Bottom[2,xC,yC] >= 0:
                         self.Bottom[3,i,j] = -99.0
-    
+
     @ti.func
     def BoundSineWaves(self,NumWaves,Waves,x,y,t,d_here,grav):
         result = ti.Vector([0.0, 0.0, 0.0])
         if d_here>0.0001:
             for w in range(NumWaves):
-                result += sineWave(x,y,t,d_here,Waves[w,0],Waves[w,1],Waves[w,2],Waves[w,3],grav)
+                result += sineWave(x,y,t,d_here,Waves[w,0],Waves[w,1],Waves[w,2],Waves[w,3],grav,self.bc.WaveType)
         return result
-    
+
 
     @ti.func
     def SolitaryWave(self,x0,y0,theta,x,y,t,d_here):
@@ -357,11 +357,11 @@ class Solver:
         hu = ti.sqrt(1.0 + 0.5 * amp / d_here) * eta * c * ti.cos(theta)
         hv = ti.sqrt(1.0 + 0.5 * amp / d_here) * eta * c * ti.sin(theta)
         return eta,hu,hv
-                                    
+
     @ti.kernel
     def BoundaryPass(self,time:ti.f32, txState: ti.template()):
         #for i,j in txState:
-        for i,j in ti.ndrange((0,self.nx),(0,self.ny)):    
+        for i,j in ti.ndrange((0,self.nx),(0,self.ny)):
             BCState = txState[i,j]
             BCState_Sed = self.State_Sed[i,j].x
             BCState_Sed = ti.max(BCState_Sed,0.0)
@@ -380,18 +380,18 @@ class Solver:
                 BCState_Sed = 0.0
             if (self.bcNorth ==1 and j >= self.ny - self.bc.BoundaryWidth-1):
                 gamma = ti.pow(0.5 * (0.5 + 0.5 * ti.cos(self.pi * (self.bc.BoundaryWidth - (self.BoundaryNy - j)) / (self.bc.BoundaryWidth-1))), 0.0005)
-                BCState = txState[ i, j]* gamma 
+                BCState = txState[ i, j]* gamma
                 BCState_Sed = 0.0
             ### SOLID WALLS
             if self.bcWest <=1:
-                if i <= 1: 
+                if i <= 1:
                     BCState[0] = txState[  self.BCShift - i , j ][0]
                     BCState[1] = -txState[  self.BCShift - i , j ][1]
                     BCState[2] = txState[  self.BCShift - i , j ][2]
                     BCState[3] = txState[  self.BCShift - i , j ][3]
                     BCState_Sed = 0.0
-                elif i==2:    
-                    BCState[1] = 0.0  
+                elif i==2:
+                    BCState[1] = 0.0
                     BCState_Sed = 0.0
             if self.bcEast <= 1:
                 if (i >=self.nx - 2):
@@ -401,7 +401,7 @@ class Solver:
                     BCState[3] = txState[ self.R_x - i, j][3]
                     BCState_Sed = 0.0
                 elif i==self.nx-3:
-                    BCState[1] = 0.0    
+                    BCState[1] = 0.0
                     BCState_Sed = 0.0
             if self.bcSouth <= 1:
                 if j <= 1:
@@ -410,7 +410,7 @@ class Solver:
                     BCState[2] = -txState[i, self.BCShift - j][2]
                     BCState[3] = txState[i, self.BCShift - j][3]
                     BCState_Sed = 0.0
-                elif j == 2:    
+                elif j == 2:
                     BCState[2] = 0.0
                     BCState_Sed = 0.0
             if self.bcNorth <=1:
@@ -425,39 +425,39 @@ class Solver:
                     BCState_Sed = 0.0
             ### INCOMING WALLS
             if self.bcWest ==2 and i<=2:
-                if self.bc.WaveType<=2:  
+                if self.bc.WaveType<=2:
                     B_here = -self.base_depth
                     d_here = ti.max( 0, - B_here)
                     x = i * self.dx
-                    y = j * self.dy                        
+                    y = j * self.dy
                     bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
                     BCState = ti.Vector([bcwave[0] + self.wSL,bcwave[1],bcwave[2],0.0])
-                    BCState_Sed = 0.0         
+                    BCState_Sed = 0.0
                 elif self.bc.WaveType==3:
                     d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
                     x0 = -10.0 * self.base_depth
                     eta,hu,hv = self.SolitaryWave(x0, 0.0, 0.0, i*self.dx, j*self.dy, time, d_here)
-                    BCState = ti.Vector([eta + self.wSL,hu,hv,0.0])    
+                    BCState = ti.Vector([eta + self.wSL,hu,hv,0.0])
                     BCState_Sed = 0.0
-                
+
             if self.bcEast ==2 and i>= self.nx-3:
-                if self.bc.WaveType<=2:     
+                if self.bc.WaveType<=2:
                     B_here = -self.base_depth
                     d_here = ti.max( 0, - B_here)
                     x = i * self.dx
                     y = j * self.dy
                     bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
                     BCState =  ti.Vector([bcwave[0] + self.eSL,bcwave[1],bcwave[2],0.0])
-                    BCState_Sed = 0.0 
+                    BCState_Sed = 0.0
                 elif self.bc.WaveType==3:
                     d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
                     x0 = self.nx*self.dx + 10.0 * self.base_depth
                     y0 = 0.0
                     theta = -3.1415
                     eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
-                    BCState = ti.Vector([eta + self.eSL,hu,hv,0.0])    
+                    BCState = ti.Vector([eta + self.eSL,hu,hv,0.0])
                     BCState_Sed = 0.0
-                            
+
             if self.bcSouth ==2 and j<=2:
                 if self.bc.WaveType<=2:
                     B_here = -self.base_depth
@@ -473,9 +473,9 @@ class Solver:
                     y0 = -10.0 * self.base_depth
                     theta = 3.1415 / 2.0
                     eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
-                    BCState = ti.Vector([eta + self.sSL,hu,hv,0.0])    
+                    BCState = ti.Vector([eta + self.sSL,hu,hv,0.0])
                     BCState_Sed = 0.0
-                
+
             if self.bcNorth ==2 and j>=self.ny-3:
                 if self.bc.WaveType<=2:
                     B_here = -self.base_depth
@@ -483,8 +483,8 @@ class Solver:
                     x = i * self.dx
                     y = j * self.dy
                     bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
-                    BCState = ti.Vector([bcwave[0] + self.nSL,bcwave[1],bcwave[1],0.0]) 
-                    BCState_Sed = 0.0  
+                    BCState = ti.Vector([bcwave[0] + self.nSL,bcwave[1],bcwave[1],0.0])
+                    BCState_Sed = 0.0
                 # Solitary Waves
                 elif self.bc.WaveType==3:
                     d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
@@ -492,9 +492,9 @@ class Solver:
                     theta = -3.1415 / 2.0
                     #SolitaryWave(x0 , y0 , theta , x , y , t , d_here):
                     eta,hu,hv = self.SolitaryWave(0.0, y0, theta, i*self.dx, j*self.dy, time, d_here)
-                    BCState = ti.Vector([eta + self.nSL,hu,hv,0.0])    
+                    BCState = ti.Vector([eta + self.nSL,hu,hv,0.0])
                     BCState_Sed = 0.0
-           #Compute the coordinates of the neighbors 
+           #Compute the coordinates of the neighbors
             rightIdx = ti.min(i + 1, self.nx - 1)
             upIdx = ti.min(j + 1, self.ny - 1)
             leftIdx = ti.max(i - 1, 0)
@@ -510,13 +510,13 @@ class Solver:
             state_north = txState[i,upIdx]
             state_west = txState[leftIdx,j]
             state_east = txState[rightIdx,j]
-            
+
             eta_here =  BCState.x #
             eta_west = state_west.x
             eta_east = state_east.x
             eta_south = state_south.x
             eta_north = state_north.x
-            
+
             h_here  = eta_here - B_here # CHANGE
             h_south = eta_south - B_south
             h_north = eta_north - B_north
@@ -545,7 +545,7 @@ class Solver:
                dry_south=0
             if h_north<=h_cut.x:
                dry_north=0
-           
+
             sum_dry = dry_west + dry_east + dry_south + dry_north
 
             h_min = ti.Vector([0.0, 0.0, 0.0, 0.0])
@@ -577,20 +577,20 @@ class Solver:
                    BCState = ti.Vector([ti.max(BCState.x,B_here),0.0,0.0,0.0])
                else:
                    BCState = ti.Vector([B_here,0.0,0.0,0.0])
-                
+
                BCState_Sed = 0.0
-            
+
             txState[i,j] = BCState
             self.NewState_Sed[i,j].x = BCState_Sed
 
-    
+
     @ti.kernel
     def copy_states(self,src: ti.template(), dst: ti.template()):
         ti.static_assert(dst.shape == src.shape, "copy() needs src and dst fields to be same shape")
         for I in ti.grouped(dst):
             dst[I] = src[I]
-          
-                
+
+
     @ti.kernel
     def tridiag_coeffs_X(self):
         # to calculate the flux terms - Tridiagonal system pag. 12
@@ -617,7 +617,7 @@ class Solver:
                     c = -depth_here * d_dx / (6.0 * dx) - (self.Bcoef + 1.0 / 3.0) * (depth_here * depth_here) / (dx * dx)
                 self.coefMatx[i,j] = ti.Vector([a,b,c,0.0])
 
-    
+
     @ti.kernel
     def tridiag_coeffs_Y(self):
         # to calculate the flux terms - Tridiagonal system pag. 12
@@ -627,12 +627,12 @@ class Solver:
             ti.loop_config(serialize=True)
             for i in range(0,self.nx):
                 a, b, c = 0.0, 0.0, 0.0
-                neardry =Bottom[3,i,j]        
+                neardry =Bottom[3,i,j]
                 if j<=2 or j>=self.ny-3 or neardry<0.0:
                     a = 0.0
                     b = 1.0
                     c = 0.0
-                else:  
+                else:
                     depth_here = -Bottom[2,i,j]
                     depth_plus = -Bottom[2,i,j + 1]
                     depth_minus = -Bottom[2,i,j - 1]
@@ -644,45 +644,45 @@ class Solver:
                     c = -depth_here * d_dy / (6.0 * dy) - (self.Bcoef + 1.0 / 3.0) * depth_here * depth_here / (dy * dy)
                 # Store the coefficients in the texture field
                 self.coefMaty[i,j] = ti.Vector([a,b,c,0.0])
-    
-    
-    
+
+
+
     @ti.kernel
     def Pass1(self):
         # PASS 0 and Pass1 - edge value construction
         # using Generalized minmod limiter
         zro=ti.Vector([0.0, 0.0, 0.0, 0.0])
         for i,j in self.State:
-            # Compute the coordinates of the neighbors 
+            # Compute the coordinates of the neighbors
             rightIdx = ti.min(i + 1, self.nx - 1)
             upIdx = ti.min(j + 1, self.ny - 1)
             leftIdx = ti.max(i - 1, 0)
             downIdx = ti.max(j - 1, 0)
-             
+
             #Read in the state of the water at this pixel and its neighbors [eta,hu,hv,c]
             in_here = self.State[i , j]
             in_S = self.State[i, downIdx]
             in_N = self.State[i, upIdx]
             in_W = self.State[leftIdx, j]
             in_E = self.State[rightIdx, j]
-                        
+
             B_here = self.Bottom[2, i, j]
             B_south = self.Bottom[2, i, downIdx]
             B_north = self.Bottom[2, i, upIdx]
             B_west = self.Bottom[2, leftIdx, j]
             B_east = self.Bottom[2, rightIdx, j]
-            
+
             # h = eta - B
             h_here  = in_here[0] - B_here
             h_south = in_S[0] - B_south
             h_north = in_N[0] - B_north
             h_west = in_W[0] - B_west
             h_east = in_E[0] - B_east
-            
+
             # Define h_near = eta_near - B_near
-            # HNear_vec neighbours [hN,hE,hS,hW] 
-            self.Hnear[ i , j ] = [h_north,  h_east, h_south , h_west]       
-            
+            # HNear_vec neighbours [hN,hE,hS,hW]
+            self.Hnear[ i , j ] = [h_north,  h_east, h_south , h_west]
+
             # To avoid unnecesary computations
             h_cut = self.delta
             if h_here <= h_cut:
@@ -691,50 +691,50 @@ class Solver:
                     self.U[i,j] = zro
                     self.V[i,j] = zro
                     self.C[i,j] = zro
-                    continue 
+                    continue
 
             ########################################################
             # Pass 1
-            # Load bed elevation data for this cell's edges. 
+            # Load bed elevation data for this cell's edges.
             # B neighbours [BN,BE,BS,BW]
             B = ti.Vector([0.0, 0.0, 0.0, 0.0])
             B[0] = self.Bottom[0, i , j]
             B[1] = self.Bottom[1, i , j]
             B[2] = self.Bottom[0, i , downIdx]
             B[3] = self.Bottom[1,leftIdx , j]
-            
+
             dB_max = ti.Vector([0.0, 0.0, 0.0, 0.0])
-            
+
             dB_west = ti.abs(B_here - B_west)
             dB_east = ti.abs(B_here - B_east)
             dB_south = ti.abs(B_here - B_south)
             dB_north = ti.abs(B_here - B_north)
-            
+
             # Initialize variables for water height, momentum components, and standard deviation
-            h = ti.Vector([0.0, 0.0, 0.0, 0.0]) 
+            h = ti.Vector([0.0, 0.0, 0.0, 0.0])
             w = ti.Vector([0.0, 0.0, 0.0, 0.0])
             hu = ti.Vector([0.0, 0.0, 0.0, 0.0])
             hv = ti.Vector([0.0, 0.0, 0.0, 0.0])
             hc = ti.Vector([0.0, 0.0, 0.0, 0.0])
-            
+
             # modify limiters based on whether near the inundation limit
             wetdry = ti.min(h_here, ti.min(h_south, ti.min(h_north, ti.min(h_west, h_east))))
             rampcoef = ti.min(ti.max(0.0, wetdry / (0.02 * self.base_depth)), 1.0)
             #transition to full upwinding near the shoreline / inundation limit, start transition with a total water depth of base_depth/50
             TWO_THETAc = self.two_theta * rampcoef + 2.0 * (1.0 - rampcoef)
-            
+
             if wetdry <= self.epsilon :
                 dB_max = 0.5*ti.Vector([dB_north, dB_east, dB_south, dB_west])
-                
+
             # Reconstruction eta
             wwy = Reconstruct(in_W[0], in_here[0], in_E[0],TWO_THETAc)
             wzx = Reconstruct(in_S[0], in_here[0], in_N[0],TWO_THETAc)
             w = ti.Vector([wzx.y, wwy.y, wzx.x, wwy.x])
-            
+
             # Reconstruct h from (corrected) w
             h = w - B
             h = ti.max(h, ti.Vector([0.0, 0.0, 0.0, 0.0]))
-            
+
             # Reconstruction hu ~P
             huwy  = Reconstruct(in_W[1], in_here[1], in_E[1],TWO_THETAc)
             huzx = Reconstruct(in_S[1], in_here[1], in_N[1],TWO_THETAc)
@@ -744,15 +744,15 @@ class Solver:
             hvwy = Reconstruct(in_W[2], in_here[2], in_E[2],TWO_THETAc)
             hvzx = Reconstruct(in_S[2], in_here[2], in_N[2],TWO_THETAc)
             hv = ti.Vector([hvzx.y, hvwy.y, hvzx.x, hvwy.x])
-            
+
             # Reconstruction hc - scalar - sediment concentration or contaminent
             hcwy = Reconstruct(in_W[3], in_here[3], in_E[3],TWO_THETAc)
             hczx = Reconstruct(in_S[3], in_here[3], in_N[3],TWO_THETAc)
             hc = ti.Vector([hczx.y, hcwy.y, hczx.x, hcwy.x])
-            
+
             output_u, output_v, output_c = CalcUV(h, hu, hv, hc, self.epsilon, dB_max)
-            
-            #Froude number limiter 
+
+            #Froude number limiter
             epsilon_c = ti.max(self.epsilon, dB_max)
             divide_by_h = 2.0 * h / (h*h + max(h*h, epsilon_c))
 
@@ -761,89 +761,89 @@ class Solver:
             dBdx = ti.abs(B_east - B_west) / self.double_dx
             dBdy = ti.abs(B_north - B_south) / self.double_dy
             dBds_max = ti.max(dBdx, dBdy)
-            #max Fr allowed on slopes less than 45 degrees is 3; 
+            #max Fr allowed on slopes less than 45 degrees is 3;
             #for very steep slopes, artificially slow velocity - physics are just completely wrong here anyhow
             Fr_maxallowed = 3.0 / ti.max(1.0, dBds_max)
             if Frumax > Fr_maxallowed :
                 Fr_red = Fr_maxallowed / Frumax
                 output_u = output_u * Fr_red
                 output_v = output_v * Fr_red
-            
+
             maxInundatedDepth = max((h[0] + h[1] + h[2] + h[3]) / 4, self.Auxiliary[i,j][0])
-            
+
             # Write H, U, V, C vector fields
             self.H[i,j] = h
             self.U[i,j] = output_u
             self.V[i,j] = output_v
             self.C[i,j] = output_c
             self.Auxiliary[i,j] = ti.Vector([maxInundatedDepth, 0.0, 0.0, 0.0])
-    
-    
+
+
     @ti.kernel
     def Pass1_SedTrans(self):
         # Pass1 - edge value construction of hc
-        # using Generalized minmod limiter 
+        # using Generalized minmod limiter
         for i,j in self.State_Sed:
-            # Compute the coordinates of the neighbors 
+            # Compute the coordinates of the neighbors
             rightIdx = ti.min(i + 1, self.nx - 1)
             upIdx = ti.min(j + 1, self.ny - 1)
             leftIdx = ti.max(i - 1, 0)
             downIdx = ti.max(j - 1, 0)
-              
+
             in_here = self.State_Sed[i,j].x
             in_S = self.State_Sed[i, downIdx].x
             in_N = self.State_Sed[i, upIdx].x
             in_W = self.State_Sed[leftIdx , j].x
             in_E = self.State_Sed[rightIdx ,j].x
-            
+
             B_here = self.Bottom[2,i,j]
             B_south = self.Bottom[2,i,downIdx]
             B_north = self.Bottom[2,i, upIdx]
             B_west = self.Bottom[2,leftIdx,j]
             B_east = self.Bottom[2,rightIdx,j]
-                       
+
             dB_west = ti.abs(B_here - B_west)
             dB_east = ti.abs(B_here - B_east)
             dB_south = ti.abs(B_here - B_south)
             dB_north = ti.abs(B_here - B_north)
 
             dB_max = 0.5*ti.Vector([dB_north, dB_east, dB_south, dB_west])
-            
+
             h_here  = in_here - B_here
             h_south = in_S - B_south
             h_north = in_N - B_north
             h_west = in_W - B_west
             h_east = in_E - B_east
-                   
+
             # Pass 1
             #  Initialize local variables (thread)
             hc = ti.Vector([0.0, 0.0, 0.0, 0.0])
-            
+
             # modify limiters based on whether near the inundation limit
             wetdry = ti.min(h_here, ti.min(h_south, ti.min(h_north, ti.min(h_west, h_east))))
             rampcoef = ti.min(ti.max(0.0, wetdry / (0.02 * self.base_depth)), 1.0)
 
             #transition to full upwinding near the shoreline / inundation limit, start transition with a total water depth of base_depth/50
             TWO_THETAc = self.two_theta * rampcoef + 2.0 * (1.0 - rampcoef)
-            
-                       
+
+
             # Reconstruction class1
             hcwy = Reconstruct(in_W, in_here, in_E,TWO_THETAc)
             hczx = Reconstruct(in_S, in_here, in_N,TWO_THETAc)
-            
+
             hc = ti.Vector([hczx.y, hcwy.y, hczx.x, hcwy.x])
-                                  
+
             h = self.H[i,j]
 
             epsilon_c = ti.max(self.epsilon, dB_max)
             divide_by_h = 2.0 * h / (h*h + max(h*h, epsilon_c))
-            
+
             c_sed = divide_by_h * hc
-            
+
             # Write Sediment concentration by edge
             self.Sed_C[i,j] = c_sed
-           
-    
+
+
     @ti.kernel
     def Pass2(self):
         # PASS 2 - Calculus of fluxes
@@ -852,80 +852,80 @@ class Solver:
             upIdx = ti.min(j + 1, self.ny - 1)
             leftIdx = ti.max(i - 1, 0)
             downIdx = ti.max(j - 1, 0)
-            
+
             h_vec = self.Hnear[i,j]
-            
+
             h_here = ti.Vector([0.0, 0.0])
             h_here[0] = self.H[i,j][0]
             h_here[1] = self.H[i,j][1]
-           
+
             hW_east = self.H[rightIdx,j][3]
             hS_north = self.H[i,upIdx][2]
-    
+
             u_here = ti.Vector([0.0, 0.0])
             u_here[0] = self.U[i,j][0]
             u_here[1] = self.U[i,j][1]
-            
+
             uW_east = self.U[rightIdx,j][3]
             uS_north = self.U[i, upIdx][2]
-    
+
             v_here = ti.Vector([0.0, 0.0])
             v_here[0] = self.V[i, j][0]
             v_here[1] = self.V[i, j][1]
-            
+
             vW_east = self.V[rightIdx , j][3]
             vS_north = self.V[i, upIdx][2]
-            
+
             # Compute wave speeds
-            cNE = ti.sqrt(self.g * h_here)    
+            cNE = ti.sqrt(self.g * h_here)
             cW = ti.sqrt(self.g * hW_east)     # cW evaluated at (j+1, k)
-            cS = ti.sqrt(self.g * hS_north)    # cS evaluated at (j, k+1)            
-            
+            cS = ti.sqrt(self.g * hS_north)    # cS evaluated at (j, k+1)
+
             # Compute propagation speeds
             aplus = ti.max(ti.max(u_here[1] + cNE[1], uW_east + cW), 0.0)
             aminus = ti.min(ti.min(u_here[1] - cNE[1], uW_east - cW), 0.0)
             bplus = ti.max(ti.max(v_here[0] + cNE[0], vS_north + cS), 0.0)
             bminus = ti.min(ti.min(v_here[0] - cNE[0], vS_north - cS), 0.0)
-                        
+
             B_here = self.Bottom[2,i, j]
-            dB = ti.max(self.Bottom[2,i, downIdx] - B_here, ti.max(self.Bottom[2,i,upIdx] - B_here, ti.max(self.Bottom[2,leftIdx,j] - B_here, self.Bottom[2,rightIdx,j] - B_here)))            
- 
+            dB = ti.max(self.Bottom[2,i, downIdx] - B_here, ti.max(self.Bottom[2,i,upIdx] - B_here, ti.max(self.Bottom[2,leftIdx,j] - B_here, self.Bottom[2,rightIdx,j] - B_here)))
+
             #near_dry = self.Bottom[3,pi, pj] # Check the value of this field not used in here
-            
+
             c_here = ti.Vector([0.0, 0.0])
             c_here[0] =self.C[i,j][0]
-            c_here[1] =self.C[i,j][1] 
-            
+            c_here[1] =self.C[i,j][1]
+
             cW_east = self.C[rightIdx,j][3]
             cS_north = self.C[i,upIdx][2]
-            
+
             phix = 0.5
             phiy = 0.5
-            
+
             minH = ti.min(h_vec.w, ti.min(h_vec.z, ti.min(h_vec.y, h_vec.x)))
             mass_diff_x = (hW_east - h_here.y)
             mass_diff_y = (hS_north - h_here.x)
-            
+
             P_diff_x = (hW_east * uW_east - h_here.y * u_here.y)
             P_diff_y = (hS_north * uS_north - h_here.x * u_here.x)
-            
+
             Q_diff_x = (hW_east * vW_east - h_here.y * v_here.y)
             Q_diff_y = (hS_north * vS_north - h_here.x * v_here.x)
-             
+
             if minH <= self.delta :
                 mass_diff_x = 0.0
                 mass_diff_y = 0.0
                 phix = 1.0
                 phiy = 1.0
-                
+
             xflux = ti.Vector([0.0, 0.0, 0.0, 0.0])
             yflux = ti.Vector([0.0, 0.0, 0.0, 0.0])
-            
+
             xflux[0] = NumericalFlux(aplus, aminus, hW_east * uW_east, h_here.y * u_here.y, mass_diff_x)
             xflux[1] = NumericalFlux(aplus, aminus, hW_east * uW_east * uW_east, h_here.y * u_here.y * u_here.y, P_diff_x)
             xflux[2] = NumericalFlux(aplus, aminus, hW_east * uW_east * vW_east, h_here.y * u_here.y * v_here.y, Q_diff_x )
             xflux[3] = NumericalFlux(aplus, aminus, hW_east * uW_east * cW_east, h_here.y * u_here.y * c_here.y, phix*(hW_east * cW_east - h_here.y * c_here.y))
-            
+
             yflux[0] = NumericalFlux(bplus, bminus, hS_north * vS_north, h_here.x * v_here.x, mass_diff_y)
             yflux[1] = NumericalFlux(bplus, bminus, hS_north * uS_north * vS_north, h_here.x * u_here.x * v_here.x, P_diff_y)
             yflux[2] = NumericalFlux(bplus, bminus, hS_north * vS_north * vS_north, h_here.x * v_here.x * v_here.x, Q_diff_y)
@@ -934,21 +934,21 @@ class Solver:
             # Write Fluxes fluid
             self.XFlux[i,j] = xflux
             self.YFlux[i,j] = yflux
-            
-            if self.useSedTransModel==True : 
+
+            if self.useSedTransModel==True :
                 c1_here = ti.Vector([0.0, 0.0])
                 c1_here[0] = self.Sed_C[i,j][0]
-                c1_here[1] = self.Sed_C[i,j][1]           
+                c1_here[1] = self.Sed_C[i,j][1]
                 c1W_east = self.Sed_C[rightIdx,j][3]
                 c1S_north = self.Sed_C[i , upIdx][2]
-    
+
                 xflux_Sed = NumericalFlux(aplus, aminus, hW_east * uW_east *c1W_east, h_here[1] * u_here[1] * c1_here[1], phix*(hW_east*c1W_east - h_here[1]*c1_here[1]))
                 yflux_Sed = NumericalFlux(bplus, bminus, hS_north *c1S_north * vS_north, h_here[0] *c1_here[0] * v_here[0], phiy *(hS_north*c1S_north - h_here[0]*c1_here[0]))
-               
+
                 # Write Fluxes sediment by classes
                 self.XFlux_Sed[i,j].x = xflux_Sed
                 self.YFlux_Sed[i,j].x = yflux_Sed
-                
+
 
     @ti.kernel
     def Pass3(self,pred_or_corrector:ti.i32):
@@ -961,24 +961,24 @@ class Solver:
                 self.predictedF_G_star[i,j] = zro
                 self.current_stateUVstar[i,j] = zro
                 continue
-            
+
             # Load values from txBottom using index
-            B_here = self.Bottom[ 2, i, j] # 
-            
+            B_here = self.Bottom[ 2, i, j] #
+
             in_state_here = self.State[i , j] # w, hu and hv, c (cell avgs, evaluated here)
-            in_state_here_UV = self.stateUVstar[i, j] 
-            
+            in_state_here_UV = self.stateUVstar[i, j]
+
             B_south = self.Bottom[2,i , j-1]
             B_north = self.Bottom[2,i , j+1]
             B_west = self.Bottom[2,i-1 , j]
             B_east = self.Bottom[2,i+1 , j]
-            
+
             eta_here = in_state_here[0]
             eta_west = self.State[i-1 , j][0]
             eta_east = self.State[i+1 , j][0]
             eta_south = self.State[i, j-1][0]
             eta_north = self.State[i, j+1][0]
-            
+
             h_here = in_state_here[0] - B_here
             h_west = eta_west - B_west
             h_east = eta_east - B_east
@@ -993,25 +993,25 @@ class Solver:
                     self.predictedF_G_star[i,j] = zro
                     self.current_stateUVstar[i,j] = zro
                     continue
-            
+
             h_min = zro
             h_min[0]= ti.min(h_here, h_north)
             h_min[1]= ti.min(h_here, h_east)
             h_min[2]= ti.min(h_here, h_south)
             h_min[3]= ti.min(h_here, h_west)
-            
+
             detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
             detady = 0.5*(eta_north - eta_south) * self.one_over_dy
-            
+
             # Load values from txXFlux and txYFlux using idx
             xflux_here = self.XFlux[i , j]  # at i+1/2
             xflux_west = self.XFlux[i-1 , j]  # at i-1/2
             yflux_here = self.YFlux[i , j]  # at j+1/2
             yflux_south = self.YFlux[i , j-1]  # at j-1/2
-            
+
             friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
             friction_ = FrictionCalc(in_state_here[1], in_state_here[2], h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here)
-            
+
             # Pressure stencil calculations
             P_left = self.ShipPressure[i-1 , j].x
             P_right = self.ShipPressure[ i+1 , j].x
@@ -1019,34 +1019,34 @@ class Solver:
             P_up = self.ShipPressure[i , j+1].x
 
             press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
-            press_y = -0.5 * h_here * self.g_over_dy * (P_up - P_down)          
-            
+            press_y = -0.5 * h_here * self.g_over_dy * (P_up - P_down)
+
             # Calculate scalar transport additions
-            C_state_here = self.State[i , j][3] 
-            
-            C_state_left = self.State[i-1 , j][3] 
-            C_state_right = self.State[i+1 , j][3] 
-            C_state_up = self.State[i , j+1 ][3] 
-            C_state_down = self.State[i , j-1][3] 
-            C_state_up_left = self.State[i-1 ,j+1][3] 
-            C_state_up_right = self.State[i+1,j+1][3]         
-            C_state_down_left = self.State[i-1,j-1][3] 
-            C_state_down_right = self.State[ i+1,j-1][3] 
-            
+            C_state_here = self.State[i , j][3]
+
+            C_state_left = self.State[i-1 , j][3]
+            C_state_right = self.State[i+1 , j][3]
+            C_state_up = self.State[i , j+1 ][3]
+            C_state_down = self.State[i , j-1][3]
+            C_state_up_left = self.State[i-1 ,j+1][3]
+            C_state_up_right = self.State[i+1,j+1][3]
+            C_state_down_left = self.State[i-1,j-1][3]
+            C_state_down_right = self.State[ i+1,j-1][3]
+
             Dxx = self.whiteWaterDispersion
             Dxy = self.whiteWaterDispersion
             Dyy = self.whiteWaterDispersion
-                        
+
             hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here[3] + C_state_left)
             hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here[3] + C_state_down)
             hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
 
             c_dissipation = -self.whiteWaterDecayRate * C_state_here
-            
+
             breaking_B = 0.0
             if(self.useBreakingModel == True):
                 breaking_B = self.Breaking[i,j].z  # breaking front parameter, non-breaking [0 - 1] breaking
-            
+
             # fix slope near shoreline
             if h_min.x <= h_cut and h_min.z <= h_cut :
                 detady = 0.0
@@ -1054,36 +1054,36 @@ class Solver:
                 detady = 1.*(eta_here - eta_south) * self.one_over_dy
             elif h_min.z <= h_cut :
                 detady = 1.*(eta_north - eta_here) * self.one_over_dy
-            
+
             if h_min.y <= h_cut and h_min.w <= h_cut:
                 detadx = 0.0
             elif h_min.y <= h_cut:
                 detadx = 1.*(eta_here - eta_west) * self.one_over_dx
             elif h_min.w <= h_cut:
                 detadx = 1.*(eta_east - eta_here) * self.one_over_dx
-            
+
             overflow_dry = 0.0
             if B_here > 0.0 :
                 overflow_dry = -self.infiltrationRate #hydraulic conductivity of coarse, unsaturated sand
-  
+
             source_term = ti.Vector([overflow_dry, -self.g * h_here * detadx - in_state_here.y * friction_+press_x, -self.g * h_here * detady - in_state_here.z * friction_+press_y, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation ])
-            
+
             d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
-            
+
             # previous derivatives
             oldies = self.oldGradients[i , j]
             oldOldies = self.oldOldGradients[i , j]
-            
+
             newState = zro   # w , hu, hv ,hc
-            
+
             if self.timeScheme==0: # if timeScheme is Euler do:
                 newState = in_state_here_UV + self.dt * d_by_dt
-            
+
             elif pred_or_corrector==1:
                 # if time scheme is predictor
                 newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
-            
-            elif pred_or_corrector==2: 
+
+            elif pred_or_corrector==2:
                 # if time scheme is corrector
                 predicted = self.predictedGradients[i , j]
                 newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
@@ -1096,16 +1096,16 @@ class Solver:
                  newState.a = ti.min(1.0, newState.a + contaminent_source)
 
             F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0])
-                
+
             self.NewState[i , j] = newState
-            self.dU_by_dt[i , j] = d_by_dt   
+            self.dU_by_dt[i , j] = d_by_dt
             self.predictedF_G_star[i,j] = F_G_vec
-            self.current_stateUVstar[i , j] = newState 
-            
-    
+            self.current_stateUVstar[i , j] = newState
+
+
     @ti.kernel
     def Pass3_SedTrans(self,pred_or_corrector:ti.i32):
-        for i,j in self.State_Sed: 
+        for i,j in self.State_Sed:
             if i >= (self.nx - 2) or j >= (self.ny - 2) or i <= 1 or j <= 1:
                 self.NewState_Sed[i,j].x = 0.0
                 self.dU_by_dt_Sed[i,j].x = 0.0
@@ -1115,85 +1115,85 @@ class Solver:
             xflux_west = self.XFlux_Sed[i-1 , j].x  # at i-1/2
             yflux_here = self.YFlux_Sed[i , j].x  # at j+1/2
             yflux_south = self.YFlux_Sed[i , j-1].x  # at j-1/2
-            
+
             # Calculate scalar transport additions
             C_state_here = self.State_Sed[i , j].x
-            C_state_left = self.State_Sed[ i-1 , j].x 
-            C_state_right = self.State_Sed[ i+1 , j].x 
-            C_state_up = self.State_Sed[i , j+1].x 
-            C_state_down = self.State_Sed[i , j-1].x 
-            C_state_up_left = self.State_Sed[i-1 , j+1].x 
-            C_state_up_right = self.State_Sed[i+1 , j+1].x 
-            C_state_down_left = self.State_Sed[ i-1 , j-1].x 
+            C_state_left = self.State_Sed[ i-1 , j].x
+            C_state_right = self.State_Sed[ i+1 , j].x
+            C_state_up = self.State_Sed[i , j+1].x
+            C_state_down = self.State_Sed[i , j-1].x
+            C_state_up_left = self.State_Sed[i-1 , j+1].x
+            C_state_up_right = self.State_Sed[i+1 , j+1].x
+            C_state_down_left = self.State_Sed[ i-1 , j-1].x
             C_state_down_right = self.State_Sed[ i+1 , j-1].x
 
             Dxx = 1.0
             Dxy = 1.0
             Dyy = 1.0
-            
+
             hc_by_dx_dx = Dxx*self.one_over_d2x * (C_state_right - 2.0 * C_state_here + C_state_left)
             hc_by_dy_dy = Dyy*self.one_over_d2y * (C_state_up - 2.0 * C_state_here + C_state_down)
             hc_by_dx_dy = Dxy*self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left) / 4.0
-            
-            B = self.Bottom[ 2, i, j] # 
+
+            B = self.Bottom[ 2, i, j] #
             in_state_here = self.State[i , j]
             eta = in_state_here[0]
             hu = in_state_here[1]
             hv = in_state_here[2]
             h = eta - B
-            
+
             divide_by_h = ti.sqrt(2.0) * h / ti.sqrt(h * h + ti.max(h * h,self.epsilon))
-            
+
             f = self.friction / 2.0
             if self.isManning:
                 f = 9.81 * ti.pow(self.friction, 2.0) * ti.pow(ti.abs(divide_by_h), 1.0 / 3.0)
-           
+
             u = hu * divide_by_h
             v = hv * divide_by_h
-            
+
             local_speed = ti.sqrt(u**2 + v**2)
-                        
+
             shear_velocity = ti.sqrt(f) * local_speed
 
             shields = shear_velocity * shear_velocity * self.sediment.Shields
             erosion = 0.0
-            
+
             if shields >= self.sediment.CriticalShields:
                 erosion = self.sediment.C_erosion * (shields - self.sediment.CriticalShields) * local_speed * divide_by_h
-            
-            
+
+
             # working only with one class
             Cmin = ti.max(1.0e-6, C_state_here)
-                
+
             deposition = ti.min(2.0, (1.0 - self.sediment.p) / Cmin) * C_state_here * self.sediment.C_settling
-            
+
             source_term = hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + erosion - deposition
-            
+
             d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
-            
+
             # previous derivatives
             oldies = self.oldGradients_Sed[i , j].x
             oldOldies = self.oldOldGradients_Sed[i , j].x
-            
+
             Out = 0.0
-            
+
             if self.timeScheme == 0: # if timeScheme is Euler do:
                 Out = C_state_here + self.dt * d_by_dt
-               
+
             elif pred_or_corrector == 1: # if time scheme is predictor
                 Out = C_state_here + self.dt/12.0 * (23.*d_by_dt - 16.*oldies + 5.*oldOldies)
-               
+
             elif pred_or_corrector == 2: # if time scheme is corrector
                 predicted = self.predictedGradients_Sed[i , j].x
                 # corrector step
                 Out = C_state_here + self.dt/24. * (9.*d_by_dt + 19.*predicted - 5.*oldies + 1.*oldOldies)
-            
+
             self.NewState_Sed[i,j].x = Out
             self.dU_by_dt_Sed[i,j].x = d_by_dt
             self.erosion_Sed [i,j].x = erosion
             self.deposition_Sed [i,j].x = deposition
-            
-    
+
+
     @ti.kernel
     def Pass3Bous(self,pred_or_corrector:ti.i32):
         Bottom = ti.static(self.Bottom)
@@ -1206,16 +1206,16 @@ class Solver:
                 self.predictedF_G_star[i,j] = zro
                 self.current_stateUVstar[i,j] = zro
                 continue
-            
+
             # Load values from txBottom using index
-            B_here = Bottom[2,i,j] # 
-                                   
+            B_here = Bottom[2,i,j] #
+
             # Load values from txState using index
             in_state_here = self.State[i,j] # w, hu and hv (cell avgs, evaluated here)
             in_state_here_UV = self.stateUVstar[i,j]
 
             h_here = in_state_here.x - B_here # h = w - B
-            
+
             # Calculate local h,w
             B_south = Bottom[2,i,j-1]
             B_north = Bottom[2,i,j+1]
@@ -1266,8 +1266,8 @@ class Solver:
             Psi1y = 0.0
             Psi2y = 0.0
 
-            d_here = -B_here # 
-            near_dry = self.Bottom[3,i,j] 
+            d_here = -B_here #
+            near_dry = self.Bottom[3,i,j]
 
             # OPTIMIZ: only proceed if not near an initially dry cell
             if near_dry>0.:
@@ -1347,12 +1347,12 @@ class Solver:
                                                  dd_by_dy * (0.5 * self.one_over_dx) * (v_right - v_left)) +\
                                                 (self.Bcoef + 1.0 / 3.0) * d2_here * (self.one_over_dxdy * 0.25) *\
                                                 (v_up_right- v_down_right - v_up_left + v_down_left)
-                
+
                 G_star =(1.0 / 6.0) * d_here * (dd_by_dx * (0.5 * self.one_over_dy) * (u_up - u_down) +\
                                                  dd_by_dy * (0.5 * self.one_over_dx) * (u_right - u_left)) +\
                                                 (self.Bcoef + 1.0 / 3.0) * d2_here * (self.one_over_dxdy * 0.25) *\
                                                 (u_up_right - u_down_right - u_up_left + u_down_left)
-                                
+
                 Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) + (eta_up_right - eta_up_left - 2.0 * eta_right + 2.0 * eta_left + eta_down_right - eta_down_left) * (0.5 * self.one_over_dx * self.one_over_d2y))
                 Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx + eta_by_dy_dy) + dd_by_dy * eta_by_dx_dy) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
                 Psi1y = self.Bcoef_g * d3_here * ((eta_up_up - 2.0 * eta_up + 2.0 * eta_down - eta_down_down) * (0.5 * self.one_over_d3y) + (eta_up_right + eta_up_left - 2.0 * eta_up + 2.0 * eta_down - eta_down_right - eta_down_left) * (0.5 * self.one_over_dx * self.one_over_d2x))
@@ -1372,16 +1372,16 @@ class Solver:
 
             # Calculate scalar transport additions
             C_state_here = self.State[i ,j].w
-            
-            C_state_left = self.State[i-1,j].w 
-            C_state_right = self.State[i+1,j].w 
-            C_state_up = self.State[i,j+1].w 
-            C_state_down = self.State[i,j-1].w 
-            C_state_up_left = self.State[i-1,j+1].w 
-            C_state_up_right = self.State[i+1,j+1].w         
-            C_state_down_left = self.State[i-1,j-1].w 
-            C_state_down_right = self.State[i+1,j-1].w 
-            
+
+            C_state_left = self.State[i-1,j].w
+            C_state_right = self.State[i+1,j].w
+            C_state_up = self.State[i,j+1].w
+            C_state_down = self.State[i,j-1].w
+            C_state_up_left = self.State[i-1,j+1].w
+            C_state_up_right = self.State[i+1,j+1].w
+            C_state_down_left = self.State[i-1,j-1].w
+            C_state_down_right = self.State[i+1,j-1].w
+
             Dxx = self.whiteWaterDispersion
             Dxy = self.whiteWaterDispersion
             Dyy = self.whiteWaterDispersion
@@ -1414,9 +1414,9 @@ class Solver:
                 dQdyy = 0.5 * (nu_flux_up.w - nu_flux_down.w) * self.one_over_dy
 
                 if near_dry > 0.0:
-                    breaking_x = dPdxx + 0.5 * dPdyy + 0.5 * dQdxy        
+                    breaking_x = dPdxx + 0.5 * dPdyy + 0.5 * dQdxy
                     breaking_y = dQdyy + 0.5 * dPdyx + 0.5 * dQdxx
-            
+
             # fix slope near shoreline
             if (h_min.x <= h_cut and h_min.z<=h_cut):
                 detady = 0.0
@@ -1424,37 +1424,37 @@ class Solver:
                 detady = 1.*(eta_here - eta_south) * self.one_over_dy
             elif h_min.z <= h_cut :
                 detady = 1.*(eta_north - eta_here) * self.one_over_dy
-            
+
             if h_min.y <= h_cut and h_min.w<=h_cut:
                 detadx = 0.0
             elif h_min.y <= h_cut:
                 detadx = 1.*(eta_here - eta_west) * self.one_over_dx
             elif h_min.w <= h_cut :
                 detadx = 1.*(eta_east - eta_here) * self.one_over_dx
-            
+
             overflow_dry = 0.0
             if B_here > 0.0 :
                 overflow_dry = -self.infiltrationRate  #hydraulic conductivity of coarse, unsaturated sand
-            
+
             sx = -self.g * h_here * detadx - in_state_here[1] * friction_ + breaking_x + (Psi1x + Psi2x) + press_x
             sy = -self.g * h_here * detady - in_state_here[2] * friction_ + breaking_y + (Psi1y + Psi2y) + press_y
-            
+
             source_term = ti.Vector([overflow_dry, sx, sy, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation])
             d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
 
             # previous derivatives
             oldies = self.oldGradients[i,j]
-            oldOldies = self.oldOldGradients[i,j]            
+            oldOldies = self.oldOldGradients[i,j]
             newState = zro   # w , hu, hv ,hc
             F_G_here = ti.Vector([0.0, F_star, G_star, 0.0])
-               
+
             if self.timeScheme==0: # if timeScheme is Euler do:
                 newState = in_state_here_UV + self.dt * d_by_dt
-            
+
             elif pred_or_corrector==1:
                 newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
-            
-            elif pred_or_corrector==2: 
+
+            elif pred_or_corrector==2:
                 predicted = self.predictedGradients[i,j]
                 newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
 
@@ -1464,19 +1464,19 @@ class Solver:
             elif self.showBreaking == 2 :
                  contaminent_source = self.ContSource[i , j].x
                  newState.w = ti.min(1.0, newState.w + contaminent_source)
-    
+
             self.NewState[i,j] = newState
-            self.dU_by_dt[i,j] = d_by_dt   
+            self.dU_by_dt[i,j] = d_by_dt
             self.predictedF_G_star[i,j] = F_G_here
-            self.current_stateUVstar[i,j] = newState 
-            
-            
-    
+            self.current_stateUVstar[i,j] = newState
+
+
+
     @ti.kernel
     def Pass_Breaking(self,time:ti.f32):
-        # PASS Breaking - 
+        # PASS Breaking -
         for i,j in self.State:
-            #Compute the coordinates of the neighbors 
+            #Compute the coordinates of the neighbors
             rightIdx = ti.min(i + 1, self.nx - 1)
             upIdx = ti.min(j + 1, self.ny - 1)
             leftIdx = ti.max(i - 1, 0)
@@ -1497,7 +1497,7 @@ class Solver:
             Q_east = self.State[rightIdx,j].z
 
             detadt = self.dU_by_dt[i,j].x
-            
+
             # Look the dominant direction of flow, and look at the three cells on that 3*3 cube
             t_here = self.Breaking[i,j].x
             t1 = 0.0
@@ -1522,7 +1522,7 @@ class Solver:
                     t1 = self.Breaking[i,upIdx].x
                     t2 = self.Breaking[rightIdx,upIdx].x
                     t3 = self.Breaking[leftIdx,upIdx].x
-            
+
             t_here = ti.max(t_here, ti.max(t1, ti.max(t2, t3)))
 
             dPdx = (xflux_here - xflux_west) * self.one_over_dx
@@ -1531,7 +1531,7 @@ class Solver:
             dQdx = 0.5 * (Q_east - Q_west) * self.one_over_dx
             dQdy = (yflux_here - yflux_south) * self.one_over_dy
 
-            B_here = self.Bottom[2,i,j]  
+            B_here = self.Bottom[2,i,j]
             eta_here = self.State[i,j].x
             h_here = eta_here - B_here
             c_here = ti.sqrt(self.g * h_here)
@@ -1542,7 +1542,7 @@ class Solver:
             T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
             dzdt_I = self.dzdt_I_coef*c_here
             dzdt_F = self.dzdt_F_coef*c_here
-            
+
             dzdt_star = 0.0
 
             if t_here <= self.dt:
@@ -1582,16 +1582,16 @@ class Solver:
             nu_flux = ti.Vector([nu_dPdx, nu_dPdy, nu_dQdx, nu_dQdy])
             Bvalues = ti.Vector([t_here, nu_breaking, B_Breaking, nu_Smag])
 
-            self.DissipationFlux[i,j] = nu_flux  
-            self.Breaking[i,j] = Bvalues 
-    
+            self.DissipationFlux[i,j] = nu_flux
+            self.Breaking[i,j] = Bvalues
+
     @ti.kernel
     def TriDiag_PCRx(self,p:int,s:int, current_buffer: ti.template(), next_buffer: ti.template()):
         for i,j in self.NewState:
             CurrentState = self.NewState[i,j]
             idx_left = ti.raw_mod(i - s + self.nx , self.nx)
             idx_right = ti.raw_mod(i + s + self.nx, self.nx)
-            
+
             aIn, bIn, cIn, dIn = 0.0, 0.0, 0.0, 0.0
             aInLeft, bInLeft, cInLeft, dInLeft = 0.0, 0.0, 0.0, 0.0
             aInRight, bInRight, cInRight, dInRight = 0.0, 0.0, 0.0, 0.0
@@ -1624,7 +1624,7 @@ class Solver:
                 dIn = current_buffer[i,j][3]
                 dInLeft = current_buffer[idx_left,j][3]
                 dInRight = current_buffer[idx_right,j][3]
-            
+
             r = 1.0 / (1.0 - aIn * cInLeft - cIn * aInRight)
             aOut = -r * aIn * aInLeft
             cOut = -r * cIn * cInRight
@@ -1632,14 +1632,14 @@ class Solver:
 
             next_buffer[i,j]  = ti.Vector([aOut, 1.0, cOut, dOut])
             self.temp2_PCRx[i,j] = ti.Vector([CurrentState.r, dOut, CurrentState.b, CurrentState.a])
-            
+
     @ti.kernel
-    def TriDiag_PCRy(self,p:int,s:int,current_buffer: ti.template(), next_buffer: ti.template()):        
+    def TriDiag_PCRy(self,p:int,s:int,current_buffer: ti.template(), next_buffer: ti.template()):
         for i,j in self.NewState:
             CurrentState = self.NewState[i,j]
             idx_left = ti.raw_mod(j - s + self.ny,self.ny)
             idx_right = ti.raw_mod(j + s + self.ny,self.ny)
-            
+
             aIn, bIn, cIn, dIn = 0.0, 0.0, 0.0, 0.0
             aInLeft, bInLeft, cInLeft, dInLeft = 0.0, 0.0, 0.0, 0.0
             aInRight, bInRight, cInRight, dInRight = 0.0, 0.0, 0.0, 0.0
@@ -1672,7 +1672,7 @@ class Solver:
                 dIn = current_buffer[i,j][3]
                 dInLeft = current_buffer[i,idx_left][3]
                 dInRight = current_buffer[i,idx_right][3]
-            
+
             r = 1.0 / (1.0 - aIn * cInLeft - cIn * aInRight)
             aOut = -r * aIn * aInLeft
             cOut = -r * cIn * cInRight
@@ -1680,7 +1680,7 @@ class Solver:
 
             next_buffer[i,j] =ti.Vector([aOut, 1.0, cOut, dOut])
             self.temp2_PCRy[i,j] = ti.Vector([CurrentState.r,CurrentState.g, dOut, CurrentState.a])
-            
+
     def Run_Tridiag_solver(self):
         if self.model=='SWE':
             self.copy_states(src=self.current_stateUVstar,dst=self.NewState)
@@ -1699,13 +1699,13 @@ class Solver:
                     self.TriDiag_PCRy(p=p, s=s, current_buffer=self.temp_PCRy1, next_buffer=self.temp_PCRy2)
                 else:
                     self.TriDiag_PCRy(p=p, s=s, current_buffer=self.temp_PCRy2, next_buffer=self.temp_PCRy1)
-            self.copy_states(src=self.temp2_PCRy,dst=self.NewState)        
-    
+            self.copy_states(src=self.temp2_PCRy,dst=self.NewState)
+
     # To test pressure
     #@ti.kernel
     #def Ship_pressure(self,px_init:int,py_init:int,steps:int):
     #    pos_x = int(px_init + steps*self.dt)
-    #    pos_y = int(py_init + 0.01*steps*self.dt)   
+    #    pos_y = int(py_init + 0.01*steps*self.dt)
     #    self.ShipPressure[pos_x,pos_y].x = 2.5
 
 
@@ -1717,6 +1717,6 @@ class Solver:
             d = self.deposition_Sed [i,j].x
             delta_B = self.dt*(e -d)/(1-self.sediment.p)
             self.Bottom[2,i,j] = B + delta_B
-            
+
 if __name__ == "__main__":
     print('Module of functions used in Celeris')

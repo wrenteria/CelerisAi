@@ -40,7 +40,7 @@ def celeris_matplotlib(water='seismic',land='terrain',sediment='default',SedTran
         clist = []
         for i in range(N):
             clist.append((ramp_water[i],water_cmap[i]))
-        
+
         if sediment=='default':
             clist.append((0.5, 'skyblue'))
             clist.append((0.51, 'tan'))
@@ -64,7 +64,7 @@ def celeris_matplotlib(water='seismic',land='terrain',sediment='default',SedTran
         for i in range(N):
             clist.append((ramp_land[i],land_cmap[i]))
         cmap =clr.LinearSegmentedColormap.from_list("", clist,N=256)
-    
+
     return cmap
 
 
@@ -78,14 +78,14 @@ def celeris_waves():
             (0.75, 'royalblue'),
             (0.8, 'mediumseagreen'),
             (0.87, 'yellowgreen'),
-            (0.95, 'greenyellow'), 
+            (0.95, 'greenyellow'),
             (1, 'yellow')]
     cmap =clr.LinearSegmentedColormap.from_list("", clist,N=256)
     return cmap
 
 @ti.func
 def MinMod(a,b,c):
-    # return the minimum of the positive values if all inputs are positive, 
+    # return the minimum of the positive values if all inputs are positive,
     # the maximum of the negative values if all inputs are negative, and zero otherwise.
     a,b,c =float(a),float(b),float(c)
     min_value = 0.0
@@ -100,7 +100,7 @@ def cosh(x):
         return 0.5*(ti.exp(x)+ti.exp(-1*x))
 
 @ti.func
-def sineWave(x,y,t,d,amplitude,period,theta,phase,g):
+def sineWave(x,y,t,d,amplitude,period,theta,phase,g,wave_type):
     omega = 2.0 * Vpi / period
     k = omega * omega / (g * ti.sqrt( ti.tanh(omega * omega * d / g)))
     c = omega / k
@@ -108,8 +108,11 @@ def sineWave(x,y,t,d,amplitude,period,theta,phase,g):
     ky = ti.sin(theta) * y * k
     eta = amplitude * ti.sin(omega * t - kx - ky + phase)*ti.min(1.0, t / period)
     ### Check this is only valid for sinewves/irregualr
-    num_waves=4
-    eta = eta * ti.max(0.0, ti.min(1.0, ((float(num_waves) * period - t)/(period))))
+    num_waves=0
+    if wave_type == 2:
+        num_waves = 4
+    if num_waves > 0:
+        eta = eta * ti.max(0.0, ti.min(1.0, ((float(num_waves) * period - t)/period)))
 
     speed = g * eta / (c * k) * ti.tanh(k * d)
     hu = speed * tm.cos(theta)
@@ -177,18 +180,18 @@ def ScalarAntiDissipation(uplus, uminus, aplus, aminus, epsilon):
 
 
 @ti.func
-def FrictionCalc(hu, hv, h, base_depth,delta,isManning, g, friction): 
+def FrictionCalc(hu, hv, h, base_depth,delta,isManning, g, friction):
     h_scaled = h / base_depth
     h2 = h_scaled*h_scaled
     h4 = h2*h2
     divide_by_h2 = 2.0 * h2 / (h4 + ti.max(h4, 1.e-6)) / base_depth / base_depth
     divide_by_h = 1.0 / ti.max(h, delta)
-    
+
     f = friction
     if isManning == 1:
         f = g * ti.pow(friction,2) * ti.pow(ti.abs(divide_by_h),1./3.)
     f = ti.min(f,0.5)
-    f = f * ti.sqrt(hu*hu + hv*hv) * divide_by_h2    
+    f = f * ti.sqrt(hu*hu + hv*hv) * divide_by_h2
     return f
 
 if __name__ == "__main__":
