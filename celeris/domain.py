@@ -13,6 +13,16 @@ def checjson(variable,data):
     if variable in data:
         R =1
     return R
+
+def ti2np(ti_type):
+    # Change the dtype between Taichi and Numpy
+    np_type = np.float32
+    if ti_type==ti.f32:
+        np_type = np.float32
+    if ti_type==ti.f16:
+        np_type=np.float16
+    return np_type
+
 class Topodata:
     def __init__(self,
                  filename=None,
@@ -41,6 +51,7 @@ class BoundaryConditions:
     """
     def __init__(self,
                  celeris=True,
+                 precision = ti.f32,
                  North=None,
                  South=None,
                  East =None,
@@ -53,6 +64,7 @@ class BoundaryConditions:
                  init_eta=5,
                  sine_wave=[0,0,0,0]
                  ):
+        self.precision = precision
         self.North = North
         self.South = South
         self.East = East
@@ -107,7 +119,7 @@ class BoundaryConditions:
         return width
 
     def SineWave(self):
-        return np.array(self.sine_wave)
+        return np.array(self.sine_wave,dtype=self.precision)
 
     def tseries(self):
         R = False
@@ -120,20 +132,20 @@ class BoundaryConditions:
                 for line in wavefile:
                     if 'NumberOfWaves' in line:
                         self.N_data = int(line.split()[1])
-            temp = np.loadtxt(self.filename, skiprows=3)
-            self.data = np.zeros((self.N_data,4))
+            temp = np.loadtxt(self.filename, skiprows=3,dtype=ti2np(self.precision))
+            self.data = np.zeros((self.N_data,4),ti2np(self.precision))
             for i in range(self.N_data):
                 if self.N_data==1:
                     self.data[i,:] = temp
                 else:
                     self.data[i,:] = temp[i]
-            self.data = self.data.astype(np.float32)
+            self.data = self.data.astype(ti2np(self.precision))
         else:
             pass
     def get_data(self):
         if self.WaveType==-1:
             self.load_data()
-        data = ti.field(ti.f32,shape=(self.N_data,4))
+        data = ti.field(self.precision,shape=(self.N_data,4))
         data.from_numpy(self.data)
         return data
 
@@ -141,12 +153,13 @@ class BoundaryConditions:
 @ti.data_oriented
 class Domain:
     def __init__(self,
-                 x1=ti.f32,
-                 x2=ti.f32,
-                 y1=ti.f32,
-                 y2=ti.f32,
-                 Nx=int,
-                 Ny=int,
+                 precision=ti.f32,
+                 x1=0.0,
+                 x2=0.0,
+                 y1=0.0,
+                 y2=0.0,
+                 Nx=1,
+                 Ny=1,
                  topodata=None,
                  north_sl = 0.,
                  south_sl = 0.,
@@ -158,6 +171,7 @@ class Domain:
                  base_depth=None,
                  BoundaryShift=4
                  ):
+        self.precision = precision
         self.x1 = x1
         self.x2 = x2
         self.y1 = y1
@@ -231,11 +245,11 @@ class Domain:
             return x_out.T, y_out.T, dem.T
 
     def bottom(self):
-        nbottom = np.zeros((4,self.Nx,self.Ny),dtype=np.float32)
+        nbottom = np.zeros((4,self.Nx,self.Ny),dtype=ti2np(self.precision))
         nbottom[2] =-1.0* self.topofield()[2]
         nbottom[3] = 99.   # To be used in neardry
 
-        bottom = ti.field(ti.f32,shape=(4,self.Nx,self.Ny,))
+        bottom = ti.field(self.precision,shape=(4,self.Nx,self.Ny,))
         bottom.from_numpy(nbottom)
         return bottom
 
@@ -265,11 +279,11 @@ class Domain:
         return 2*(self.Ny-3)
 
     def states(self):
-        foo = ti.Vector.field(4,ti.f32,shape=(self.Nx,self.Ny,))
+        foo = ti.Vector.field(4,self.precision,shape=(self.Nx,self.Ny,))
         return foo
 
     def states_one(self):
-        foo = ti.Vector.field(1,ti.f32,shape=(self.Nx,self.Ny,))
+        foo = ti.Vector.field(1,self.precision,shape=(self.Nx,self.Ny,))
         return foo
 
 
