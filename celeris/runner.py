@@ -30,6 +30,10 @@ class Evolve:
         self.saveimg = saveimg
         self.vmin = vmin
         self.vmax = vmax
+        # To visualization
+        self.image = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx,self.solver.ny))
+        self.ocean = ti.Vector.field(3, dtype=ti.f16, shape=16)
+        self.colormap_ocean = 'Blues_r'
 
     def Evolve_0(self):
         self.solver.fill_bottom_field()
@@ -163,6 +167,100 @@ class Evolve:
 
 
     @ti.kernel
+    def InitColors(self,arr:ti.types.ndarray(dtype=ti.f16, ndim=2)):
+        for i in self.ocean:
+            self.ocean[i].x = arr[i,0]
+            self.ocean[i].y = arr[i,1]
+            self.ocean[i].z = arr[i,2]
+
+    @ti.kernel
+    def painting_h(self):
+        num_colors = self.ocean.shape[0]
+        step = 1.0 / num_colors
+        for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
+            flow = self.solver.State[i,j][0] -self.solver.Bottom[2,i,j] # only water
+            land = max(0.0,self.solver.Bottom[2,i,j]) # only positive topo
+            water_col =  flow/self.solver.base_depth  # Water column normalized
+            land_elevation = land  / self.solver.maxtopo # Topo normalized
+            index = int(water_col / step)           # which color interval we're in
+            index = ti.min(index, num_colors - 2)   # clamp index to avoid out-of-bounds
+            t = (water_col - index * step) / step   # fractional position between the colors
+            if flow > 0.25:  # Water area
+                self.image[i, j] =  self.ocean[index] * (1 - t) +  self.ocean[index + 1] * t
+            elif 0.25<flow<0:
+                self.image[i, j] =  ti.Vector([0.8039,0.7921,0.7372]) # Wet Sand
+            else:
+                self.image[i, j] = ti.Vector([0.6 + land_elevation * 0.4, 0.4 + land_elevation * 0.3, 0.25])
+
+
+    @ti.kernel
+    def painting_eta(self):
+        num_colors = self.ocean.shape[0]
+        step = 1.0 / num_colors
+        for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
+            flow = self.solver.State[i,j][0] -self.solver.Bottom[2,i,j] # only water
+            wave = self.solver.State[i,j][0]
+            wave = (wave-self.vmin)/(self.vmax-self.vmin)
+            land = max(0.0,self.solver.Bottom[2,i,j]) # only positive topo
+            land_elevation = land  / self.solver.maxtopo # Topo normalized
+            index = int(wave / step)           # which color interval we're in
+            index = ti.min(index, num_colors - 2)   # clamp index to avoid out-of-bounds
+            t = (wave - index * step) / step   # fractional position between the colors
+            if flow > 0.0:  # Water area
+                self.image[i, j] =  self.ocean[index] * (1 - t) +  self.ocean[index + 1] * t
+            elif 0.25<flow<0:
+                self.image[i, j] =  ti.Vector([0.8039,0.7921,0.7372]) # Wet Sand
+            else:
+                self.image[i, j] = ti.Vector([0.6 + land_elevation * 0.4, 0.4 + land_elevation * 0.3, 0.25])
+
+    @ti.kernel
+    def painting_vor(self):
+        num_colors = self.ocean.shape[0]
+        step = 1.0 / num_colors
+        for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
+            rightIdx = ti.min(i + 1, self.solver.nx - 1)
+            upIdx = ti.min(j + 1, self.solver.ny - 1)
+
+            B = self.solver.Bottom[2,i,j]
+            B_right = self.solver.Bottom[2,rightIdx,j]
+            B_up = self.solver.Bottom[2,i,upIdx]
+
+            q = self.solver.State[i, j]
+            q_up = self.solver.State[i, upIdx]
+            q_right = self.solver.State[rightIdx, j]
+
+            h = q.x -B
+            h_right = q_right.x - B_right
+            h_up = q_up.x - B_up
+
+            v_right = 0.0
+            u_up = 0.0
+            u = 0.0
+            v = 0.0
+
+            if h_right>0.05:
+                v_right = q_right.z/h_right
+            if h_up>0.05:
+                u_up = q_right.y/h_up
+            if h>0.05:
+                v = q.z/h
+                u = q.y/h
+
+            vor = (v_right-v)/self.solver.dx - (u_up-u)/self.solver.dy
+
+            vor = (vor-self.vmin)/(self.vmax-self.vmin)
+            land = max(0.0,B) # only positive topo
+            land_elevation = land  / self.solver.maxtopo # Topo normalized
+            index = int(vor / step)           # which color interval we're in
+            index = ti.min(index, num_colors - 2)   # clamp index to avoid out-of-bounds
+            t = (vor - index * step) / step   # fractional position between the colors
+            if h > 0.0:  # Water area
+                self.image[i, j] =  self.ocean[index] * (1 - t) +  self.ocean[index + 1] * t
+            elif 0.25<h<0:
+                self.image[i, j] =  ti.Vector([0.8039,0.7921,0.7372]) # Wet Sand
+            else:
+                self.image[i, j] = ti.Vector([0.6 + land_elevation * 0.4, 0.4 + land_elevation * 0.3, 0.25])
+    @ti.kernel
     def paint(self):
         for i,j in ti.ndrange((0,self.solver.nx),(0,self.solver.ny)):
             self.solver.pixel[i,j] = self.brk_color(self.solver.Bottom[2,i,j], 0.75, 1,self.solver.maxtopo, -1*self.solver.maxtopo)
@@ -176,7 +274,7 @@ class Evolve:
                         self.solver.pixel[i,j] = self.brk_color(sed, 0.65, 0.75, 0.1, 5.0 ) # Sed
 
 
-    def Evolve_Display(self,vmin=None,vmax=None,cmapWater='Blues_r',showSediment=False):
+    def Evolve_Display(self,vmin=None,vmax=None,variable='h',cmapWater='Blues_r',showSediment=False):
         if vmin!=None:
             self.vmin = vmin
         if vmax!=None:
@@ -215,23 +313,32 @@ class Evolve:
         #cmap = celeris_matplotlib(water='Blues_r',sediment='afmhot_r', SedTrans=self.useSedTransModel )
 
         self.Evolve_0()
+        # Set colors - using the matplotlib colormapsand convert these into Taichi tensors
+        numpy_ocean = ColorsfromMPL(cmapWater)
+        self.InitColors(numpy_ocean)
 
         start_time = time.time()
 
         while window.running:
-            self.paint()
+            #self.paint()
             #self.paint_new()
+            #self.paint()
+            if variable=='h':
+                self.painting_h()
+            if variable=='eta':
+                self.painting_eta()
+            if variable=='vor':
+                self.painting_vor()
+
             if use_ggui:
-                canvas.contour(
-                    self.solver.pixel, cmap_name=cmap
-                ) # Same functionality as set cmap-pixel-to np
+                # canvas.contour(self.solver.pixel, cmap_name=cmap ) # Same functionality as set cmap-pixel-to np
                 # canvas.contour(self.solver.pixel,cmap_name='plasma') # Same functionality as set cmap-pixel-to np
+                canvas.set_image(self.image) # using the Taichi tensors to render the image
             else:
-                window.set_image(
-                    self.solver.pixel
-                )
+                #window.set_image(self.solver.pixel)
+                window.set_image(self.image) # using the Taichi tensors to render the image
             self.Evolve_Steps(i)
-            #window.show()
+
 
             if i==1:
                 start_time = time.time() - 0.00001  # reset the "start" time as there is overhead before loop starts, and add small shift to prevent float divide by zero
@@ -279,8 +386,11 @@ class Evolve:
                 if self.solver.outdir:
                     state=self.solver.State.to_numpy()
                     np.save('{}/state_{}.npy'.format(self.outdir,int(i)),state)
-            # Show window in the right position (after save image) for GGUI systems                
-            window.show()
+            # Show window in the right position (after save image) for GGUI systems
+            if i%5==0:
+                # Improve the performance.The visualization is done only every 5 timesteps
+                window.show()
+            
             if i > self.maxsteps:
                 if frame_paths: # Check if there are frames to create a GIF
                     gif_filename = f"video.gif"

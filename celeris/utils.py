@@ -10,6 +10,13 @@ import taichi.math as tm
 
 Vpi = np.pi#3.141592653589793
 
+def ColorsfromMPL(cmap='Blues'):
+     cm_cmap =  cm.get_cmap(cmap,16)
+     cm_cmap._init()
+     cm_cmap = cm_cmap._lut
+     cm_cmap = cm_cmap.astype(np.float16)
+     return cm_cmap
+
 def celeris_matplotlib(water='seismic',land='terrain',sediment='default',SedTrans=False):
     if SedTrans==False:
         ## Water Color
