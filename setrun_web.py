@@ -5,15 +5,16 @@ from celeris.runner import Evolve
 import time
 
 ti.init(arch = ti.gpu, advanced_optimization = True, kernel_profiler = False)
+precision =ti.f32 # ti.f16 for half-precision or ti.f32 for single precision 
 
 # 1) Set the topography data
-baty = Topodata(datatype='celeris',path='./examples/Balboa') 
+baty = Topodata(datatype='celeris',path='./examples/Balboa')
 
 # 2) Set Boundary conditions
-bc = BoundaryConditions(celeris=True,path='./examples/Balboa')
+bc = BoundaryConditions(celeris=True,path='./examples/Balboa',precision=precision)
 
-# 3) Build Numerical Domain 
-d = Domain(topodata=baty)
+# 3) Build Numerical Domain
+d = Domain(topodata=baty,precision=precision)
 
 # 4) Solve using SWE BOUSS
 solver = Solver(domain=d, boundary_conditions=bc)
@@ -30,4 +31,3 @@ run = Evolve(solver = solver, maxsteps= 10000, saveimg=True)
 
 # Showing -> 'h'    # cmap any on matplotlib Library e.g. 'BuGn', 'Blues'
 run.Evolve_Display(cmapWater='Blues')
-
