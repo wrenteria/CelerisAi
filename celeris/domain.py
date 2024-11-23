@@ -38,6 +38,11 @@ class Topodata:
                 return np.loadtxt(os.path.join(self.path, self.filename))
             else:
                 return np.loadtxt(self.filename)
+        if self.datatype == 'xz':
+            if self.path!=None:
+                return np.loadtxt(os.path.join(self.path, self.filename))
+            else:
+                return np.loadtxt(self.filename)
         if self.datatype == 'celeris':
                 bathy =  np.loadtxt(os.path.join(self.path, 'bathy.txt'))
                 return bathy*-1
@@ -52,10 +57,10 @@ class BoundaryConditions:
     def __init__(self,
                  celeris=True,
                  precision = ti.f32,
-                 North=None,
-                 South=None,
-                 East =None,
-                 West =None,
+                 North=10,
+                 South=10,
+                 East =10,
+                 West =10,
                  WaveType=-1,
                  Amplitude = 0.5,
                  path = './scratch',
@@ -229,6 +234,14 @@ class Domain:
             self.friction = friction
             self.Courant = Courant
             self.base_depth_ = base_depth
+        if self.topodata.datatype=='xz':
+            self.Ny = 1
+            self.dy = 1.0
+            self.dx = (self.x2 - self.x1)/self.Nx
+            self.isManning = isManning
+            self.friction = friction
+            self.Courant = Courant
+            self.base_depth_ = base_depth      
 
 
         self.pixels = ti.field(float, shape=(self.Nx,self.Ny))
@@ -243,10 +256,19 @@ class Domain:
             x_out, y_out = np.meshgrid( np.arange( self.x1, self.x2, self.dx),np.arange(self.y1, self.y2, self.dy))
             dem = griddata(dum[:,:2], dum[:,2], (x_out, y_out), method='nearest')
             return x_out.T, y_out.T, dem.T
+        if self.topodata.datatype=='xz':
+            dum = self.topodata.z()
+            x_out = np.arange( self.x1, self.x2, self.dx)
+            dem = np.interp(x_out,dum[:,0],dum[:,1])
+            return x_out, dem
 
     def bottom(self):
         nbottom = np.zeros((4,self.Nx,self.Ny),dtype=ti2np(self.precision))
-        nbottom[2] =-1.0* self.topofield()[2]
+        if self.topodata.datatype=='xz':
+            # VERSION 1D
+            nbottom[2,:,0] =-1.0* self.topofield()[1]
+        else:
+            nbottom[2] =-1.0* self.topofield()[2]
         nbottom[3] = 99.   # To be used in neardry
 
         bottom = ti.field(self.precision,shape=(4,self.Nx,self.Ny,))
@@ -261,12 +283,20 @@ class Domain:
 
     def maxdepth(self):
         if self.base_depth_ ==None:
-            return np.max(self.topofield()[2])
+            # VERSION 1D
+            if self.topodata.datatype=='xz':
+                return np.max(self.topofield()[1])
+            else: 
+                return np.max(self.topofield()[2])
         else:
             return self.base_depth_
 
     def maxtopo(self):
-        return np.min(self.topofield()[2])
+        # VERSION 1D
+        if self.topodata.datatype=='xz':
+            return np.min(self.topofield()[1])
+        else:
+            return np.min(self.topofield()[2])
 
     def dt(self):
         maxdepth = self.maxdepth()
