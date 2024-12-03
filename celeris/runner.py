@@ -34,6 +34,12 @@ class Evolve:
         self.image = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx,self.solver.ny))
         self.ocean = ti.Vector.field(3, dtype=ti.f16, shape=16)
         self.colormap_ocean = 'Blues_r'
+        # To visualize 1D
+        self.bottom1D = ti.Vector.field(2, dtype=ti.f32, shape = self.solver.nx)
+        self.indexbottom1D = ti.field(dtype=ti.i32, shape = 2*self.solver.nx)
+        self.eta1D = ti.Vector.field(2, dtype=ti.f32, shape = self.solver.nx)
+        self.x_scale = self.solver.nx * self.solver.dx
+        self.y_scale = 2 * self.solver.base_depth
 
     def Evolve_0(self):
         self.solver.fill_bottom_field()
@@ -273,7 +279,100 @@ class Evolve:
                     if sed > 0.0001  :
                         self.solver.pixel[i,j] = self.brk_color(sed, 0.65, 0.75, 0.1, 5.0 ) # Sed
 
+    @ti.kernel
+    def bottom_paint(self):
+        for i in self.bottom1D:
+            self.bottom1D[i].x = i*self.solver.dx/self.x_scale
+            self.bottom1D[i].y = 0.5+self.solver.Bottom[2,i,0]/self.y_scale
 
+        for i in range(2*self.solver.nx-2):
+            self.indexbottom1D[i] = (i + 1) // 2
+            
+
+    @ti.kernel
+    def eta_paint(self):
+        for i in self.eta1D:
+            self.eta1D[i].x = i*self.solver.dx/self.x_scale
+            self.eta1D[i].y = 0.5+self.solver.State[i,0][0]/20
+    
+    def Evolve_1D_Display(self):
+        plotpath = './plots'
+        if not os.path.exists(plotpath):
+            os.makedirs(plotpath)
+        i = 0.0
+        use_ggui = None
+        window = None
+        canvas = None
+        try:
+            window = ti.ui.Window("CelerisAi(1D)", (1000,200))
+            canvas = window.get_canvas()
+            canvas.set_background_color(color=(1,1,1))
+            use_ggui = True
+        except:
+            # TODO : Formal error handling and logging
+            print("GGUI not available, reverting to legacy Taichi GUI.")
+            use_ggui = False
+            use_fast_gui = False # Need ti.Vector.field equiv to self.solver.pixel to use fast_gui
+            window = ti.GUI(  # noqa: F405
+                'CelerisAi(1D)', (1000, 200), fast_gui=use_fast_gui
+                ) # fast_gui - display directly on frame buffer if not drawing shapes or text
+            canvas = None
+            print("Legacy GUI initialized.")
+        else:
+            print("GGUI initialized without issues.")
+
+        self.Evolve_0()
+        self.bottom_paint() # To plot the bottom line
+        start_time = time.time() - 0.00001
+
+        while window.running:
+            self.eta_paint()
+            if use_ggui:
+                canvas.circles(self.eta1D,radius=0.005,color = (0., 150/255., 255./255))
+                canvas.lines(self.bottom1D,width=0.01,indices=self.indexbottom1D,color = (128/255., 0.0, 0.))
+            else:
+                canvas.circles(self.eta1D,radius=0.005,color = (0., 150/255., 255./255))
+                canvas.circles(self.bottom1D,radius=0.0075,color = (255/255., 87/255., 51./250))
+            
+            self.Evolve_Steps(i)
+
+            if i==1 or (i%100)==0:
+                compTime = time.time() - start_time
+                print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
+                
+                if self.saveimg:
+                    frame = int(i)
+                    frame_filename = 'frame_{}.png'.format(frame)
+                    frame_path = os.path.join(base_frame_dir, frame_filename)
+                    frame_paths.append(frame_path)
+                    if use_ggui:
+                        window.save_image(frame_path)
+                    else:
+                        tools.imwrite(self.solver.pixel.to_numpy(), frame_path)
+
+                #window.show()
+                if self.solver.outdir:
+                    state=self.solver.State.to_numpy()
+                    np.save('{}/state_{}.npy'.format(self.outdir,int(i)),state)
+           
+            window.show()
+            
+            if i > self.maxsteps:
+                if frame_paths: # Check if there are frames to create a GIF
+                    gif_filename = f"video.gif"
+                    gif_path = os.path.join(base_frame_dir, gif_filename)
+                    try:
+                        with imageio.get_writer(gif_path, mode='I', duration=0.1) as writer:
+                            for frame_path in frame_paths:
+                                image = imageio.imread(frame_path)
+                                writer.append_data(image)
+                        print(f"GIF created at {gif_path}")
+                    except Exception as e:
+                        print(f"Error creating GIF: {e}")
+                break
+            i = i+1
+
+    
     def Evolve_Display(self,vmin=None,vmax=None,variable='h',cmapWater='Blues_r',showSediment=False):
         if vmin!=None:
             self.vmin = vmin
