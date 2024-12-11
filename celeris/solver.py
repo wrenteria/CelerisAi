@@ -1690,7 +1690,7 @@ class Solver:
                 Psi2x = 0.0
 
                 d_here = -B_here #
-                near_dry = self.Bottom[3,i,j]
+                near_dry = Bottom[3,i,j]
 
                 # OPTIMIZ: only proceed if not near an initially dry cell
                 if near_dry>0.:
@@ -1751,11 +1751,10 @@ class Solver:
                     eta_by_dx_dx = self.one_over_d2x * (eta_right - 2.0 * eta_here + eta_left)
                     #eta_by_dy_dy = self.one_over_d2y * (eta_up - 2.0 * eta_here + eta_down)
 
-                    F_star =(1.0 / 6.0) * d_here
+                    F_star =0.0
 
-
-                    Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) + ( - 2.0 * eta_right + 2.0 * eta_left) * (0.0))
-                    Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx + 0.0) ) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
+                    Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) )
+                    Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx )) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
 
                 friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
                 friction_ = FrictionCalc(in_state_here[1],0.0, h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here)
@@ -1818,6 +1817,7 @@ class Solver:
                     overflow_dry = -self.infiltrationRate  #hydraulic conductivity of coarse, unsaturated sand
 
                 sx = -self.g * h_here * detadx - in_state_here[1] * friction_ + breaking_x + (Psi1x + Psi2x) + press_x
+
 
                 source_term = ti.Vector([overflow_dry, sx, 0.0, hc_by_dx_dx + c_dissipation],self.precision)
                 d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + source_term

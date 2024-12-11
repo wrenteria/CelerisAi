@@ -30,6 +30,7 @@ class Evolve:
         self.saveimg = saveimg
         self.vmin = vmin
         self.vmax = vmax
+        self.outdir = outdir
         # To visualization
         self.image = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx,self.solver.ny))
         self.ocean = ti.Vector.field(3, dtype=ti.f16, shape=16)
@@ -351,7 +352,7 @@ class Evolve:
                         tools.imwrite(self.solver.pixel.to_numpy(), frame_path)
 
                 #window.show()
-                if self.solver.outdir:
+                if self.outdir:
                     state=self.solver.State.to_numpy()
                     np.save('{}/state_{}.npy'.format(self.outdir,int(i)),state)
            
