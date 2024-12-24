@@ -2257,7 +2257,7 @@ class Solver:
                 else:
                     if Q_here > 0.0:
                         t1 = self.Breaking[i,downIdx].x
-                        t2 = self.Breaking[upIdx,downIdx].x
+                        t2 = self.Breaking[rightIdx,downIdx].x
                         t3 = self.Breaking[leftIdx,downIdx].x
                     else:
                         t1 = self.Breaking[i,upIdx].x
