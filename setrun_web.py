@@ -8,10 +8,10 @@ ti.init(arch = ti.gpu, advanced_optimization = True, kernel_profiler = False)
 precision =ti.f32 # ti.f16 for half-precision or ti.f32 for single precision
 
 # 1) Set the topography data
-baty = Topodata(datatype='celeris',path='./examples/Balboa')
+baty = Topodata(datatype='celeris',path='./examples/DuckFRF_NC')
 
 # 2) Set Boundary conditions
-bc = BoundaryConditions(celeris=True,path='./examples/Balboa',precision=precision)
+bc = BoundaryConditions(celeris=True,path='./examples/DuckFRF_NC',precision=precision)
 
 # 3) Build Numerical Domain
 d = Domain(topodata=baty,precision=precision)
@@ -30,6 +30,6 @@ run = Evolve(solver = solver, maxsteps= 10000, saveimg=True)
 # run.Evolve_Headless() # Faster , no visualization
 
 # Showing -> 'h'    # cmap any on matplotlib Library e.g. 'BuGn', 'Blues'
-#run.Evolve_Display(variable='h',cmapWater='Blues')
+run.Evolve_Display(variable='h',cmapWater='Blues')
 #run.Evolve_Display(variable='eta',vmin=-5,vmax=5,cmapWater='seismic')
-run.Evolve_Display(variable='vor',vmin=-0.5,vmax=0.5,cmapWater='jet')
+#run.Evolve_Display(variable='vor',vmin=-0.5,vmax=0.5,cmapWater='jet')

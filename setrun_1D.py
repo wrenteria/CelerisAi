@@ -17,6 +17,5 @@ d = Domain(topodata=baty,x1=0.0,x2=480.0,Nx=480)
 solver = Solver(model='Bouss',domain=d,boundary_conditions=bc,timeScheme=2,pred_or_corrector=True,useBreakingModel=True,useSedTransModel=False)
 
 run = Evolve(solver = solver, maxsteps= 10000)
-
 run.Evolve_1D_Display()
 #run.Evolve_Headless()
