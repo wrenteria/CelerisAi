@@ -13,6 +13,82 @@ frame_paths = [] # List of frame paths for later use, i.e. making gifs/mp4s
 
 @ti.data_oriented
 class Evolve:
+    """
+    Controls and runs the main simulation loop of CelerisAi in various modes (headless,
+    1D, 2D with visualization, etc.).
+
+    This class ties together the `Domain`, `BoundaryConditions`, and `Solver` classes, and 
+    manages the time-stepping workflow. It includes methods for:
+
+    1. **Initialization** (`Evolve_0`):  
+       - Fills the bottom field with bathymetry/topography data.
+       - Initializes solver states (water height, velocity, etc.).
+       - Computes tridiagonal coefficients if using a Boussinesq model.
+
+    2. **Main Time-Stepping** (`Evolve_Steps`):  
+       - Runs reconstruction (Pass1) and flux computations (Pass2).
+       - Handles wave breaking if enabled.
+       - Integrates the solution one or more steps forward in time (Pass3, Pass3Bous, Pass3_SedTrans).
+       - Updates boundary conditions.
+       - Optionally solves tridiagonal systems for Boussinesq dispersion.
+       - Copies or shifts data between fields for multi-stage time integrators.
+
+    3. **Headless Execution** (`Evolve_Headless`):  
+       - Executes the simulation loop without rendering or displaying results, 
+         minimizing overhead and focusing on performance.
+       - Periodically logs timing information and can save the simulation states (e.g. `State` arrays).
+
+    4. **1D Visualization** (`Evolve_1D_Display`):  
+       - Specialized loop for 1D simulations, displaying free surface (eta) 
+         and bathymetry in a window using either taichi-gui or legacy GUI fallback.
+
+    5. **2D Visualization** (`Evolve_Display`):  
+       - Interactive loop for 2D simulations.  
+       - Renders wave height (h), free surface elevation (eta), or vorticity (vor) 
+         in real-time.  
+       - Allows saving images and assembling them into a GIF.
+
+    6. **Rendering and Color Mapping** (Kernels like `paint`, `paint_new`, `painting_h`, `painting_eta`, `painting_vor`, etc.):  
+       - Populates 2D Taichi fields (`self.image`, `self.solver.pixel`, etc.) based on 
+         solver results, for real-time visualization.  
+       - Supports multiple coloring strategies (e.g. realistic wave colors, topography shading, sediment rendering).
+
+    Args:
+        domain (Domain): The domain class containing spatial parameters.
+        boundary_conditions (BoundaryConditions): Class managing boundary setup (walls, waves, etc.).
+        solver (Solver): The main numerical solver class controlling the fluid model, time scheme, etc.
+        maxsteps (int, optional): Maximum number of time steps to simulate. Defaults to 1000.
+        outdir (str, optional): Output directory path for saving states, frames, etc. Defaults to None.
+        saveimg (bool, optional): If True, saves image frames at intervals (for creating GIFs or offline processing). 
+            Defaults to False.
+        vmin (float, optional): Minimum value for visualization color scaling (e.g. wave elevation). Defaults to -1.5.
+        vmax (float, optional): Maximum value for visualization color scaling. Defaults to 1.5.
+
+    Attributes:
+        solver (Solver): The numerical solver controlling fluid/morphodynamics.
+        maxsteps (int): Number of time steps for the simulation run.
+        dt (float): Time step size imported from the solver.
+        timeScheme (int): Time integration scheme (Euler, predictor, predictor-corrector).
+        saveimg (bool): Flag indicating whether to save frames.
+        vmin (float): Minimum scale for color mapping wave or vorticity values.
+        vmax (float): Maximum scale for color mapping wave or vorticity values.
+        outdir (str): Directory for saving outputs.
+        image (ti.Vector.field): 2D field to hold RGB color information for visualization.
+        ocean (ti.Vector.field): 1D array of color samples (RGB) for water visualization or general colormap usage.
+        colormap_ocean (str): A string identifier for the colormap used for water.
+        bottom1D, indexbottom1D, eta1D: Fields used in 1D visualization of bottom topography and water surface.
+        x_scale, y_scale (float): Scaling factors for 1D plots in the GUI.
+
+    Typical Usage:
+        >>> evolve = Evolve(domain=dom, boundary_conditions=bc, solver=sol, maxsteps=2000, outdir="results")
+        >>> evolve.Evolve_Display(vmin=-1.0, vmax=1.0, variable='eta', cmapWater='Blues_r', showSediment=True)
+
+    Note:
+        - The class attempts to use Taichi's GGUI if available for improved performance 
+          and better UI control. If GGUI is not available, it falls back to legacy Taichi GUI.
+        - Various coloring kernels (`painting_h`, `painting_eta`, etc.) can be customized 
+          to match user-defined styles or to highlight specific flow features.
+    """
     def __init__(self,
                  domain=None,
                  boundary_conditions = None,
@@ -43,6 +119,13 @@ class Evolve:
         self.y_scale = 2 * self.solver.base_depth
 
     def Evolve_0(self):
+        """
+        One-time initialization steps:
+          - Fills bottom field (bathymetry/topo).
+          - Initializes solver states (fluid variables).
+          - Computes tridiagonal coefficients if the model is Boussinesq.
+          - Prints simulation parameters (model type, time step, etc.).
+        """
         self.solver.fill_bottom_field()
         self.solver.InitStates()
         self.solver.tridiag_coeffs_X()
@@ -53,6 +136,19 @@ class Evolve:
         print('Time delta: ',self.dt)
 
     def Evolve_Steps(self,step=0):
+        """
+        Advances the solution by one time step (or one sub-step) according to the selected time scheme.
+
+        Internally calls:
+          - Pass1 (and Pass1_SedTrans if sediment is enabled)
+          - Pass2
+          - Optional wave breaking model
+          - Pass3 or Pass3Bous for predictor step
+          - BoundaryPass to enforce boundary conditions
+          - Run_Tridiag_solver for Boussinesq models
+          - (If 4th-order  predictor-corrector) a second cycle of Pass1, Pass2, Pass3 or Pass3Bous
+          - Copies or shifts old/predicted states for multi-stage time integrators
+        """
         i = step
 
         self.solver.Pass1()
@@ -143,6 +239,16 @@ class Evolve:
         #self.solver.Ship_pressure(px_init=10,py_init=50,steps=int(i))
 
     def Evolve_Headless(self):
+        """
+        Runs CelerisAi without any visualization, printing timing info periodically
+        and optionally saving states to disk.
+
+        Steps:
+          1. Calls Evolve_0() to initialize fields and solver state.
+          2. Loops over `maxsteps`, calling Evolve_Steps() each iteration.
+          3. Logs simulation time and performance metrics every 100 steps.
+          4. If an output directory is specified, saves solver state arrays to .npy files.
+        """
         self.Evolve_0()
         start_time = time.time()
 
@@ -160,11 +266,21 @@ class Evolve:
 
     @ti.func
     def brk_color (self, x,y0,y1,x0,x1):
-        # Interp. to get changes in color
+        """
+        Interpolates between two values (y0, y1) based on x in [x0, x1].
+
+        Used to smoothly vary color or other scalar values between two extremes:
+            (x0 -> y0) to (x1 -> y1).
+        """
         return  (y0 * (x1 - x) + y1 * (x - x0) ) / (x1 - x0)
 
     @ti.kernel
     def paint_new(self):
+        """
+        A simple rendering kernel mixing bottom topography and wave height.
+        Uses a linear interpolation (brk_color) to assign colors to each cell
+        based on water depth or topography.
+        """
         for i,j in ti.ndrange((0,self.solver.nx),(0,self.solver.ny)):
             self.solver.pixel[i,j] = self.brk_color(self.solver.Bottom[2,i,j], 0.75, 1,self.solver.maxtopo, -1*self.solver.maxtopo)
             flow = self.solver.State[i,j][0] -self.solver.Bottom[2,i,j]
@@ -175,6 +291,13 @@ class Evolve:
 
     @ti.kernel
     def InitColors(self,arr:ti.types.ndarray(dtype=ti.f16, ndim=2)):
+        """
+        Copies an external NumPy array of shape (N, 3) (RGB colors) into the 
+        internal taichi field `self.ocean`.
+
+        Args:
+            arr (np.ndarray): (N, 3) array of float16 color data (e.g., from a Matplotlib colormap).
+        """
         for i in self.ocean:
             self.ocean[i].x = arr[i,0]
             self.ocean[i].y = arr[i,1]
@@ -182,6 +305,13 @@ class Evolve:
 
     @ti.kernel
     def painting_h(self):
+        """
+        Kernel for visualizing water depth (h) in a "realistic wave" style.
+
+        - Normalizes water depth to [0, base_depth].
+        - Chooses colors from the `ocean` array based on the normalized depth (linear interpolation).
+        - Make a difference between the water areas (flow > 0.25) from shallow/wet sand and land.
+        """
         num_colors = self.ocean.shape[0]
         step = 1.0 / num_colors
         for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
@@ -202,6 +332,12 @@ class Evolve:
 
     @ti.kernel
     def painting_eta(self):
+        """
+        Kernel for visualizing free surface elevation (eta).
+
+        - Normalizes eta to [vmin, vmax] for color lookup.
+        - Distinguishes water areas from wet sand and land similar to `painting_h`.
+        """
         num_colors = self.ocean.shape[0]
         step = 1.0 / num_colors
         for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
@@ -222,6 +358,13 @@ class Evolve:
 
     @ti.kernel
     def painting_vor(self):
+        """
+        Kernel for visualizing vorticity (vor).
+
+        - Approximates vorticity by differences in velocity between adjacent cells.
+        - Normalizes the result into [vmin, vmax] for color lookups in `ocean`.
+        - Distinguishes water vs. land similar to `painting_h`/`painting_eta`.
+        """
         num_colors = self.ocean.shape[0]
         step = 1.0 / num_colors
         for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
@@ -269,6 +412,13 @@ class Evolve:
                 self.image[i, j] = ti.Vector([0.6 + land_elevation * 0.4, 0.4 + land_elevation * 0.3, 0.25])
     @ti.kernel
     def paint(self):
+        """
+        General paint kernel that merges bottom topography and free-surface height.
+
+        - Assigns color based on bottom topography if there's no water.
+        - Interpolates water color if flow depth > 0.0001.
+        - If sediment transport is enabled, merges sediment concentration into final color.
+        """
         for i,j in ti.ndrange((0,self.solver.nx),(0,self.solver.ny)):
             self.solver.pixel[i,j] = self.brk_color(self.solver.Bottom[2,i,j], 0.75, 1,self.solver.maxtopo, -1*self.solver.maxtopo)
             flow = self.solver.State[i,j][0] -self.solver.Bottom[2,i,j]
@@ -282,6 +432,10 @@ class Evolve:
 
     @ti.kernel
     def bottom_paint(self):
+        """
+        Fills `bottom1D` with scaled bottom data for 1D visualization.
+        Also populates `indexbottom1D` so that line plotting can connect them in order.
+        """
         for i in self.bottom1D:
             self.bottom1D[i].x = i*self.solver.dx/self.x_scale
             self.bottom1D[i].y = 0.5+self.solver.Bottom[2,i,0]/self.y_scale
@@ -292,11 +446,22 @@ class Evolve:
 
     @ti.kernel
     def eta_paint(self):
+        """
+        Fills `eta1D` with scaled free-surface data for 1D visualization.
+        """
         for i in self.eta1D:
             self.eta1D[i].x = i*self.solver.dx/self.x_scale
             self.eta1D[i].y = 0.5+self.solver.State[i,0][0]/20
     
     def Evolve_1D_Display(self):
+        """
+        Interactive loop for a 1D simulation of CelerisAi.
+
+        - Initializes bottom, runs the main solver steps, and displays the results 
+          in a small taichi-gui or GGUI window.
+        - Plots the free surface (eta) and bottom profile in each iteration.
+        - Optionally saves frames and can compile them into a GIF if desired.
+        """
         plotpath = './plots'
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
@@ -375,6 +540,28 @@ class Evolve:
 
     
     def Evolve_Display(self,vmin=None,vmax=None,variable='h',cmapWater='Blues_r',showSediment=False):
+        """
+        Interactive loop for a 2D simulation of CelerisAi with real-time visualization.
+
+        - Calls `Evolve_0()` once to initialize solver fields.
+        - Creates a window (either GGUI or legacy GUI).
+        - Uses a custom colormap from `celeris_matplotlib()` if `showSediment` is True 
+          and the solver has sediment transport enabled.
+        - Allows switching between different visualization variables:
+            * `h`: Water depth
+            * `eta`: Free surface elevation
+            * `vor`: Vorticity
+        - Saves frames if `saveimg` is True, can compile them into a GIF, and optionally 
+          saves solver states to `.npy`.
+
+        Args:
+            vmin (float, optional): Minimum colormap value for rendering. Defaults to None (class-level vmin).
+            vmax (float, optional): Maximum colormap value for rendering. Defaults to None (class-level vmax).
+            variable (str, optional): Which variable to render (`h`, `eta`, or `vor`). Defaults to 'h'.
+            cmapWater (str, optional): Matplotlib colormap name for water. Defaults to 'Blues_r'.
+            showSediment (bool, optional): If True, merges in a sediment colormap when sediment transport is active. 
+                Defaults to False.
+        """
         if vmin!=None:
             self.vmin = vmin
         if vmax!=None:

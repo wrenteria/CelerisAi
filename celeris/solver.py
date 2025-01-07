@@ -8,7 +8,16 @@ import taichi.math as tm
 from celeris.utils import Reconstruct,CalcUV,sineWave,CalcUV_Sed,CalcUV_Sed,NumericalFlux,FrictionCalc,cosh
 
 def checjson(variable,data):
-    # To check if variables exist in Celeris configuration file
+    """
+    Checks if a key exists in a JSON config file (i.e., CelerisWebGPU configuration file).
+
+    Args:
+        key (str): The key to check in the JSON config file.
+        config (dict): The JSON-loaded dictionary.
+
+    Returns:
+        int: 1 if the key is found in the JSON dictionary, 0 otherwise.
+    """
     R=0
     if variable in data:
         R =1
@@ -38,6 +47,51 @@ sediment_default = SedClass() # Check this implementation
 
 @ti.data_oriented
 class Solver:
+    """
+    Main numerical solver class for the CelerisAi model.
+
+    This class manages the entire simulation process, including:
+        - Initializing solution states and bottom fields from the `Domain` class.
+        - Controlling boundary conditions from the `BoundaryConditions` class.
+        - Executing the time-stepping scheme (Euler, Adams-Bashforth variants) and 
+          1D/2D flow updates (SWE or Boussinesq).
+        - Incorporating breaking models, sediment transport, and the 
+          kernels for reconstruction (Pass1), flux computations (Pass2), 
+          and final updates (Pass3).
+
+    Attributes:
+        domain (Domain): Instance of the Domain class containing grid info and topography.
+        bc (BoundaryConditions): Instance managing boundary condition types and wave settings.
+        dissipation_threshold (float): Used for visualization (mark cells above certain foam/dissipation).
+        theta (float): Midmod limiter parameter (1.0 more dissipative, 2.0 less dissipative).
+        timeScheme (int): Time integration scheme:
+            - 0 => Euler
+            - 1 => 3rd-order  predictor
+            - 2 => 4th-order  predictor/corrector
+        pred_or_corrector (int): Indicates stage in solver loop (1 => predictor, 2 => corrector).
+        Bcoef (float): Dispersion parameter for Boussinesq model; default 1/15.
+        model (str): Type of model, 'SWE' or 'Bouss'.
+        useBreakingModel (bool): True if wave-breaking model is included.
+        whiteWaterDecayRate (float): Turbulence decay rate for foam (visualization).
+        whiteWaterDispersion (float): Turbulence dispersion factor.
+        useSedTransModel (bool): True if sediment transport is included.
+        sediment (object): Default or custom sediment parameters.
+        infiltrationRate (float): For modeling infiltration on dry beaches.
+        clearCon (int): If 1, concentration channel is cleared for visualization.
+        showBreaking (int): If > 0, shows wave breaking foam areas.
+        delta_breaking (float): Eddy viscosity coefficient in breaking zones.
+        T_star_coef (float): Timescale factor for fully developed breaking.
+        dzdt_I_coef (float): Start-breaking parameter threshold.
+        dzdt_F_coef (float): End-breaking parameter threshold.
+
+    The class initializes a large set of Taichi vector fields (state vectors, flux arrays, 
+    intermediate arrays for Boussinesq tridiagonal solves, sediment transport arrays, etc.)
+    to manage the numerical solution.
+
+    Example:
+        >>> solver = Solver(domain=dom, boundary_conditions=bc, model='SWE')
+    """
+
     def __init__(self,
                  domain=None,
                  boundary_conditions = None,
@@ -63,6 +117,41 @@ class Solver:
                  dzdt_I_coef= 0.50,
                  dzdt_F_coef= 0.15
                  ):
+        """
+        Initializes the Solver with domain and boundary-condition data and sets parameters 
+        for the numerical schemes, wave-breaking models, and sediment transport.
+
+        Args:
+            domain (Domain, optional): Domain object describing the computational grid 
+                and topography. Defaults to None.
+            boundary_conditions (BoundaryConditions, optional): Object managing all boundary settings. 
+                Defaults to None.
+            dissipation_threshold (float, optional): Threshold for visualization of dissipative zones. 
+                Defaults to 0.3.
+            theta (float, optional): Midmod limiter parameter (1.0 => upwind to 2.0 => centered). 
+                Defaults to 2.0.
+            timeScheme (int, optional): Time integration choice (0 => Euler, 1 => 3rd-order AB, 
+                2 => 4th-order AB predictor/corrector). Defaults to 2.
+            pred_or_corrector (int, optional): Indicates current stage in predictor-corrector approach 
+                (1 => predictor, 2 => corrector). Defaults to 1.
+            show_window (bool, optional): If True, enables visualization window. Defaults to True.
+            maxsteps (int, optional): Max number of time steps to run. Defaults to 1000.
+            Bcoef (float, optional): Dispersion parameter (1/15 for this Boussinesq equations). Defaults to 1.0/15.0.
+            outdir (str, optional): Output directory for results. Defaults to None.
+            model (str, optional): Model type ('SWE' or 'Bouss'). Defaults to 'SWE'.
+            useBreakingModel (bool, optional): Enables wave-breaking model if True. Defaults to False.
+            whiteWaterDecayRate (float, optional): Turbulent foam decay rate. Defaults to 0.01.
+            whiteWaterDispersion (float, optional): Turbulent foam dispersion. Defaults to 0.1.
+            useSedTransModel (bool, optional): Enables sediment transport if True. Defaults to False.
+            sediment (object, optional): Sediment parameter object. Defaults to None.
+            infiltrationRate (float, optional): Dry-beach infiltration rate. Defaults to 0.001.
+            clearCon (int, optional): Clears concentration channel if == 1. Defaults to 1.
+            showBreaking (int, optional): If > 0, show wave breaking areas as foam. Defaults to 0.
+            delta_breaking (float, optional): Eddy viscosity coefficient for breaking. Defaults to 2.0.
+            T_star_coef (float, optional): Timescale factor until breaking fully develops. Defaults to 5.0.
+            dzdt_I_coef (float, optional): Start-breaking threshold. Defaults to 0.50.
+            dzdt_F_coef (float, optional): End-breaking threshold. Defaults to 0.15.
+        """
         self.domain = domain
         self.bc  = boundary_conditions
         self.useSedTransModel = useSedTransModel
@@ -180,6 +269,7 @@ class Solver:
         self.dzdt_F_coef = dzdt_F_coef
         self.dzdt_I_coef = dzdt_I_coef
 
+        # If using celeris-type config, override some parameters from JSON if present
         if self.bc.celeris==True:
             if checjson('whiteWaterDecayRate',self.bc.configfile)==1:
                 self.whiteWaterDecayRate = float(self.bc.configfile['whiteWaterDecayRate'])
@@ -281,6 +371,7 @@ class Solver:
                     self.model='Bouss'
                 else:
                     self.model='SWE'
+            # If using sediment model, update sediment parameters from JSON
             if self.useSedTransModel:
                 if checjson('sedC1_d50',self.bc.configfile)==1:
                     self.sediment.d50 = float(self.bc.configfile['sedC1_d50'])
@@ -320,12 +411,20 @@ class Solver:
 
     @ti.kernel
     def InitStates(self):
+        """
+        Initializes the solver states (State, stateUVstar) to zeros at the start 
+        of the simulation.
+        """
         for i,j in self.State:
             self.State[i,j] = ti.Vector([0.0,0.0,0.0,0.0],self.precision)
             self.stateUVstar[i,j]= ti.Vector([0.0,0.0,0.0,0.0],self.precision)
 
     @ti.kernel
     def fill_bottom_field(self):
+        """
+        Fills the bottom vector field array with computed spatial derivatives (indices 0,1)
+        and near-dry/auxiliary flags at index 3. 
+        """
         lengthCheck = 3
         if self.ny==1:
             for i,j in ti.ndrange((0,self.nx),(0,self.ny)):
@@ -351,6 +450,21 @@ class Solver:
 
     @ti.func
     def BoundSineWaves(self,NumWaves,Waves,x,y,t,d_here,grav):
+        """
+        Computes boundary conditions for incoming sine waves at a domain boundary.
+
+        Args:
+            NumWaves (int): Number of wave components in `Waves`.
+            Waves (ti.field): Wave parameter array [numWaves, 4].
+            x (float): x-coordinate at boundary cell.
+            y (float): y-coordinate at boundary cell.
+            t (float): Current time.
+            d_here (float): Local water depth if positive; 0 if dry.
+            grav (float): Gravity constant.
+
+        Returns:
+            ti.types.vector(3, float): [eta, hu, hv] aggregated from all wave components.
+        """
         result = ti.Vector([0.0, 0.0, 0.0],self.precision)
         x = self.precision(x)
         y = self.precision(y)
@@ -364,6 +478,21 @@ class Solver:
 
     @ti.func
     def SolitaryWave(self,x0,y0,theta,x,y,t,d_here):
+        """
+        Computes boundary conditions for a solitary wave type (WaveType=3).
+
+        Args:
+            x0 (float): Initial x-position of the wave crest.
+            y0 (float): Initial y-position of the wave crest.
+            theta (float): Wave propagation angle in radians.
+            x (float): x-coordinate at boundary cell.
+            y (float): y-coordinate at boundary cell.
+            t (float): Current simulation time.
+            d_here (float): Local water depth, if any.
+
+        Returns:
+            tuple of (float, float, float): (eta, hu, hv) for a solitary wave boundary.
+        """
         amp = self.bc.amplitude
         xloc = x - x0
         yloc = y - y0
@@ -376,6 +505,19 @@ class Solver:
 
     @ti.kernel
     def BoundaryPass(self,time:ti.f32, txState: ti.template()):
+        """
+        Updates boundary cells with the appropriate boundary conditions:
+          - Sponge layers (type=1) 
+          - Solid walls (type=0)
+          - Incoming waves (type=2) including sine wave or solitary wave
+
+        This kernel is also responsible for handling near-dry logic and simple 
+        wetting/drying checks at the domain edges. 
+
+        Args:
+            time (float): Current time.
+            txState (ti.field): A Taichi 2D vector field for the state to be updated.
+        """
         #Check 1D
         if self.ny==1:
             for i,j in ti.ndrange((0,self.nx),(0,self.ny)):
@@ -743,6 +885,16 @@ class Solver:
 
     @ti.kernel
     def copy_states(self,src: ti.template(), dst: ti.template()):
+        """
+        Copies state data from one Taichi field to another, ensuring shapes match.
+
+        Args:
+            src (ti.field): Source Taichi field.
+            dst (ti.field): Destination Taichi field.
+
+        Raises:
+            AssertionError: If shapes of src and dst do not match.
+        """
         ti.static_assert(dst.shape == src.shape, "copy() needs src and dst fields to be same shape")
         for I in ti.grouped(dst):
             dst[I] = src[I]
@@ -750,7 +902,11 @@ class Solver:
 
     @ti.kernel
     def tridiag_coeffs_X(self):
-        # to calculate the flux terms - Tridiagonal system pag. 12
+        """
+        Fills tridiagonal coefficient arrays in x-direction (coefMatx) for the 
+        Boussinesq model. These coefficients are used later in the parallel cyclic 
+        reduction solver (PCR) to handle dispersion terms.
+        """
         Bottom,dx = ti.static(self.Bottom,self.dx)
         ti.loop_config(serialize=True)
         for j in range(self.ny):
@@ -777,7 +933,11 @@ class Solver:
 
     @ti.kernel
     def tridiag_coeffs_Y(self):
-        # to calculate the flux terms - Tridiagonal system pag. 12
+        """
+        Fills tridiagonal coefficient arrays in y-direction (coefMaty) for the 
+        Boussinesq model. These coefficients are used later in the parallel cyclic 
+        reduction solver (PCR) to handle dispersion terms.
+        """
         Bottom,dy = ti.static(self.Bottom,self.dy)
         ti.loop_config(serialize=True)
         for j in range(self.ny):
@@ -806,8 +966,16 @@ class Solver:
 
     @ti.kernel
     def Pass1(self):
-        # PASS 0 and Pass1 - edge value construction
-        # using Generalized minmod limiter
+        """
+        Reconstruction step (Pass1):
+          - Builds left/right (or N/E/S/W) interface values of eta, momentum, and 
+            scalar concentration using a generalized minmod limiter.
+          - Applies near-dry checks to skip processing cells that are effectively dry.
+          - Computes velocity components and partial Froude-limiter logic.
+
+        For 1D (ny=1), a simpler logic is used. For 2D, reconstruction is in both 
+        x- and y-directions.
+        """
         zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         if self.ny==1:
             # RUN 1D
@@ -1044,8 +1212,10 @@ class Solver:
 
     @ti.kernel
     def Pass1_SedTrans(self):
-        # Pass1 - edge value construction of hc
-        # using Generalized minmod limiter
+        """
+        Reconstruction step (Pass1) for sediment transport scalar. Uses the same 
+        generalized minmod approach to reconstruct sediment concentration at edges.
+        """
         for i,j in self.State_Sed:
             # Compute the coordinates of the neighbors
             rightIdx = ti.min(i + 1, self.nx - 1)
@@ -1109,7 +1279,12 @@ class Solver:
 
     @ti.kernel
     def Pass2(self):
-        # PASS 2 - Calculus of fluxes
+        """
+        Flux computation step (Pass2):
+          - Computes fluxes at each cell edge in x and y directions using the function 
+            numerical flux.
+          - If sediment transport is enabled, calculates sediment fluxes similarly.
+        """
         if self.ny==1:
             # RUN 1D
                 for i,j in self.Hnear:
@@ -1277,7 +1452,16 @@ class Solver:
 
     @ti.kernel
     def Pass3(self,pred_or_corrector:ti.i32):
-        # PASS 3 - Do timestep and calculate new w_bar, hu_bar, hv_bar.
+        """
+        Main time-update step (Pass3) for the SWE model:
+          - Updates eta, hu, hv, c for each cell based on fluxes and source terms 
+            (bed slope, friction, infiltration, etc.).
+          - Uses an explicit time scheme (Euler,  predictor,  predictor/corrector).
+          - Optionally includes a foam/breaking parameter if showBreaking>0.
+
+        Args:
+            pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
+        """
         zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         if self.ny==1:
             for i,j in self.NewState:
@@ -1545,6 +1729,14 @@ class Solver:
 
     @ti.kernel
     def Pass3_SedTrans(self,pred_or_corrector:ti.i32):
+        """
+        Time-update step (Pass3) for sediment transport scalar:
+          - Uses fluxes (XFlux_Sed, YFlux_Sed) plus simple diffusion. 
+          - Adds erosion/deposition terms based on local shear velocity or critical Shields.
+
+        Args:
+            pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
+        """
         for i,j in self.State_Sed:
             if i >= (self.nx - 2) or j >= (self.ny - 2) or i <= 1 or j <= 1:
                 self.NewState_Sed[i,j].x = 0.0
@@ -1636,6 +1828,16 @@ class Solver:
 
     @ti.kernel
     def Pass3Bous(self,pred_or_corrector:ti.i32):
+        """
+        Time-update step (Pass3) for the Boussinesq model:
+          - Updates wave height, hu, hv, concentration.
+          - Incorporates dispersion terms, bed slope, friction, infiltration, 
+            and wave breaking if enabled.
+          - Uses a predictor-corrector approach for higher-order accuracy.
+
+        Args:
+            pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
+        """
         Bottom = ti.static(self.Bottom)
         zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         # PASS 3 - Calculus of fluxes
@@ -2125,7 +2327,15 @@ class Solver:
 
     @ti.kernel
     def Pass_Breaking(self,time:ti.f32):
-        # PASS Breaking -
+        """
+        Wave-breaking model step (used if useBreakingModel == True):
+          - Applies Kennedy et al. or similar wave breaking logic to compute local 
+            dissipation flux and update the Breaking field. 
+          - Incorporates eddy viscosity effects from breaking.
+
+        Args:
+            time (float): Current simulation time.
+        """
         if self.ny==1:
                 for i,j in self.State:
                     #Compute the coordinates of the neighbors
@@ -2328,6 +2538,16 @@ class Solver:
 
     @ti.kernel
     def TriDiag_PCRx(self,p:int,s:int, current_buffer: ti.template(), next_buffer: ti.template()):
+        """
+        Parallel Cyclic Reduction step in x-direction for tridiagonal system 
+        (Boussinesq dispersion). This kernel performs the p-th level of reduction.
+
+        Args:
+            p (int): Current level in PCR (log2 scale).
+            s (int): Step size (2^p).
+            current_buffer (ti.field): Current coefficients at p-1 level.
+            next_buffer (ti.field): Next coefficients to be filled for p-th level.
+        """
         for i,j in self.NewState:
             CurrentState = self.NewState[i,j]
             idx_left = ti.raw_mod(i - s + self.nx , self.nx)
@@ -2376,6 +2596,16 @@ class Solver:
 
     @ti.kernel
     def TriDiag_PCRy(self,p:int,s:int,current_buffer: ti.template(), next_buffer: ti.template()):
+        """
+        Parallel Cyclic Reduction step in y-direction for tridiagonal system 
+        (Boussinesq dispersion).
+
+        Args:
+            p (int): Current level in PCR (log2 scale).
+            s (int): Step size (2^p).
+            current_buffer (ti.field): Current coefficients at p-1 level.
+            next_buffer (ti.field): Next coefficients for p-th level.
+        """
         for i,j in self.NewState:
             CurrentState = self.NewState[i,j]
             idx_left = ti.raw_mod(j - s + self.ny,self.ny)
@@ -2423,6 +2653,13 @@ class Solver:
             self.temp2_PCRy[i,j] = ti.Vector([CurrentState.r,CurrentState.g, dOut, CurrentState.a],self.precision)
 
     def Run_Tridiag_solver(self):
+        """
+        Executes the parallel cyclic reduction (PCR) solver to handle the dispersion 
+        terms in the Boussinesq model. If model is 'SWE', no action is taken.
+
+        For 1D (ny=1), only the x-direction solver is applied.  
+        For 2D, runs PCR in x, then y directions.
+        """
         if self.model=='SWE':
             self.copy_states(src=self.current_stateUVstar,dst=self.NewState)
         else:
