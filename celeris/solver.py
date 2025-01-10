@@ -418,6 +418,29 @@ class Solver:
         for i,j in self.State:
             self.State[i,j] = ti.Vector([0.0,0.0,0.0,0.0],self.precision)
             self.stateUVstar[i,j]= ti.Vector([0.0,0.0,0.0,0.0],self.precision)
+    
+    @ti.kernel
+    def InitStatesGaussian(self):
+        """
+        Initializes the solver states (State, stateUVstar) to a Gaussian at the start 
+        of the simulation.
+        """
+        dx = self.domain.dx
+        Nx = self.domain.Nx
+
+        dy = 0 #self.domain.dy
+        Ny = 0 #self.domain.Ny
+
+        center_x = Nx//2*dx
+        center_y = 0.0 #int(Ny/2)*dy
+
+        sigma = 20
+
+        for i,j in self.State:
+            #eta = 2 * ti.exp(-(((i*dx) - center) ** 2) / (20 ** 2)) 
+            eta = 2 * ti.exp(-(((i * dx) - center_x) ** 2 + ((j * dy) - center_y) ** 2) / (sigma ** 2))
+            self.State[i,j] = ti.Vector([eta,0.0,0.0,0.0],self.precision)
+            self.stateUVstar[i,j] = ti.Vector([eta,0.0,0.0,0.0],self.precision)
 
     @ti.kernel
     def fill_bottom_field(self):

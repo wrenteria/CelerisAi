@@ -8,7 +8,7 @@ import numpy as np
 
 ti.init(arch = ti.gpu)
 
-baty = Topodata(filename='Topo1D.txt',path='./examples/1D',datatype='xz')
+baty = Topodata(filename='ConstantTopo1D.txt',path='./examples/1D',datatype='xz')
 
 bc = BoundaryConditions(West=2,celeris=False,path='./examples/1D',filename='irrWaves1D.txt')
 
