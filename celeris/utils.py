@@ -40,10 +40,11 @@ def celeris_matplotlib(water='seismic',land='terrain',sediment='default',SedTran
     and optionally sediment transport.
 
     This function merges three main color segments:
-    1. **Water**: Ranges from 0 to 0.75 or 0 to 0.5 (depending on sediment usage).
-    2. **Sediment** (optional): Placed between the water and land segments if `SedTrans` is True.
-    3. **Land/Topography**: Assigned to the higher range of the color bar (e.g., 0.75 - 1 or 0.75 - 1 
-       when `SedTrans` is False, and 0.75 - 1 when `SedTrans` is True).
+    
+        1. **Water**: Ranges from 0 to 0.75 or 0 to 0.5 (depending on sediment usage).
+        2. **Sediment** (optional): Placed between the water and land segments if `SedTrans` is True.
+        3. **Land/Topography**: Assigned to the higher range of the color bar (e.g., 0.75 - 1 or 0.75 - 1 
+            when `SedTrans` is False, and 0.75 - 1 when `SedTrans` is True).
 
     Args:
         water (str, optional): Name of the colormap to use for water (default "seismic").
@@ -154,6 +155,7 @@ def MinMod(a,b,c):
     Computes a simple minmod function of three values.
 
     The minmod function returns:
+    
     - The minimum among (a, b, c) if all three are positive.
     - The maximum among (a, b, c) if all three are negative.
     - Zero otherwise.
@@ -262,6 +264,7 @@ def Reconstruct(west, here, east, TWO_THETAc):
     values at the current cell interfaces (left/right or west/east edges).
 
     The reconstruction logic:
+    
     - Computes slopes (z1, z2, z3) that scale differences between neighboring cells.
     - Finds the minimum among those slopes (when all have the same sign) or zero otherwise.
     - Applies a factor of 0.25 to that minimum slope to limit the reconstruction (i.e., 
@@ -308,6 +311,7 @@ def CalcUV(h, hu, hv,hc,epsilon,dB_max):
         divide_by_h = 2.0 * h / (h * h + ti.max(h * h, epsilon_c))
 
     where:
+    
     - `epsilon_c = max(epsilon, dB_max)`
     - `epsilon` is a small threshold to prevent division by zero,
     - `dB_max` represents the maximum bed-elevation difference across edges, 
@@ -380,6 +384,7 @@ def NumericalFlux(aplus, aminus, Fplus, Fminus, Udifference):
     (`aplus - aminus == 0.0`), the flux is set to zero.
 
     The formula implemented is:
+    
         flux = (aplus * Fminus - aminus * Fplus + (aplus * aminus) * Udifference) / (aplus - aminus)
 
     Args:
@@ -446,18 +451,22 @@ def FrictionCalc(hu, hv, h, base_depth,delta,isManning, g, friction):
     numerical stability and to avoid singularities near dry cells.
 
     The steps are:
+        
         1. Scale the water depth (`h_scaled = h / base_depth`) and compute powers 
            (`h2 = h_scaled^2`, `h4 = h2^2`).
         2. Compute a term `divide_by_h2` which further scales friction based on squared depth.
         3. Ensure the local depth `h` is not below a small threshold `delta` to prevent 
            division by zero.
         4. If `isManning == 1`, convert the `friction` input into Mannings n and compute:
+        
                f = g * (friction^2) * (1 / h^(1/3))
+               
            otherwise, keep a constant friction value.
         5. Clamp the friction factor to a maximum of 0.5 as a safety measure.
         6. Multiply by the flow speed (computed from `hu`, `hv`) and the scaling factor 
            `divide_by_h2`.
 
+           
     Args:
         hu (float): Momentum in the x-direction.
         hv (float): Momentum in the y-direction.
