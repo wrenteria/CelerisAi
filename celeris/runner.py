@@ -20,12 +20,14 @@ class Evolve:
     This class ties together the `Domain`, `BoundaryConditions`, and `Solver` classes, and 
     manages the time-stepping workflow. It includes methods for:
 
-    1. **Initialization** (`Evolve_0`):  
+    1. **Initialization** (`Evolve_0`):
+      
        - Fills the bottom field with bathymetry/topography data.
        - Initializes solver states (water height, velocity, etc.).
        - Computes tridiagonal coefficients if using a Boussinesq model.
 
-    2. **Main Time-Stepping** (`Evolve_Steps`):  
+    2. **Main Time-Stepping** (`Evolve_Steps`):
+     
        - Runs reconstruction (Pass1) and flux computations (Pass2).
        - Handles wave breaking if enabled.
        - Integrates the solution one or more steps forward in time (Pass3, Pass3Bous, Pass3_SedTrans).
@@ -33,22 +35,26 @@ class Evolve:
        - Optionally solves tridiagonal systems for Boussinesq dispersion.
        - Copies or shifts data between fields for multi-stage time integrators.
 
-    3. **Headless Execution** (`Evolve_Headless`):  
+    3. **Headless Execution** (`Evolve_Headless`):
+    
        - Executes the simulation loop without rendering or displaying results, 
          minimizing overhead and focusing on performance.
        - Periodically logs timing information and can save the simulation states (e.g. `State` arrays).
 
-    4. **1D Visualization** (`Evolve_1D_Display`):  
+    4. **1D Visualization** (`Evolve_1D_Display`):
+    
        - Specialized loop for 1D simulations, displaying free surface (eta) 
          and bathymetry in a window using either taichi-gui or legacy GUI fallback.
 
-    5. **2D Visualization** (`Evolve_Display`):  
+    5. **2D Visualization** (`Evolve_Display`):
+    
        - Interactive loop for 2D simulations.  
        - Renders wave height (h), free surface elevation (eta), or vorticity (vor) 
          in real-time.  
        - Allows saving images and assembling them into a GIF.
 
-    6. **Rendering and Color Mapping** (Kernels like `paint`, `paint_new`, `painting_h`, `painting_eta`, `painting_vor`, etc.):  
+    6. **Rendering and Color Mapping** (Kernels like `paint`, `paint_new`, `painting_h`, `painting_eta`, `painting_vor`, etc.):
+    
        - Populates 2D Taichi fields (`self.image`, `self.solver.pixel`, etc.) based on 
          solver results, for real-time visualization.  
        - Supports multiple coloring strategies (e.g. realistic wave colors, topography shading, sediment rendering).
@@ -80,6 +86,7 @@ class Evolve:
         x_scale, y_scale (float): Scaling factors for 1D plots in the GUI.
 
     Typical Usage:
+    
         >>> evolve = Evolve(domain=dom, boundary_conditions=bc, solver=sol, maxsteps=2000, outdir="results")
         >>> evolve.Evolve_Display(vmin=-1.0, vmax=1.0, variable='eta', cmapWater='Blues_r', showSediment=True)
 
@@ -692,3 +699,5 @@ class Evolve:
                         print(f"Error creating GIF: {e}")
                 break
             i = i+1
+if __name__ == "__main__":
+    print('Runner Module used in Celeris')

@@ -2706,4 +2706,4 @@ class Solver:
             self.Bottom[2,i,j] = B + delta_B
 
 if __name__ == "__main__":
-    print('Module of functions used in Celeris')
+    print('Solver Module used in Celeris')

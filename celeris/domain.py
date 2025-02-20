@@ -59,7 +59,7 @@ class Topodata:
         path (str, optional): Directory path where the file is located. If not provided, 
             `filename` should be a complete path or in the current working directory.
     Example:
-        >>> Bfrom celeris.domain import Topodata
+        >>> from celeris.domain import Topodata
         >>> baty = Topodata(datatype='celeris',path='./examples/DuckFRF_NC')
     """
     def __init__(self,
@@ -126,28 +126,35 @@ class BoundaryConditions:
     The domain has four faces: north, south, east, and west. Each face can be configured
     with different boundary types (e.g., sponge layer, solid wall, incoming wave).
     Boundary conditions can be set in one of two ways:
+
     1) **Celeris format** (`celeris=True`): Reads from a `config.json` file.
     2) **Manual** (`celeris=False`): Uses manually supplied values.
 
-    If incoming waves (boundary type = 2) are defined, the wave type can be specified via
-    `WaveType`. If `WaveType` is -1, the wave parameters are read from a file (e.g., 
-    `"waves.txt"`). Otherwise, a sine wave is assumed and set by `sine_wave`.
+    If incoming waves (boundary type = 2) are defined, the wave type can be specified
+    via `WaveType`. If `WaveType` is -1, the wave parameters are read from a file
+    (e.g., `"waves.txt"`). Otherwise, a sine wave is assumed and set by `sine_wave`.
 
-    This class also includes utility methods for handling wave data input and conversion
-    from NumPy arrays to Taichi tensors.
-    
+    This class also includes utility methods for handling wave data input and 
+    conversion from NumPy arrays to Taichi tensors.
+
     Attributes:
         precision (taichi.types.primitive_types): The precision used by Taichi (e.g. `ti.f32`, `ti.f64`).
+
         North (int): Boundary type for the north face. Valid types are:
+
             - 0: Solid wall
             - 1: Sponge layer
             - 2: Incoming wave
+
         South (int): Boundary type for the south face.
         East (int): Boundary type for the east face.
         West (int): Boundary type for the west face.
-        WaveType (int): Wave type indicator. 
+
+        WaveType (int): Wave type indicator. Valid values are:
+
             - -1: Wave parameters read from a file (`waves.txt`)
-            -  Any other integer: Use `sine_wave` array for wave parameters
+            - Any other integer: Use the `sine_wave` array for wave parameters
+
         Amplitude (float): Wave amplitude, used if not reading from a file.
         path (str): Path to the directory containing `waves.txt` and/or `config.json`.
         filename (str): Name of the file that stores wave parameters (e.g. `waves.txt`).
@@ -160,8 +167,9 @@ class BoundaryConditions:
         W_data (None): Unused placeholder (could store wave data in some contexts).
 
     Example:
+
         >>> from celeris.domain import BoundaryConditions
-        >>> bc = BoundaryConditions(celeris=True,path='./examples/DuckFRF_NC',precision=precision)
+        >>> bc = BoundaryConditions(celeris=True, path='./examples/DuckFRF_NC', precision=precision)
     """
     def __init__(self,
                  celeris=True,
@@ -182,6 +190,7 @@ class BoundaryConditions:
         Initializes the BoundaryConditions object with specified or default parameters.
 
         Args:
+        
             celeris (bool, optional): If True, reads boundary settings from `config.json` 
                 located at `path`. Defaults to True.
             precision (taichi.types.primitive_types, optional): Taichi precision type 
@@ -291,6 +300,7 @@ class BoundaryConditions:
         Loads wave parameters from `waves.txt` if `WaveType` is -1.
 
         If a valid file is found, it reads the wave parameters:
+        
         - The first three lines are header-like info (only the 'NumberOfWaves' line is used).
         - After skipping three lines, wave parameters are loaded. The shape of `self.data`
           is `(N_data, 4)`, where `N_data` is determined by reading the 'NumberOfWaves' 
@@ -338,10 +348,12 @@ class Domain:
     configures boundary sea levels on each face (north, south, east, west), 
     and stores critical parameters such as Courant number (`Courant`), friction, 
     and base depth. Two main branches are supported for configuration:
+    
         1. **Celeris format**: Reads from a `config.json` file (if `topodata.datatype == "celeris"`).
         2. **Manual**: Uses provided arguments directly.
 
     The class also defines utility methods to:
+    
         - Create a meshgrid for the domain (`grid`).
         - Load and interpolate topographic/bathymetric data (`topofield`, `bottom`).
         - Compute maximum depth (`maxdepth`) and highest topography (`maxtopo`).
@@ -444,6 +456,7 @@ class Domain:
         self.g = 9.80665
         self.configfile=None
         self.Boundary_shift=BoundaryShift
+        self.base_depth_ = base_depth
         # When topodata.datatype == 'celeris', read from config.json.
         if self.topodata.datatype=='celeris':
             with open(os.path.join(self.topodata.path, 'config.json'),'r') as uf:
@@ -538,6 +551,7 @@ class Domain:
         (inverted sign), plus any other auxiliary fields (e.g., near-dry flags).
 
         Index mapping:
+        
             - [2, :, :] => Stores the bathymetry/topography (with a -1 factor).
             - [3, :, :] => A placeholder used for near-dry or similar state flags.
 
@@ -576,13 +590,15 @@ class Domain:
 
     def maxdepth(self):
         """
-        Computes the maximum depth in the domain. If `base_depth_` is specified, 
+        Computes the maximum depth in the domain. If ``base_depth_`` is specified, 
         returns that. Otherwise:
+        
             - For 1D ('xz'): returns the maximum of the interpolated topofield array.
             - For 2D ('xyz', 'celeris'): returns the maximum of topofield array values.
 
         Returns:
-            float: Maximum depth (base_depth_ if set, else maximum from topofield).
+        
+            float: Maximum depth (``base_depth_`` if set, else maximum from topofield).
         """
         if self.base_depth_ ==None:
             # 1D domain
@@ -602,6 +618,7 @@ class Domain:
         for a similar reason.
 
         Returns:
+        
             float: The highest elevation (or least negative) in the domain.
         """
         if self.topodata.datatype=='xz':
@@ -612,6 +629,7 @@ class Domain:
     def dt(self):
         """
         Computes the time step based on the Courant criterion:
+        
             dt = Courant * dx / sqrt(g * maxdepth)
 
         Returns:
