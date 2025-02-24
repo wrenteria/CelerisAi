@@ -1,0 +1,150 @@
+\indexentry{module@\spxentry{module}!celeris.domain@\spxentry{celeris.domain}|hyperpage}{6}
+\indexentry{celeris.domain@\spxentry{celeris.domain}!module@\spxentry{module}|hyperpage}{6}
+\indexentry{Topodata (class in celeris.domain)@\spxentry{Topodata}\spxextra{class in celeris.domain}|hyperpage}{6}
+\indexentry{filename (celeris.domain.Topodata attribute)@\spxentry{filename}\spxextra{celeris.domain.Topodata attribute}|hyperpage}{6}
+\indexentry{datatype (celeris.domain.Topodata attribute)@\spxentry{datatype}\spxextra{celeris.domain.Topodata attribute}|hyperpage}{6}
+\indexentry{path (celeris.domain.Topodata attribute)@\spxentry{path}\spxextra{celeris.domain.Topodata attribute}|hyperpage}{6}
+\indexentry{z() (celeris.domain.Topodata method)@\spxentry{z()}\spxextra{celeris.domain.Topodata method}|hyperpage}{7}
+\indexentry{BoundaryConditions (class in celeris.domain)@\spxentry{BoundaryConditions}\spxextra{class in celeris.domain}|hyperpage}{7}
+\indexentry{precision (celeris.domain.BoundaryConditions attribute)@\spxentry{precision}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{7}
+\indexentry{North (celeris.domain.BoundaryConditions attribute)@\spxentry{North}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{7}
+\indexentry{South (celeris.domain.BoundaryConditions attribute)@\spxentry{South}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{East (celeris.domain.BoundaryConditions attribute)@\spxentry{East}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{West (celeris.domain.BoundaryConditions attribute)@\spxentry{West}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{WaveType (celeris.domain.BoundaryConditions attribute)@\spxentry{WaveType}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{Amplitude (celeris.domain.BoundaryConditions attribute)@\spxentry{Amplitude}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{path (celeris.domain.BoundaryConditions attribute)@\spxentry{path}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{filename (celeris.domain.BoundaryConditions attribute)@\spxentry{filename}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{BoundaryWidth (celeris.domain.BoundaryConditions attribute)@\spxentry{BoundaryWidth}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{8}
+\indexentry{sine\_wave (celeris.domain.BoundaryConditions attribute)@\spxentry{sine\_wave}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{9}
+\indexentry{celeris (celeris.domain.BoundaryConditions attribute)@\spxentry{celeris}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{9}
+\indexentry{configfile (celeris.domain.BoundaryConditions attribute)@\spxentry{configfile}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{9}
+\indexentry{data (celeris.domain.BoundaryConditions attribute)@\spxentry{data}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{9}
+\indexentry{N\_data (celeris.domain.BoundaryConditions attribute)@\spxentry{N\_data}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{9}
+\indexentry{W\_data (celeris.domain.BoundaryConditions attribute)@\spxentry{W\_data}\spxextra{celeris.domain.BoundaryConditions attribute}|hyperpage}{9}
+\indexentry{SineWave() (celeris.domain.BoundaryConditions method)@\spxentry{SineWave()}\spxextra{celeris.domain.BoundaryConditions method}|hyperpage}{9}
+\indexentry{Sponge() (celeris.domain.BoundaryConditions method)@\spxentry{Sponge()}\spxextra{celeris.domain.BoundaryConditions method}|hyperpage}{9}
+\indexentry{get\_data() (celeris.domain.BoundaryConditions method)@\spxentry{get\_data()}\spxextra{celeris.domain.BoundaryConditions method}|hyperpage}{10}
+\indexentry{load\_data() (celeris.domain.BoundaryConditions method)@\spxentry{load\_data()}\spxextra{celeris.domain.BoundaryConditions method}|hyperpage}{10}
+\indexentry{tseries() (celeris.domain.BoundaryConditions method)@\spxentry{tseries()}\spxextra{celeris.domain.BoundaryConditions method}|hyperpage}{10}
+\indexentry{Domain (class in celeris.domain)@\spxentry{Domain}\spxextra{class in celeris.domain}|hyperpage}{10}
+\indexentry{precision (celeris.domain.Domain attribute)@\spxentry{precision}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{x1 (celeris.domain.Domain attribute)@\spxentry{x1}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{x2 (celeris.domain.Domain attribute)@\spxentry{x2}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{y1 (celeris.domain.Domain attribute)@\spxentry{y1}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{y2 (celeris.domain.Domain attribute)@\spxentry{y2}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{Nx (celeris.domain.Domain attribute)@\spxentry{Nx}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{Ny (celeris.domain.Domain attribute)@\spxentry{Ny}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{topodata (celeris.domain.Domain attribute)@\spxentry{topodata}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{north\_sl (celeris.domain.Domain attribute)@\spxentry{north\_sl}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{south\_sl (celeris.domain.Domain attribute)@\spxentry{south\_sl}\spxextra{celeris.domain.Domain attribute}|hyperpage}{11}
+\indexentry{east\_sl (celeris.domain.Domain attribute)@\spxentry{east\_sl}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{west\_sl (celeris.domain.Domain attribute)@\spxentry{west\_sl}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{Courant (celeris.domain.Domain attribute)@\spxentry{Courant}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{isManning (celeris.domain.Domain attribute)@\spxentry{isManning}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{friction (celeris.domain.Domain attribute)@\spxentry{friction}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{base\_depth\_ (celeris.domain.Domain attribute)@\spxentry{base\_depth\_}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{Boundary\_shift (celeris.domain.Domain attribute)@\spxentry{Boundary\_shift}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{pixels (celeris.domain.Domain attribute)@\spxentry{pixels}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{g (celeris.domain.Domain attribute)@\spxentry{g}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{configfile (celeris.domain.Domain attribute)@\spxentry{configfile}\spxextra{celeris.domain.Domain attribute}|hyperpage}{12}
+\indexentry{seaLevel (celeris.domain.Domain attribute)@\spxentry{seaLevel}\spxextra{celeris.domain.Domain attribute}|hyperpage}{13}
+\indexentry{bottom() (celeris.domain.Domain method)@\spxentry{bottom()}\spxextra{celeris.domain.Domain method}|hyperpage}{13}
+\indexentry{dt() (celeris.domain.Domain method)@\spxentry{dt()}\spxextra{celeris.domain.Domain method}|hyperpage}{13}
+\indexentry{grid() (celeris.domain.Domain method)@\spxentry{grid()}\spxextra{celeris.domain.Domain method}|hyperpage}{13}
+\indexentry{maxdepth() (celeris.domain.Domain method)@\spxentry{maxdepth()}\spxextra{celeris.domain.Domain method}|hyperpage}{14}
+\indexentry{maxtopo() (celeris.domain.Domain method)@\spxentry{maxtopo()}\spxextra{celeris.domain.Domain method}|hyperpage}{14}
+\indexentry{reflect\_x() (celeris.domain.Domain method)@\spxentry{reflect\_x()}\spxextra{celeris.domain.Domain method}|hyperpage}{14}
+\indexentry{reflect\_y() (celeris.domain.Domain method)@\spxentry{reflect\_y()}\spxextra{celeris.domain.Domain method}|hyperpage}{14}
+\indexentry{states() (celeris.domain.Domain method)@\spxentry{states()}\spxextra{celeris.domain.Domain method}|hyperpage}{14}
+\indexentry{states\_one() (celeris.domain.Domain method)@\spxentry{states\_one()}\spxextra{celeris.domain.Domain method}|hyperpage}{14}
+\indexentry{topofield() (celeris.domain.Domain method)@\spxentry{topofield()}\spxextra{celeris.domain.Domain method}|hyperpage}{15}
+\indexentry{checjson() (in module celeris.domain)@\spxentry{checjson()}\spxextra{in module celeris.domain}|hyperpage}{15}
+\indexentry{ti2np() (in module celeris.domain)@\spxentry{ti2np()}\spxextra{in module celeris.domain}|hyperpage}{15}
+\indexentry{module@\spxentry{module}!celeris.solver@\spxentry{celeris.solver}|hyperpage}{15}
+\indexentry{celeris.solver@\spxentry{celeris.solver}!module@\spxentry{module}|hyperpage}{15}
+\indexentry{Solver (class in celeris.solver)@\spxentry{Solver}\spxextra{class in celeris.solver}|hyperpage}{15}
+\indexentry{domain (celeris.solver.Solver attribute)@\spxentry{domain}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{bc (celeris.solver.Solver attribute)@\spxentry{bc}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{dissipation\_threshold (celeris.solver.Solver attribute)@\spxentry{dissipation\_threshold}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{theta (celeris.solver.Solver attribute)@\spxentry{theta}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{timeScheme (celeris.solver.Solver attribute)@\spxentry{timeScheme}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{pred\_or\_corrector (celeris.solver.Solver attribute)@\spxentry{pred\_or\_corrector}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{Bcoef (celeris.solver.Solver attribute)@\spxentry{Bcoef}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{model (celeris.solver.Solver attribute)@\spxentry{model}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{useBreakingModel (celeris.solver.Solver attribute)@\spxentry{useBreakingModel}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{whiteWaterDecayRate (celeris.solver.Solver attribute)@\spxentry{whiteWaterDecayRate}\spxextra{celeris.solver.Solver attribute}|hyperpage}{16}
+\indexentry{whiteWaterDispersion (celeris.solver.Solver attribute)@\spxentry{whiteWaterDispersion}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{useSedTransModel (celeris.solver.Solver attribute)@\spxentry{useSedTransModel}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{sediment (celeris.solver.Solver attribute)@\spxentry{sediment}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{infiltrationRate (celeris.solver.Solver attribute)@\spxentry{infiltrationRate}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{clearCon (celeris.solver.Solver attribute)@\spxentry{clearCon}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{showBreaking (celeris.solver.Solver attribute)@\spxentry{showBreaking}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{delta\_breaking (celeris.solver.Solver attribute)@\spxentry{delta\_breaking}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{T\_star\_coef (celeris.solver.Solver attribute)@\spxentry{T\_star\_coef}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{dzdt\_I\_coef (celeris.solver.Solver attribute)@\spxentry{dzdt\_I\_coef}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{dzdt\_F\_coef (celeris.solver.Solver attribute)@\spxentry{dzdt\_F\_coef}\spxextra{celeris.solver.Solver attribute}|hyperpage}{17}
+\indexentry{BoundSineWaves() (celeris.solver.Solver method)@\spxentry{BoundSineWaves()}\spxextra{celeris.solver.Solver method}|hyperpage}{18}
+\indexentry{BoundaryPass() (celeris.solver.Solver method)@\spxentry{BoundaryPass()}\spxextra{celeris.solver.Solver method}|hyperpage}{18}
+\indexentry{InitStates() (celeris.solver.Solver method)@\spxentry{InitStates()}\spxextra{celeris.solver.Solver method}|hyperpage}{18}
+\indexentry{Pass1() (celeris.solver.Solver method)@\spxentry{Pass1()}\spxextra{celeris.solver.Solver method}|hyperpage}{18}
+\indexentry{Pass1\_SedTrans() (celeris.solver.Solver method)@\spxentry{Pass1\_SedTrans()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Pass2() (celeris.solver.Solver method)@\spxentry{Pass2()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Pass3() (celeris.solver.Solver method)@\spxentry{Pass3()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Pass3Bous() (celeris.solver.Solver method)@\spxentry{Pass3Bous()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Pass3\_SedTrans() (celeris.solver.Solver method)@\spxentry{Pass3\_SedTrans()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Pass\_Breaking() (celeris.solver.Solver method)@\spxentry{Pass\_Breaking()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Run\_Tridiag\_solver() (celeris.solver.Solver method)@\spxentry{Run\_Tridiag\_solver()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
+\indexentry{SolitaryWave() (celeris.solver.Solver method)@\spxentry{SolitaryWave()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
+\indexentry{TriDiag\_PCRx() (celeris.solver.Solver method)@\spxentry{TriDiag\_PCRx()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
+\indexentry{TriDiag\_PCRy() (celeris.solver.Solver method)@\spxentry{TriDiag\_PCRy()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
+\indexentry{copy\_states() (celeris.solver.Solver method)@\spxentry{copy\_states()}\spxextra{celeris.solver.Solver method}|hyperpage}{21}
+\indexentry{fill\_bottom\_field() (celeris.solver.Solver method)@\spxentry{fill\_bottom\_field()}\spxextra{celeris.solver.Solver method}|hyperpage}{21}
+\indexentry{tridiag\_coeffs\_X() (celeris.solver.Solver method)@\spxentry{tridiag\_coeffs\_X()}\spxextra{celeris.solver.Solver method}|hyperpage}{21}
+\indexentry{tridiag\_coeffs\_Y() (celeris.solver.Solver method)@\spxentry{tridiag\_coeffs\_Y()}\spxextra{celeris.solver.Solver method}|hyperpage}{21}
+\indexentry{SedClass (class in celeris.solver)@\spxentry{SedClass}\spxextra{class in celeris.solver}|hyperpage}{21}
+\indexentry{module@\spxentry{module}!celeris.runner@\spxentry{celeris.runner}|hyperpage}{21}
+\indexentry{celeris.runner@\spxentry{celeris.runner}!module@\spxentry{module}|hyperpage}{21}
+\indexentry{Evolve (class in celeris.runner)@\spxentry{Evolve}\spxextra{class in celeris.runner}|hyperpage}{21}
+\indexentry{solver (celeris.runner.Evolve attribute)@\spxentry{solver}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{22}
+\indexentry{maxsteps (celeris.runner.Evolve attribute)@\spxentry{maxsteps}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{22}
+\indexentry{dt (celeris.runner.Evolve attribute)@\spxentry{dt}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{22}
+\indexentry{timeScheme (celeris.runner.Evolve attribute)@\spxentry{timeScheme}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{saveimg (celeris.runner.Evolve attribute)@\spxentry{saveimg}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{vmin (celeris.runner.Evolve attribute)@\spxentry{vmin}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{vmax (celeris.runner.Evolve attribute)@\spxentry{vmax}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{outdir (celeris.runner.Evolve attribute)@\spxentry{outdir}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{image (celeris.runner.Evolve attribute)@\spxentry{image}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{ocean (celeris.runner.Evolve attribute)@\spxentry{ocean}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{colormap\_ocean (celeris.runner.Evolve attribute)@\spxentry{colormap\_ocean}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
+\indexentry{Evolve\_0() (celeris.runner.Evolve method)@\spxentry{Evolve\_0()}\spxextra{celeris.runner.Evolve method}|hyperpage}{24}
+\indexentry{Evolve\_1D\_Display() (celeris.runner.Evolve method)@\spxentry{Evolve\_1D\_Display()}\spxextra{celeris.runner.Evolve method}|hyperpage}{24}
+\indexentry{Evolve\_Display() (celeris.runner.Evolve method)@\spxentry{Evolve\_Display()}\spxextra{celeris.runner.Evolve method}|hyperpage}{24}
+\indexentry{Evolve\_Headless() (celeris.runner.Evolve method)@\spxentry{Evolve\_Headless()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{Evolve\_Steps() (celeris.runner.Evolve method)@\spxentry{Evolve\_Steps()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{InitColors() (celeris.runner.Evolve method)@\spxentry{InitColors()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{bottom\_paint() (celeris.runner.Evolve method)@\spxentry{bottom\_paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{brk\_color() (celeris.runner.Evolve method)@\spxentry{brk\_color()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{eta\_paint() (celeris.runner.Evolve method)@\spxentry{eta\_paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{paint() (celeris.runner.Evolve method)@\spxentry{paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{paint\_new() (celeris.runner.Evolve method)@\spxentry{paint\_new()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
+\indexentry{painting\_eta() (celeris.runner.Evolve method)@\spxentry{painting\_eta()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
+\indexentry{painting\_h() (celeris.runner.Evolve method)@\spxentry{painting\_h()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
+\indexentry{painting\_vor() (celeris.runner.Evolve method)@\spxentry{painting\_vor()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
+\indexentry{module@\spxentry{module}!celeris.utils@\spxentry{celeris.utils}|hyperpage}{26}
+\indexentry{celeris.utils@\spxentry{celeris.utils}!module@\spxentry{module}|hyperpage}{26}
+\indexentry{CalcUV() (in module celeris.utils)@\spxentry{CalcUV()}\spxextra{in module celeris.utils}|hyperpage}{26}
+\indexentry{CalcUV\_Sed() (in module celeris.utils)@\spxentry{CalcUV\_Sed()}\spxextra{in module celeris.utils}|hyperpage}{27}
+\indexentry{ColorsfromMPL() (in module celeris.utils)@\spxentry{ColorsfromMPL()}\spxextra{in module celeris.utils}|hyperpage}{27}
+\indexentry{FrictionCalc() (in module celeris.utils)@\spxentry{FrictionCalc()}\spxextra{in module celeris.utils}|hyperpage}{28}
+\indexentry{MinMod() (in module celeris.utils)@\spxentry{MinMod()}\spxextra{in module celeris.utils}|hyperpage}{28}
+\indexentry{NumericalFlux() (in module celeris.utils)@\spxentry{NumericalFlux()}\spxextra{in module celeris.utils}|hyperpage}{29}
+\indexentry{Reconstruct() (in module celeris.utils)@\spxentry{Reconstruct()}\spxextra{in module celeris.utils}|hyperpage}{29}
+\indexentry{ScalarAntiDissipation() (in module celeris.utils)@\spxentry{ScalarAntiDissipation()}\spxextra{in module celeris.utils}|hyperpage}{30}
+\indexentry{celeris\_matplotlib() (in module celeris.utils)@\spxentry{celeris\_matplotlib()}\spxextra{in module celeris.utils}|hyperpage}{30}
+\indexentry{celeris\_waves() (in module celeris.utils)@\spxentry{celeris\_waves()}\spxextra{in module celeris.utils}|hyperpage}{31}
+\indexentry{cosh() (in module celeris.utils)@\spxentry{cosh()}\spxextra{in module celeris.utils}|hyperpage}{31}
+\indexentry{sineWave() (in module celeris.utils)@\spxentry{sineWave()}\spxextra{in module celeris.utils}|hyperpage}{31}
+\indexentry{module@\spxentry{module}!celeris@\spxentry{celeris}|hyperpage}{32}
+\indexentry{celeris@\spxentry{celeris}!module@\spxentry{module}|hyperpage}{32}
+\indexentry{\_\_version\_\_ (in module celeris)@\spxentry{\_\_version\_\_}\spxextra{in module celeris}|hyperpage}{33}
