@@ -1,0 +1,25 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Documentation for the Code}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Introduction}{3}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}CelerisAi: A Nearshore Wave Modeling Framework for Integrated AI Applications}{3}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Methods}{3}{subsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.1.3}Characteristics}{3}{subsection.1.1.3}%
+\contentsline {subsection}{\numberline {1.1.4}Class Architecture and Workflow}{3}{subsection.1.1.4}%
+\contentsline {subsubsection}{Workflow to solve the Shallow water equations}{4}{subsubsection*.3}%
+\contentsline {subsubsection}{Workflow to solve the extended Boussinesq equations}{4}{subsubsection*.4}%
+\contentsline {subsection}{\numberline {1.1.5}Performance}{4}{subsection.1.1.5}%
+\contentsline {subsection}{\numberline {1.1.6}References}{4}{subsection.1.1.6}%
+\contentsline {section}{\numberline {1.2}Usage}{4}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}Installation}{4}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Downloading the Source Code}{6}{subsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.2.3}Running the Examples}{6}{subsection.1.2.3}%
+\contentsline {section}{\numberline {1.3}Celeris Modules}{6}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Modules}{6}{subsection.1.3.1}%
+\contentsline {subsubsection}{Domain module}{6}{subsubsection*.5}%
+\contentsline {subsubsection}{Solver module}{15}{subsubsection*.67}%
+\contentsline {subsubsection}{Runner module}{21}{subsubsection*.108}%
+\contentsline {subsubsection}{Utils module}{26}{subsubsection*.135}%
+\contentsline {subsubsection}{Current Version}{32}{subsubsection*.148}%
+\contentsline {chapter}{Bibliography}{35}{chapter*.150}%
+\contentsline {chapter}{Python Module Index}{37}{section*.151}%
+\contentsline {chapter}{Index}{39}{section*.152}%

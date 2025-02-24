@@ -1,0 +1,851 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>celeris.runner &mdash; CelerisAi 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            CelerisAi
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Celeris Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CelerisAi</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">celeris.runner</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for celeris.runner</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">celeris.solver</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">celeris.utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi</span><span class="w"> </span><span class="kn">import</span> <span class="n">tools</span> <span class="c1"># For saving images</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">imageio</span> <span class="c1"># For creating GIFs</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># Done at top of translation unit for now, clean-up later - JB</span>
+<span class="n">base_frame_dir</span> <span class="o">=</span> <span class="s1">&#39;./plots/&#39;</span> <span class="c1"># ! Assumes we are in CelerisAi/ directory</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">base_frame_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Ensure base_frame_dir exists</span>
+<span class="n">frame_paths</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># List of frame paths for later use, i.e. making gifs/mp4s</span>
+
+
+<div class="viewcode-block" id="Evolve">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve">[docs]</a>
+<span class="nd">@ti</span><span class="o">.</span><span class="n">data_oriented</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Evolve</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Controls and runs the main simulation loop of CelerisAi in various modes (headless,</span>
+<span class="sd">    1D, 2D with visualization, etc.).</span>
+
+<span class="sd">    This class ties together the `Domain`, `BoundaryConditions`, and `Solver` classes, and </span>
+<span class="sd">    manages the time-stepping workflow. It includes methods for:</span>
+
+<span class="sd">    1. **Initialization** (`Evolve_0`):</span>
+<span class="sd">      </span>
+<span class="sd">       - Fills the bottom field with bathymetry/topography data.</span>
+<span class="sd">       - Initializes solver states (water height, velocity, etc.).</span>
+<span class="sd">       - Computes tridiagonal coefficients if using a Boussinesq model.</span>
+
+<span class="sd">    2. **Main Time-Stepping** (`Evolve_Steps`):</span>
+<span class="sd">     </span>
+<span class="sd">       - Runs reconstruction (Pass1) and flux computations (Pass2).</span>
+<span class="sd">       - Handles wave breaking if enabled.</span>
+<span class="sd">       - Integrates the solution one or more steps forward in time (Pass3, Pass3Bous, Pass3_SedTrans).</span>
+<span class="sd">       - Updates boundary conditions.</span>
+<span class="sd">       - Optionally solves tridiagonal systems for Boussinesq dispersion.</span>
+<span class="sd">       - Copies or shifts data between fields for multi-stage time integrators.</span>
+
+<span class="sd">    3. **Headless Execution** (`Evolve_Headless`):</span>
+<span class="sd">    </span>
+<span class="sd">       - Executes the simulation loop without rendering or displaying results, </span>
+<span class="sd">         minimizing overhead and focusing on performance.</span>
+<span class="sd">       - Periodically logs timing information and can save the simulation states (e.g. `State` arrays).</span>
+
+<span class="sd">    4. **1D Visualization** (`Evolve_1D_Display`):</span>
+<span class="sd">    </span>
+<span class="sd">       - Specialized loop for 1D simulations, displaying free surface (eta) </span>
+<span class="sd">         and bathymetry in a window using either taichi-gui or legacy GUI fallback.</span>
+
+<span class="sd">    5. **2D Visualization** (`Evolve_Display`):</span>
+<span class="sd">    </span>
+<span class="sd">       - Interactive loop for 2D simulations.  </span>
+<span class="sd">       - Renders wave height (h), free surface elevation (eta), or vorticity (vor) </span>
+<span class="sd">         in real-time.  </span>
+<span class="sd">       - Allows saving images and assembling them into a GIF.</span>
+
+<span class="sd">    6. **Rendering and Color Mapping** (Kernels like `paint`, `paint_new`, `painting_h`, `painting_eta`, `painting_vor`, etc.):</span>
+<span class="sd">    </span>
+<span class="sd">       - Populates 2D Taichi fields (`self.image`, `self.solver.pixel`, etc.) based on </span>
+<span class="sd">         solver results, for real-time visualization.  </span>
+<span class="sd">       - Supports multiple coloring strategies (e.g. realistic wave colors, topography shading, sediment rendering).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        domain (Domain): The domain class containing spatial parameters.</span>
+<span class="sd">        boundary_conditions (BoundaryConditions): Class managing boundary setup (walls, waves, etc.).</span>
+<span class="sd">        solver (Solver): The main numerical solver class controlling the fluid model, time scheme, etc.</span>
+<span class="sd">        maxsteps (int, optional): Maximum number of time steps to simulate. Defaults to 1000.</span>
+<span class="sd">        outdir (str, optional): Output directory path for saving states, frames, etc. Defaults to None.</span>
+<span class="sd">        saveimg (bool, optional): If True, saves image frames at intervals (for creating GIFs or offline processing). </span>
+<span class="sd">            Defaults to False.</span>
+<span class="sd">        vmin (float, optional): Minimum value for visualization color scaling (e.g. wave elevation). Defaults to -1.5.</span>
+<span class="sd">        vmax (float, optional): Maximum value for visualization color scaling. Defaults to 1.5.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        solver (Solver): The numerical solver controlling fluid/morphodynamics.</span>
+<span class="sd">        maxsteps (int): Number of time steps for the simulation run.</span>
+<span class="sd">        dt (float): Time step size imported from the solver.</span>
+<span class="sd">        timeScheme (int): Time integration scheme (Euler, predictor, predictor-corrector).</span>
+<span class="sd">        saveimg (bool): Flag indicating whether to save frames.</span>
+<span class="sd">        vmin (float): Minimum scale for color mapping wave or vorticity values.</span>
+<span class="sd">        vmax (float): Maximum scale for color mapping wave or vorticity values.</span>
+<span class="sd">        outdir (str): Directory for saving outputs.</span>
+<span class="sd">        image (ti.Vector.field): 2D field to hold RGB color information for visualization.</span>
+<span class="sd">        ocean (ti.Vector.field): 1D array of color samples (RGB) for water visualization or general colormap usage.</span>
+<span class="sd">        colormap_ocean (str): A string identifier for the colormap used for water.</span>
+<span class="sd">        bottom1D, indexbottom1D, eta1D: Fields used in 1D visualization of bottom topography and water surface.</span>
+<span class="sd">        x_scale, y_scale (float): Scaling factors for 1D plots in the GUI.</span>
+
+<span class="sd">    Typical Usage:</span>
+<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; evolve = Evolve(domain=dom, boundary_conditions=bc, solver=sol, maxsteps=2000, outdir=&quot;results&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; evolve.Evolve_Display(vmin=-1.0, vmax=1.0, variable=&#39;eta&#39;, cmapWater=&#39;Blues_r&#39;, showSediment=True)</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        - The class attempts to use Taichi&#39;s GGUI if available for improved performance </span>
+<span class="sd">          and better UI control. If GGUI is not available, it falls back to legacy Taichi GUI.</span>
+<span class="sd">        - Various coloring kernels (`painting_h`, `painting_eta`, etc.) can be customized </span>
+<span class="sd">          to match user-defined styles or to highlight specific flow features.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">domain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">boundary_conditions</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">maxsteps</span><span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">saveimg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">vmin</span><span class="o">=-</span><span class="mf">1.5</span><span class="p">,</span>
+                 <span class="n">vmax</span><span class="o">=</span><span class="mf">1.5</span>
+                 <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxsteps</span><span class="o">=</span><span class="n">maxsteps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeScheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">timeScheme</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saveimg</span> <span class="o">=</span> <span class="n">saveimg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vmin</span> <span class="o">=</span> <span class="n">vmin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vmax</span> <span class="o">=</span> <span class="n">vmax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">outdir</span>
+        <span class="c1"># To visualization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ti</span><span class="o">.</span><span class="n">f32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ti</span><span class="o">.</span><span class="n">f16</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colormap_ocean</span> <span class="o">=</span> <span class="s1">&#39;Blues_r&#39;</span>
+        <span class="c1"># To visualize 1D</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bottom1D</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ti</span><span class="o">.</span><span class="n">f32</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indexbottom1D</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ti</span><span class="o">.</span><span class="n">i32</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eta1D</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ti</span><span class="o">.</span><span class="n">f32</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_scale</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">base_depth</span>
+
+<div class="viewcode-block" id="Evolve.Evolve_0">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.Evolve_0">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Evolve_0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        One-time initialization steps:</span>
+<span class="sd">          - Fills bottom field (bathymetry/topo).</span>
+<span class="sd">          - Initializes solver states (fluid variables).</span>
+<span class="sd">          - Computes tridiagonal coefficients if the model is Boussinesq.</span>
+<span class="sd">          - Prints simulation parameters (model type, time step, etc.).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">fill_bottom_field</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">InitStates</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">tridiag_coeffs_X</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">tridiag_coeffs_Y</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Model: &#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Numerical Scheme: &#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">timeScheme</span><span class="p">,</span><span class="s1">&#39; dx:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dx</span><span class="p">,</span><span class="s1">&#39; dy:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dy</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Breaking Model: &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useBreakingModel</span><span class="p">,</span><span class="s1">&#39; Sediment Transport: &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Time delta: &#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Evolve.Evolve_Steps">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.Evolve_Steps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Evolve_Steps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Advances the solution by one time step (or one sub-step) according to the selected time scheme.</span>
+
+<span class="sd">        Internally calls:</span>
+<span class="sd">          - Pass1 (and Pass1_SedTrans if sediment is enabled)</span>
+<span class="sd">          - Pass2</span>
+<span class="sd">          - Optional wave breaking model</span>
+<span class="sd">          - Pass3 or Pass3Bous for predictor step</span>
+<span class="sd">          - BoundaryPass to enforce boundary conditions</span>
+<span class="sd">          - Run_Tridiag_solver for Boussinesq models</span>
+<span class="sd">          - (If 4th-order  predictor-corrector) a second cycle of Pass1, Pass2, Pass3 or Pass3Bous</span>
+<span class="sd">          - Copies or shifts old/predicted states for multi-stage time integrators</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">step</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass1</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass1_SedTrans</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass2</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useBreakingModel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass_Breaking</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">==</span><span class="s1">&#39;SWE&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass3</span><span class="p">(</span><span class="n">pred_or_corrector</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>      <span class="c1"># Predictor Step in &#39;SWE&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass3Bous</span><span class="p">(</span><span class="n">pred_or_corrector</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Predicto Step in &#39;BOUSS&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dU_by_dt</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">predictedGradients</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass3_SedTrans</span><span class="p">(</span><span class="n">pred_or_corrector</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dU_by_dt_Sed</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">predictedGradients_Sed</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">BoundaryPass</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span> <span class="p">,</span> <span class="n">txState</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">current_stateUVstar</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Run_Tridiag_solver</span><span class="p">()</span> <span class="c1"># Run TridiagSolver for Bouss and copy current_stateUVstar to NewState</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">!=</span><span class="s1">&#39;SWE&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">BoundaryPass</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span> <span class="p">,</span> <span class="n">txState</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">NewState</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">==</span><span class="s1">&#39;Bouss&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">F_G_star_oldGradients</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">F_G_star_oldOldGradients</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">predictedF_G_star</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">F_G_star_oldGradients</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">timeScheme</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">NewState</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">NewState_Sed</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State_Sed</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass1</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass1_SedTrans</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass2</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useBreakingModel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass_Breaking</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">==</span><span class="s1">&#39;SWE&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass3</span><span class="p">(</span><span class="n">pred_or_corrector</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass3Bous</span><span class="p">(</span><span class="n">pred_or_corrector</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Pass3_SedTrans</span><span class="p">(</span><span class="n">pred_or_corrector</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">BoundaryPass</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span> <span class="p">,</span> <span class="n">txState</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">current_stateUVstar</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Run_Tridiag_solver</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">!=</span><span class="s1">&#39;SWE&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">BoundaryPass</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span> <span class="p">,</span> <span class="n">txState</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">NewState</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Update_Bottom</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="o">==</span><span class="s1">&#39;Bouss&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">fill_bottom_field</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">tridiag_coeffs_X</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">tridiag_coeffs_Y</span><span class="p">()</span>
+
+        <span class="c1"># shift gradients</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">oldGradients</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">oldOldGradients</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">predictedGradients</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">oldGradients</span><span class="p">)</span>
+
+        <span class="c1"># Copy future states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">NewState</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">current_stateUVstar</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">stateUVstar</span><span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">oldGradients_Sed</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">oldOldGradients_Sed</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">predictedGradients_Sed</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">oldGradients_Sed</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">copy_states</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">NewState_Sed</span><span class="p">,</span><span class="n">dst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State_Sed</span><span class="p">)</span></div>
+
+
+        <span class="c1"># To test pressure</span>
+        <span class="c1">#self.solver.Ship_pressure(px_init=10,py_init=50,steps=int(i))</span>
+
+<div class="viewcode-block" id="Evolve.Evolve_Headless">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.Evolve_Headless">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Evolve_Headless</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs CelerisAi without any visualization, printing timing info periodically</span>
+<span class="sd">        and optionally saving states to disk.</span>
+
+<span class="sd">        Steps:</span>
+<span class="sd">          1. Calls Evolve_0() to initialize fields and solver state.</span>
+<span class="sd">          2. Loops over `maxsteps`, calling Evolve_Steps() each iteration.</span>
+<span class="sd">          3. Logs simulation time and performance metrics every 100 steps.</span>
+<span class="sd">          4. If an output directory is specified, saves solver state arrays to .npy files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Evolve_0</span><span class="p">()</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxsteps</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Evolve_Steps</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.00001</span>  <span class="c1"># reset the &quot;start&quot; time as there is overhead before loop starts, and add small shift to prevent float divide by zero</span>
+
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span><span class="o">%</span><span class="mi">100</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">compTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Current Simulation time: </span><span class="si">{:2.2f}</span><span class="s1">s at step: </span><span class="si">{}</span><span class="s1">-- Ratio:</span><span class="si">{:2.2f}</span><span class="s1">--CompTime:</span><span class="si">{:2.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">,(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">compTime</span><span class="p">,</span><span class="n">compTime</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">outdir</span><span class="p">:</span>
+                    <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/state_</span><span class="si">{}</span><span class="s1">.npy&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span><span class="n">state</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Evolve.brk_color">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.brk_color">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">func</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">brk_color</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">x0</span><span class="p">,</span><span class="n">x1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolates between two values (y0, y1) based on x in [x0, x1].</span>
+
+<span class="sd">        Used to smoothly vary color or other scalar values between two extremes:</span>
+<span class="sd">            (x0 -&gt; y0) to (x1 -&gt; y1).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="p">(</span><span class="n">y0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">y1</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Evolve.paint_new">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.paint_new">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">paint_new</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A simple rendering kernel mixing bottom topography and wave height.</span>
+<span class="sd">        Uses a linear interpolation (brk_color) to assign colors to each cell</span>
+<span class="sd">        based on water depth or topography.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="n">ti</span><span class="o">.</span><span class="n">ndrange</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_color</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">],</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span><span class="p">)</span>
+            <span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">flow</span> <span class="o">&gt;</span> <span class="mf">0.0001</span> <span class="p">:</span>
+                <span class="c1">#self.solver.pixel[i,j] = self.brk_color(self.solver.State[i,j][0], 0, 0.75,self.vmin,self.vmax)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_color</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span><span class="mf">0.0001</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">base_depth</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Evolve.InitColors">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.InitColors">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">InitColors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">arr</span><span class="p">:</span><span class="n">ti</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ti</span><span class="o">.</span><span class="n">f16</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">2</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copies an external NumPy array of shape (N, 3) (RGB colors) into the </span>
+<span class="sd">        internal taichi field `self.ocean`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            arr (np.ndarray): (N, 3) array of float16 color data (e.g., from a Matplotlib colormap).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Evolve.painting_h">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.painting_h">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">painting_h</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kernel for visualizing water depth (h) in a &quot;realistic wave&quot; style.</span>
+
+<span class="sd">        - Normalizes water depth to [0, base_depth].</span>
+<span class="sd">        - Chooses colors from the `ocean` array based on the normalized depth (linear interpolation).</span>
+<span class="sd">        - Make a difference between the water areas (flow &gt; 0.25) from shallow/wet sand and land.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">num_colors</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ti</span><span class="o">.</span><span class="n">ndrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
+            <span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="c1"># only water</span>
+            <span class="n">land</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">])</span> <span class="c1"># only positive topo</span>
+            <span class="n">water_col</span> <span class="o">=</span>  <span class="n">flow</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">base_depth</span>  <span class="c1"># Water column normalized</span>
+            <span class="n">land_elevation</span> <span class="o">=</span> <span class="n">land</span>  <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span> <span class="c1"># Topo normalized</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">water_col</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>           <span class="c1"># which color interval we&#39;re in</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">num_colors</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>   <span class="c1"># clamp index to avoid out-of-bounds</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">water_col</span> <span class="o">-</span> <span class="n">index</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span>   <span class="c1"># fractional position between the colors</span>
+            <span class="k">if</span> <span class="n">flow</span> <span class="o">&gt;</span> <span class="mf">0.25</span><span class="p">:</span>  <span class="c1"># Water area</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span>
+            <span class="k">elif</span> <span class="mf">0.25</span><span class="o">&lt;</span><span class="n">flow</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="mf">0.8039</span><span class="p">,</span><span class="mf">0.7921</span><span class="p">,</span><span class="mf">0.7372</span><span class="p">])</span> <span class="c1"># Wet Sand</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="mf">0.6</span> <span class="o">+</span> <span class="n">land_elevation</span> <span class="o">*</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span> <span class="o">+</span> <span class="n">land_elevation</span> <span class="o">*</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="Evolve.painting_eta">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.painting_eta">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">painting_eta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kernel for visualizing free surface elevation (eta).</span>
+
+<span class="sd">        - Normalizes eta to [vmin, vmax] for color lookup.</span>
+<span class="sd">        - Distinguishes water areas from wet sand and land similar to `painting_h`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">num_colors</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ti</span><span class="o">.</span><span class="n">ndrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
+            <span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="c1"># only water</span>
+            <span class="n">wave</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">wave</span> <span class="o">=</span> <span class="p">(</span><span class="n">wave</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vmax</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vmin</span><span class="p">)</span>
+            <span class="n">land</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">])</span> <span class="c1"># only positive topo</span>
+            <span class="n">land_elevation</span> <span class="o">=</span> <span class="n">land</span>  <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span> <span class="c1"># Topo normalized</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wave</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>           <span class="c1"># which color interval we&#39;re in</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">num_colors</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>   <span class="c1"># clamp index to avoid out-of-bounds</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">wave</span> <span class="o">-</span> <span class="n">index</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span>   <span class="c1"># fractional position between the colors</span>
+            <span class="k">if</span> <span class="n">flow</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>  <span class="c1"># Water area</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span>
+            <span class="k">elif</span> <span class="mf">0.25</span><span class="o">&lt;</span><span class="n">flow</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="mf">0.8039</span><span class="p">,</span><span class="mf">0.7921</span><span class="p">,</span><span class="mf">0.7372</span><span class="p">])</span> <span class="c1"># Wet Sand</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="mf">0.6</span> <span class="o">+</span> <span class="n">land_elevation</span> <span class="o">*</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span> <span class="o">+</span> <span class="n">land_elevation</span> <span class="o">*</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Evolve.painting_vor">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.painting_vor">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">painting_vor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kernel for visualizing vorticity (vor).</span>
+
+<span class="sd">        - Approximates vorticity by differences in velocity between adjacent cells.</span>
+<span class="sd">        - Normalizes the result into [vmin, vmax] for color lookups in `ocean`.</span>
+<span class="sd">        - Distinguishes water vs. land similar to `painting_h`/`painting_eta`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">num_colors</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">ti</span><span class="o">.</span><span class="n">ndrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
+            <span class="n">rightIdx</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">upIdx</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">B_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">rightIdx</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">B_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">upIdx</span><span class="p">]</span>
+
+            <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="n">q_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">upIdx</span><span class="p">]</span>
+            <span class="n">q_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">rightIdx</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+
+            <span class="n">h</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span><span class="n">B</span>
+            <span class="n">h_right</span> <span class="o">=</span> <span class="n">q_right</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">B_right</span>
+            <span class="n">h_up</span> <span class="o">=</span> <span class="n">q_up</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">B_up</span>
+
+            <span class="n">v_right</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">u_up</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="k">if</span> <span class="n">h_right</span><span class="o">&gt;</span><span class="mf">0.05</span><span class="p">:</span>
+                <span class="n">v_right</span> <span class="o">=</span> <span class="n">q_right</span><span class="o">.</span><span class="n">z</span><span class="o">/</span><span class="n">h_right</span>
+            <span class="k">if</span> <span class="n">h_up</span><span class="o">&gt;</span><span class="mf">0.05</span><span class="p">:</span>
+                <span class="n">u_up</span> <span class="o">=</span> <span class="n">q_right</span><span class="o">.</span><span class="n">y</span><span class="o">/</span><span class="n">h_up</span>
+            <span class="k">if</span> <span class="n">h</span><span class="o">&gt;</span><span class="mf">0.05</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">z</span><span class="o">/</span><span class="n">h</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">y</span><span class="o">/</span><span class="n">h</span>
+
+            <span class="n">vor</span> <span class="o">=</span> <span class="p">(</span><span class="n">v_right</span><span class="o">-</span><span class="n">v</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dx</span> <span class="o">-</span> <span class="p">(</span><span class="n">u_up</span><span class="o">-</span><span class="n">u</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dy</span>
+
+            <span class="n">vor</span> <span class="o">=</span> <span class="p">(</span><span class="n">vor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vmax</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vmin</span><span class="p">)</span>
+            <span class="n">land</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="n">B</span><span class="p">)</span> <span class="c1"># only positive topo</span>
+            <span class="n">land_elevation</span> <span class="o">=</span> <span class="n">land</span>  <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span> <span class="c1"># Topo normalized</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vor</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>           <span class="c1"># which color interval we&#39;re in</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">num_colors</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>   <span class="c1"># clamp index to avoid out-of-bounds</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">vor</span> <span class="o">-</span> <span class="n">index</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span>   <span class="c1"># fractional position between the colors</span>
+            <span class="k">if</span> <span class="n">h</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>  <span class="c1"># Water area</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">ocean</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span>
+            <span class="k">elif</span> <span class="mf">0.25</span><span class="o">&lt;</span><span class="n">h</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="mf">0.8039</span><span class="p">,</span><span class="mf">0.7921</span><span class="p">,</span><span class="mf">0.7372</span><span class="p">])</span> <span class="c1"># Wet Sand</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="mf">0.6</span> <span class="o">+</span> <span class="n">land_elevation</span> <span class="o">*</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span> <span class="o">+</span> <span class="n">land_elevation</span> <span class="o">*</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Evolve.paint">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.paint">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        General paint kernel that merges bottom topography and free-surface height.</span>
+
+<span class="sd">        - Assigns color based on bottom topography if there&#39;s no water.</span>
+<span class="sd">        - Interpolates water color if flow depth &gt; 0.0001.</span>
+<span class="sd">        - If sediment transport is enabled, merges sediment concentration into final color.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="n">ti</span><span class="o">.</span><span class="n">ndrange</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_color</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">],</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">maxtopo</span><span class="p">)</span>
+            <span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+            <span class="c1"># Merge water and topo values</span>
+            <span class="k">if</span> <span class="n">flow</span> <span class="o">&gt;</span> <span class="mf">0.0001</span> <span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_color</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">base_depth</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span> <span class="p">:</span>
+                    <span class="n">sed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State_Sed</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">flow</span>
+                    <span class="k">if</span> <span class="n">sed</span> <span class="o">&gt;</span> <span class="mf">0.0001</span>  <span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brk_color</span><span class="p">(</span><span class="n">sed</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">5.0</span> <span class="p">)</span> <span class="c1"># Sed</span></div>
+
+
+<div class="viewcode-block" id="Evolve.bottom_paint">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.bottom_paint">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bottom_paint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fills `bottom1D` with scaled bottom data for 1D visualization.</span>
+<span class="sd">        Also populates `indexbottom1D` so that line plotting can connect them in order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bottom1D</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bottom1D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dx</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">x_scale</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bottom1D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">Bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">y_scale</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indexbottom1D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span></div>
+
+            
+
+<div class="viewcode-block" id="Evolve.eta_paint">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.eta_paint">[docs]</a>
+    <span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eta_paint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fills `eta1D` with scaled free-surface data for 1D visualization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta1D</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eta1D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">dx</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">x_scale</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eta1D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">20</span></div>
+
+    
+<div class="viewcode-block" id="Evolve.Evolve_1D_Display">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.Evolve_1D_Display">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Evolve_1D_Display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interactive loop for a 1D simulation of CelerisAi.</span>
+
+<span class="sd">        - Initializes bottom, runs the main solver steps, and displays the results </span>
+<span class="sd">          in a small taichi-gui or GGUI window.</span>
+<span class="sd">        - Plots the free surface (eta) and bottom profile in each iteration.</span>
+<span class="sd">        - Optionally saves frames and can compile them into a GIF if desired.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plotpath</span> <span class="o">=</span> <span class="s1">&#39;./plots&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plotpath</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">plotpath</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">use_ggui</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">canvas</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">Window</span><span class="p">(</span><span class="s2">&quot;CelerisAi(1D)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">200</span><span class="p">))</span>
+            <span class="n">canvas</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">get_canvas</span><span class="p">()</span>
+            <span class="n">canvas</span><span class="o">.</span><span class="n">set_background_color</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">use_ggui</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># TODO : Formal error handling and logging</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GGUI not available, reverting to legacy Taichi GUI.&quot;</span><span class="p">)</span>
+            <span class="n">use_ggui</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">use_fast_gui</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># Need ti.Vector.field equiv to self.solver.pixel to use fast_gui</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">GUI</span><span class="p">(</span>  <span class="c1"># noqa: F405</span>
+                <span class="s1">&#39;CelerisAi(1D)&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">fast_gui</span><span class="o">=</span><span class="n">use_fast_gui</span>
+                <span class="p">)</span> <span class="c1"># fast_gui - display directly on frame buffer if not drawing shapes or text</span>
+            <span class="n">canvas</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Legacy GUI initialized.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GGUI initialized without issues.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Evolve_0</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bottom_paint</span><span class="p">()</span> <span class="c1"># To plot the bottom line</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.00001</span>
+
+        <span class="k">while</span> <span class="n">window</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eta_paint</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">use_ggui</span><span class="p">:</span>
+                <span class="n">canvas</span><span class="o">.</span><span class="n">circles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eta1D</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">150</span><span class="o">/</span><span class="mf">255.</span><span class="p">,</span> <span class="mf">255.</span><span class="o">/</span><span class="mi">255</span><span class="p">))</span>
+                <span class="n">canvas</span><span class="o">.</span><span class="n">lines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom1D</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span><span class="n">indices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">indexbottom1D</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">128</span><span class="o">/</span><span class="mf">255.</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">canvas</span><span class="o">.</span><span class="n">circles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eta1D</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">150</span><span class="o">/</span><span class="mf">255.</span><span class="p">,</span> <span class="mf">255.</span><span class="o">/</span><span class="mi">255</span><span class="p">))</span>
+                <span class="n">canvas</span><span class="o">.</span><span class="n">circles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom1D</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">0.0075</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="o">/</span><span class="mf">255.</span><span class="p">,</span> <span class="mi">87</span><span class="o">/</span><span class="mf">255.</span><span class="p">,</span> <span class="mf">51.</span><span class="o">/</span><span class="mi">250</span><span class="p">))</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">Evolve_Steps</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span><span class="o">%</span><span class="mi">100</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">compTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Current Simulation time: </span><span class="si">{:2.2f}</span><span class="s1">s at step: </span><span class="si">{}</span><span class="s1">-- Ratio:</span><span class="si">{:2.2f}</span><span class="s1">--CompTime:</span><span class="si">{:2.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">,(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">compTime</span><span class="p">,</span><span class="n">compTime</span><span class="p">))</span>
+                
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveimg</span><span class="p">:</span>
+                    <span class="n">frame</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">frame_filename</span> <span class="o">=</span> <span class="s1">&#39;frame_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                    <span class="n">frame_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_frame_dir</span><span class="p">,</span> <span class="n">frame_filename</span><span class="p">)</span>
+                    <span class="n">frame_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_path</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">use_ggui</span><span class="p">:</span>
+                        <span class="n">window</span><span class="o">.</span><span class="n">save_image</span><span class="p">(</span><span class="n">frame_path</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tools</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">frame_path</span><span class="p">)</span>
+
+                <span class="c1">#window.show()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">:</span>
+                    <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/state_</span><span class="si">{}</span><span class="s1">.npy&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span><span class="n">state</span><span class="p">)</span>
+           
+            <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxsteps</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">frame_paths</span><span class="p">:</span> <span class="c1"># Check if there are frames to create a GIF</span>
+                    <span class="n">gif_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;video.gif&quot;</span>
+                    <span class="n">gif_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_frame_dir</span><span class="p">,</span> <span class="n">gif_filename</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="n">imageio</span><span class="o">.</span><span class="n">get_writer</span><span class="p">(</span><span class="n">gif_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">frame_path</span> <span class="ow">in</span> <span class="n">frame_paths</span><span class="p">:</span>
+                                <span class="n">image</span> <span class="o">=</span> <span class="n">imageio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">frame_path</span><span class="p">)</span>
+                                <span class="n">writer</span><span class="o">.</span><span class="n">append_data</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GIF created at </span><span class="si">{</span><span class="n">gif_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating GIF: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span></div>
+
+
+    
+<div class="viewcode-block" id="Evolve.Evolve_Display">
+<a class="viewcode-back" href="../../celeris.html#celeris.runner.Evolve.Evolve_Display">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Evolve_Display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">variable</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">,</span><span class="n">cmapWater</span><span class="o">=</span><span class="s1">&#39;Blues_r&#39;</span><span class="p">,</span><span class="n">showSediment</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interactive loop for a 2D simulation of CelerisAi with real-time visualization.</span>
+
+<span class="sd">        - Calls `Evolve_0()` once to initialize solver fields.</span>
+<span class="sd">        - Creates a window (either GGUI or legacy GUI).</span>
+<span class="sd">        - Uses a custom colormap from `celeris_matplotlib()` if `showSediment` is True </span>
+<span class="sd">          and the solver has sediment transport enabled.</span>
+<span class="sd">        - Allows switching between different visualization variables:</span>
+<span class="sd">            * `h`: Water depth</span>
+<span class="sd">            * `eta`: Free surface elevation</span>
+<span class="sd">            * `vor`: Vorticity</span>
+<span class="sd">        - Saves frames if `saveimg` is True, can compile them into a GIF, and optionally </span>
+<span class="sd">          saves solver states to `.npy`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vmin (float, optional): Minimum colormap value for rendering. Defaults to None (class-level vmin).</span>
+<span class="sd">            vmax (float, optional): Maximum colormap value for rendering. Defaults to None (class-level vmax).</span>
+<span class="sd">            variable (str, optional): Which variable to render (`h`, `eta`, or `vor`). Defaults to &#39;h&#39;.</span>
+<span class="sd">            cmapWater (str, optional): Matplotlib colormap name for water. Defaults to &#39;Blues_r&#39;.</span>
+<span class="sd">            showSediment (bool, optional): If True, merges in a sediment colormap when sediment transport is active. </span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">vmin</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vmin</span> <span class="o">=</span> <span class="n">vmin</span>
+        <span class="k">if</span> <span class="n">vmax</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vmax</span> <span class="o">=</span> <span class="n">vmax</span>
+
+        <span class="n">plotpath</span> <span class="o">=</span> <span class="s1">&#39;./plots&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plotpath</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">plotpath</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">use_ggui</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">canvas</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">Window</span><span class="p">(</span><span class="s2">&quot;CelerisAi&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">))</span>
+            <span class="n">canvas</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">get_canvas</span><span class="p">()</span>
+            <span class="n">use_ggui</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># TODO : Formal error handling and logging</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GGUI not available, reverting to legacy Taichi GUI.&quot;</span><span class="p">)</span>
+            <span class="n">use_ggui</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">use_fast_gui</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># Need ti.Vector.field equiv to self.solver.pixel to use fast_gui</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">GUI</span><span class="p">(</span>  <span class="c1"># noqa: F405</span>
+                <span class="s1">&#39;CelerisAi&#39;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">ny</span><span class="p">),</span> <span class="n">fast_gui</span><span class="o">=</span><span class="n">use_fast_gui</span>
+                <span class="p">)</span> <span class="c1"># fast_gui - display directly on frame buffer if not drawing shapes or text</span>
+            <span class="n">canvas</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Legacy GUI initialized.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GGUI initialized without issues.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Customized colormap</span>
+        <span class="k">if</span> <span class="n">showSediment</span><span class="p">:</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">celeris_matplotlib</span><span class="p">(</span><span class="n">water</span><span class="o">=</span><span class="n">cmapWater</span><span class="p">,</span><span class="n">sediment</span><span class="o">=</span><span class="s1">&#39;afmhot_r&#39;</span><span class="p">,</span> <span class="n">SedTrans</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">useSedTransModel</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">celeris_matplotlib</span><span class="p">(</span><span class="n">water</span><span class="o">=</span><span class="n">cmapWater</span><span class="p">)</span>
+        <span class="c1">#cmap = celeris_waves()</span>
+        <span class="c1">#cmap = celeris_matplotlib(water=&#39;Blues_r&#39;,sediment=&#39;afmhot_r&#39;, SedTrans=self.useSedTransModel )</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Evolve_0</span><span class="p">()</span>
+        <span class="c1"># Set colors - using the matplotlib colormapsand convert these into Taichi tensors</span>
+        <span class="n">numpy_ocean</span> <span class="o">=</span> <span class="n">ColorsfromMPL</span><span class="p">(</span><span class="n">cmapWater</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitColors</span><span class="p">(</span><span class="n">numpy_ocean</span><span class="p">)</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">window</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="c1">#self.paint()</span>
+            <span class="c1">#self.paint_new()</span>
+            <span class="c1">#self.paint()</span>
+            <span class="k">if</span> <span class="n">variable</span><span class="o">==</span><span class="s1">&#39;h&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">painting_h</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">variable</span><span class="o">==</span><span class="s1">&#39;eta&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">painting_eta</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">variable</span><span class="o">==</span><span class="s1">&#39;vor&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">painting_vor</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">use_ggui</span><span class="p">:</span>
+                <span class="c1"># canvas.contour(self.solver.pixel, cmap_name=cmap ) # Same functionality as set cmap-pixel-to np</span>
+                <span class="c1"># canvas.contour(self.solver.pixel,cmap_name=&#39;plasma&#39;) # Same functionality as set cmap-pixel-to np</span>
+                <span class="n">canvas</span><span class="o">.</span><span class="n">set_image</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span> <span class="c1"># using the Taichi tensors to render the image</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#window.set_image(self.solver.pixel)</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">set_image</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span> <span class="c1"># using the Taichi tensors to render the image</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Evolve_Steps</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.00001</span>  <span class="c1"># reset the &quot;start&quot; time as there is overhead before loop starts, and add small shift to prevent float divide by zero</span>
+
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span><span class="o">%</span><span class="mi">100</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">compTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Current Simulation time: </span><span class="si">{:2.2f}</span><span class="s1">s at step: </span><span class="si">{}</span><span class="s1">-- Ratio:</span><span class="si">{:2.2f}</span><span class="s1">--CompTime:</span><span class="si">{:2.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">,(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="o">*</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">compTime</span><span class="p">,</span><span class="n">compTime</span><span class="p">))</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">frame_filename</span> <span class="o">=</span> <span class="s1">&#39;frame_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">frame_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_frame_dir</span><span class="p">,</span> <span class="n">frame_filename</span><span class="p">)</span>
+                <span class="n">frame_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_path</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveimg</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">use_ggui</span><span class="p">:</span>
+                        <span class="n">window</span><span class="o">.</span><span class="n">save_image</span><span class="p">(</span><span class="n">frame_path</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tools</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">pixel</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">frame_path</span><span class="p">)</span>
+
+
+                <span class="c1"># if self.saveimg and not use_ggui:</span>
+                <span class="c1">#     try:</span>
+                <span class="c1">#         window.show(frame_path)</span>
+                <span class="c1">#     except Exception as e:</span>
+                <span class="c1">#         print(f&quot;Error showing frame: {e},  fallback to tools.imwrite...&quot;)</span>
+                <span class="c1">#         try:</span>
+                <span class="c1">#             tools.imwrite(self.solver.pixel.to_numpy(), frame_path)</span>
+                <span class="c1">#             frame_paths.append(frame_path)</span>
+                <span class="c1">#         except Exception as e:</span>
+                <span class="c1">#             print(f&quot;Error writing frame with tools.imwrite: {e}&quot;)</span>
+                <span class="c1">#     else:</span>
+                <span class="c1">#         frame_paths.append(frame_path)</span>
+                <span class="c1"># elif self.saveimg and use_ggui:</span>
+                <span class="c1">#     try:</span>
+                <span class="c1">#         tools.imwrite(self.solver.pixel.to_numpy(), frame_path)</span>
+                <span class="c1">#         frame_paths.append(frame_path)</span>
+                <span class="c1">#     except Exception as e:</span>
+                <span class="c1">#         print(f&quot;Error writing frame with tools.imwrite: {e}&quot;)</span>
+                <span class="c1"># elif not use_ggui and not self.saveimg:</span>
+                <span class="c1">#     window.show()</span>
+                <span class="c1"># else:</span>
+                <span class="c1">#     print(&quot;WARNING - No output method selected, frame not saved or displayed...&quot;)</span>
+                <span class="c1"># if not use_ggui:</span>
+                <span class="c1">#     continue</span>
+
+                <span class="c1">#window.show()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">outdir</span><span class="p">:</span>
+                    <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/state_</span><span class="si">{}</span><span class="s1">.npy&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span><span class="n">state</span><span class="p">)</span>
+            <span class="c1"># Show window in the right position (after save image) for GGUI systems</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="mi">5</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Improve the performance.The visualization is done only every 5 timesteps</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxsteps</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">frame_paths</span><span class="p">:</span> <span class="c1"># Check if there are frames to create a GIF</span>
+                    <span class="n">gif_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;video.gif&quot;</span>
+                    <span class="n">gif_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_frame_dir</span><span class="p">,</span> <span class="n">gif_filename</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="n">imageio</span><span class="o">.</span><span class="n">get_writer</span><span class="p">(</span><span class="n">gif_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">frame_path</span> <span class="ow">in</span> <span class="n">frame_paths</span><span class="p">:</span>
+                                <span class="n">image</span> <span class="o">=</span> <span class="n">imageio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">frame_path</span><span class="p">)</span>
+                                <span class="n">writer</span><span class="o">.</span><span class="n">append_data</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GIF created at </span><span class="si">{</span><span class="n">gif_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating GIF: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span></div>
+</div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Runner Module used in Celeris&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lynett Wave Research Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
