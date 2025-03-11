@@ -29,5 +29,19 @@ CelerisAi can be applied to a variety of coastal engineering problems, including
 ### Usage:
 Refer to the documentation and examples provided in the repository for detailed usage instructions.
 
-### Contributions
+## Contributions
 CelerisAi is an open-source project. Contributions from the community are welcome. Please refer to the project's guidelines for contributing.
+
+## Citation
+If you find this version of CelerisAI useful for your research, consider citing:
+
+```
+@article{Renteria_2025,
+title={CelerisAi: A Nearshore Wave Modeling Framework for Integrated AI Applications},
+url={http://dx.doi.org/10.22541/essoar.174129311.11936719/v1},
+DOI={10.22541/essoar.174129311.11936719/v1},
+publisher={Authorea, Inc.},
+author={Renteria, Willington and Lynett, Patrick and Bonus, Justin and Mccann, Maile and Ebrahimi, Behzad},
+year={2025},
+month=mar }
+```
