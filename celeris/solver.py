@@ -733,10 +733,12 @@ class Solver:
                         BCState = ti.Vector([bcwave[0] + self.wSL,bcwave[1],bcwave[2],0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
-                        d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
-                        x0 = -10.0 * self.base_depth
-                        eta,hu,hv = self.SolitaryWave(x0, 0.0, 0.0, i*self.dx, j*self.dy, time, d_here)
-                        BCState = ti.Vector([eta + self.wSL,hu,hv,0.0],self.precision)
+                        d_here = max( 0 , self.wSL -self.Bottom[2,i,j])
+                        x0 = -10.0 * self.base_depth # Shift in X
+                        y0 =   0.0
+                        theta = 0.0
+                        eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
+                        BCState = ti.Vector([eta,hu,hv,0.0],self.precision)
                         BCState_Sed = 0.0
 
                 if self.bcEast ==2 and i>= self.nx-3:
@@ -749,12 +751,12 @@ class Solver:
                         BCState =  ti.Vector([bcwave[0] + self.eSL,bcwave[1],bcwave[2],0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
-                        d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
-                        x0 = self.nx*self.dx + 10.0 * self.base_depth
+                        d_here = max( 0 , self.eSL -self.Bottom[2,i,j])
+                        x0 = self.precision(self.nx*self.dx) + 10.0 * self.base_depth
                         y0 = 0.0
                         theta = -3.1415
                         eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
-                        BCState = ti.Vector([eta + self.eSL,hu,hv,0.0],self.precision)
+                        BCState = ti.Vector([eta,hu,hv,0.0],self.precision)
                         BCState_Sed = 0.0
 
                 if self.bcSouth ==2 and j<=2:
@@ -772,7 +774,7 @@ class Solver:
                         y0 = -10.0 * self.base_depth
                         theta = 3.1415 / 2.0
                         eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
-                        BCState = ti.Vector([eta + self.sSL,hu,hv,0.0],self.precision)
+                        BCState = ti.Vector([eta,hu,hv,0.0],self.precision)
                         BCState_Sed = 0.0
 
                 if self.bcNorth ==2 and j>=self.ny-3:
@@ -784,14 +786,13 @@ class Solver:
                         bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
                         BCState = ti.Vector([bcwave[0] + self.nSL,bcwave[1],bcwave[1],0.0],self.precision)
                         BCState_Sed = 0.0
-                    # Solitary Waves
                     elif self.bc.WaveType==3:
                         d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
-                        y0 = self.ny*self.dy + 10.0*self.base_depth
+                        x0=0.0
+                        y0 = self.precision(self.ny*self.dy) + 10.0*self.base_depth
                         theta = -3.1415 / 2.0
-                        #SolitaryWave(x0 , y0 , theta , x , y , t , d_here):
-                        eta,hu,hv = self.SolitaryWave(0.0, y0, theta, i*self.dx, j*self.dy, time, d_here)
-                        BCState = ti.Vector([eta + self.nSL,hu,hv,0.0],self.precision)
+                        eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
+                        BCState = ti.Vector([eta,hu,hv,0.0],self.precision)
                         BCState_Sed = 0.0
             #Compute the coordinates of the neighbors
                 rightIdx = ti.min(i + 1, self.nx - 1)
