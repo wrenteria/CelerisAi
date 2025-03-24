@@ -567,8 +567,10 @@ class Solver:
                     elif self.bc.WaveType==3:
                         d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
                         x0 = -10.0 * self.base_depth
-                        eta,hu,hv = self.SolitaryWave(x0, 0.0, 0.0, i*self.dx, 0.0, time, d_here)
-                        BCState = ti.Vector([eta + self.wSL, hu, 0.0, 0.0],self.precision)
+                        y0 = 0.0
+                        theta = 0.0
+                        eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, 0.0, time, d_here)
+                        BCState = ti.Vector([eta , hu, 0.0, 0.0],self.precision)
                         BCState_Sed = 0.0
 
                 if self.bcEast ==2 and i>= self.nx-3:
@@ -586,7 +588,7 @@ class Solver:
                         y0 = 0.0
                         theta = -3.1415
                         eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, 0.0, time, d_here)
-                        BCState = ti.Vector([eta + self.eSL, hu , 0.0, 0.0],self.precision)
+                        BCState = ti.Vector([eta , hu , 0.0, 0.0],self.precision)
                         BCState_Sed = 0.0
 
             #Compute the coordinates of the neighbors
