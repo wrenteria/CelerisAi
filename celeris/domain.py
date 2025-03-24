@@ -90,6 +90,7 @@ class Topodata:
 
         - For "xyz": Expects a file with three columns (x, y, z).
         - For "xz": Expects a file with two columns (x, z).
+        - For "xyz" and "xz", bathymetry must be positive.
         - For "celeris": Expects a folder containing a file named "bathy.txt". 
           The returned array values are multiplied by -1.
 
@@ -126,6 +127,7 @@ class BoundaryConditions:
     The domain has four faces: north, south, east, and west. Each face can be configured
     with different boundary types (e.g., sponge layer, solid wall, incoming wave).
     Boundary conditions can be set in one of two ways:
+
     1) **Celeris format** (`celeris=True`): Reads from a `config.json` file.
     2) **Manual** (`celeris=False`): Uses manually supplied values.
 
@@ -137,17 +139,22 @@ class BoundaryConditions:
     from NumPy arrays to Taichi tensors.
     
     Attributes:
+
         precision (taichi.types.primitive_types): The precision used by Taichi (e.g. `ti.f32`, `ti.f64`).
         North (int): Boundary type for the north face. Valid types are:
+
             - 0: Solid wall
             - 1: Sponge layer
             - 2: Incoming wave
+
         South (int): Boundary type for the south face.
         East (int): Boundary type for the east face.
         West (int): Boundary type for the west face.
-        WaveType (int): Wave type indicator. 
+        WaveType (int): Wave type indicator:
+
             - -1: Wave parameters read from a file (`waves.txt`)
             -  Any other integer: Use `sine_wave` array for wave parameters
+        
         Amplitude (float): Wave amplitude, used if not reading from a file.
         path (str): Path to the directory containing `waves.txt` and/or `config.json`.
         filename (str): Name of the file that stores wave parameters (e.g. `waves.txt`).
@@ -291,6 +298,7 @@ class BoundaryConditions:
         Loads wave parameters from `waves.txt` if `WaveType` is -1.
 
         If a valid file is found, it reads the wave parameters:
+
         - The first three lines are header-like info (only the 'NumberOfWaves' line is used).
         - After skipping three lines, wave parameters are loaded. The shape of `self.data`
           is `(N_data, 4)`, where `N_data` is determined by reading the 'NumberOfWaves' 
@@ -338,10 +346,12 @@ class Domain:
     configures boundary sea levels on each face (north, south, east, west), 
     and stores critical parameters such as Courant number (`Courant`), friction, 
     and base depth. Two main branches are supported for configuration:
+
         1. **Celeris format**: Reads from a `config.json` file (if `topodata.datatype == "celeris"`).
         2. **Manual**: Uses provided arguments directly.
 
     The class also defines utility methods to:
+
         - Create a meshgrid for the domain (`grid`).
         - Load and interpolate topographic/bathymetric data (`topofield`, `bottom`).
         - Compute maximum depth (`maxdepth`) and highest topography (`maxtopo`).
@@ -578,11 +588,13 @@ class Domain:
         """
         Computes the maximum depth in the domain. If `base_depth_` is specified, 
         returns that. Otherwise:
+
             - For 1D ('xz'): returns the maximum of the interpolated topofield array.
             - For 2D ('xyz', 'celeris'): returns the maximum of topofield array values.
 
         Returns:
-            float: Maximum depth (base_depth_ if set, else maximum from topofield).
+
+            float: Maximum depth (`base_depth_` if set, else maximum from topofield).
         """
         if self.base_depth_ ==None:
             # 1D domain

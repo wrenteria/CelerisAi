@@ -140,7 +140,7 @@
 <span class="sd">        path (str, optional): Directory path where the file is located. If not provided, </span>
 <span class="sd">            `filename` should be a complete path or in the current working directory.</span>
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from celeris.domain import Topodata</span>
+<span class="sd">        &gt;&gt;&gt; Bfrom celeris.domain import Topodata</span>
 <span class="sd">        &gt;&gt;&gt; baty = Topodata(datatype=&#39;celeris&#39;,path=&#39;./examples/DuckFRF_NC&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -173,6 +173,7 @@
 
 <span class="sd">        - For &quot;xyz&quot;: Expects a file with three columns (x, y, z).</span>
 <span class="sd">        - For &quot;xz&quot;: Expects a file with two columns (x, z).</span>
+<span class="sd">        - For &quot;xyz&quot; and &quot;xz&quot;, bathymetry must be positive.</span>
 <span class="sd">        - For &quot;celeris&quot;: Expects a folder containing a file named &quot;bathy.txt&quot;. </span>
 <span class="sd">          The returned array values are multiplied by -1.</span>
 
@@ -217,16 +218,16 @@
 <span class="sd">    1) **Celeris format** (`celeris=True`): Reads from a `config.json` file.</span>
 <span class="sd">    2) **Manual** (`celeris=False`): Uses manually supplied values.</span>
 
-<span class="sd">    If incoming waves (boundary type = 2) are defined, the wave type can be specified</span>
-<span class="sd">    via `WaveType`. If `WaveType` is -1, the wave parameters are read from a file</span>
-<span class="sd">    (e.g., `&quot;waves.txt&quot;`). Otherwise, a sine wave is assumed and set by `sine_wave`.</span>
+<span class="sd">    If incoming waves (boundary type = 2) are defined, the wave type can be specified via</span>
+<span class="sd">    `WaveType`. If `WaveType` is -1, the wave parameters are read from a file (e.g., </span>
+<span class="sd">    `&quot;waves.txt&quot;`). Otherwise, a sine wave is assumed and set by `sine_wave`.</span>
 
-<span class="sd">    This class also includes utility methods for handling wave data input and </span>
-<span class="sd">    conversion from NumPy arrays to Taichi tensors.</span>
-
+<span class="sd">    This class also includes utility methods for handling wave data input and conversion</span>
+<span class="sd">    from NumPy arrays to Taichi tensors.</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        precision (taichi.types.primitive_types): The precision used by Taichi (e.g. `ti.f32`, `ti.f64`).</span>
 
+<span class="sd">        precision (taichi.types.primitive_types): The precision used by Taichi (e.g. `ti.f32`, `ti.f64`).</span>
 <span class="sd">        North (int): Boundary type for the north face. Valid types are:</span>
 
 <span class="sd">            - 0: Solid wall</span>
@@ -236,12 +237,11 @@
 <span class="sd">        South (int): Boundary type for the south face.</span>
 <span class="sd">        East (int): Boundary type for the east face.</span>
 <span class="sd">        West (int): Boundary type for the west face.</span>
-
-<span class="sd">        WaveType (int): Wave type indicator. Valid values are:</span>
+<span class="sd">        WaveType (int): Wave type indicator:</span>
 
 <span class="sd">            - -1: Wave parameters read from a file (`waves.txt`)</span>
-<span class="sd">            - Any other integer: Use the `sine_wave` array for wave parameters</span>
-
+<span class="sd">            -  Any other integer: Use `sine_wave` array for wave parameters</span>
+<span class="sd">        </span>
 <span class="sd">        Amplitude (float): Wave amplitude, used if not reading from a file.</span>
 <span class="sd">        path (str): Path to the directory containing `waves.txt` and/or `config.json`.</span>
 <span class="sd">        filename (str): Name of the file that stores wave parameters (e.g. `waves.txt`).</span>
@@ -254,9 +254,8 @@
 <span class="sd">        W_data (None): Unused placeholder (could store wave data in some contexts).</span>
 
 <span class="sd">    Example:</span>
-
 <span class="sd">        &gt;&gt;&gt; from celeris.domain import BoundaryConditions</span>
-<span class="sd">        &gt;&gt;&gt; bc = BoundaryConditions(celeris=True, path=&#39;./examples/DuckFRF_NC&#39;, precision=precision)</span>
+<span class="sd">        &gt;&gt;&gt; bc = BoundaryConditions(celeris=True,path=&#39;./examples/DuckFRF_NC&#39;,precision=precision)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">celeris</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -277,7 +276,6 @@
 <span class="sd">        Initializes the BoundaryConditions object with specified or default parameters.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        </span>
 <span class="sd">            celeris (bool, optional): If True, reads boundary settings from `config.json` </span>
 <span class="sd">                located at `path`. Defaults to True.</span>
 <span class="sd">            precision (taichi.types.primitive_types, optional): Taichi precision type </span>
@@ -398,7 +396,7 @@
 <span class="sd">        Loads wave parameters from `waves.txt` if `WaveType` is -1.</span>
 
 <span class="sd">        If a valid file is found, it reads the wave parameters:</span>
-<span class="sd">        </span>
+
 <span class="sd">        - The first three lines are header-like info (only the &#39;NumberOfWaves&#39; line is used).</span>
 <span class="sd">        - After skipping three lines, wave parameters are loaded. The shape of `self.data`</span>
 <span class="sd">          is `(N_data, 4)`, where `N_data` is determined by reading the &#39;NumberOfWaves&#39; </span>
@@ -453,12 +451,12 @@
 <span class="sd">    configures boundary sea levels on each face (north, south, east, west), </span>
 <span class="sd">    and stores critical parameters such as Courant number (`Courant`), friction, </span>
 <span class="sd">    and base depth. Two main branches are supported for configuration:</span>
-<span class="sd">    </span>
+
 <span class="sd">        1. **Celeris format**: Reads from a `config.json` file (if `topodata.datatype == &quot;celeris&quot;`).</span>
 <span class="sd">        2. **Manual**: Uses provided arguments directly.</span>
 
 <span class="sd">    The class also defines utility methods to:</span>
-<span class="sd">    </span>
+
 <span class="sd">        - Create a meshgrid for the domain (`grid`).</span>
 <span class="sd">        - Load and interpolate topographic/bathymetric data (`topofield`, `bottom`).</span>
 <span class="sd">        - Compute maximum depth (`maxdepth`) and highest topography (`maxtopo`).</span>
@@ -561,7 +559,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="mf">9.80665</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="o">=</span><span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Boundary_shift</span><span class="o">=</span><span class="n">BoundaryShift</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">base_depth_</span> <span class="o">=</span> <span class="n">base_depth</span>
         <span class="c1"># When topodata.datatype == &#39;celeris&#39;, read from config.json.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">topodata</span><span class="o">.</span><span class="n">datatype</span><span class="o">==</span><span class="s1">&#39;celeris&#39;</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topodata</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;config.json&#39;</span><span class="p">),</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">uf</span><span class="p">:</span>
@@ -661,7 +658,6 @@
 <span class="sd">        (inverted sign), plus any other auxiliary fields (e.g., near-dry flags).</span>
 
 <span class="sd">        Index mapping:</span>
-<span class="sd">        </span>
 <span class="sd">            - [2, :, :] =&gt; Stores the bathymetry/topography (with a -1 factor).</span>
 <span class="sd">            - [3, :, :] =&gt; A placeholder used for near-dry or similar state flags.</span>
 
@@ -706,15 +702,15 @@
 <a class="viewcode-back" href="../../celeris.html#celeris.domain.Domain.maxdepth">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">maxdepth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes the maximum depth in the domain. If ``base_depth_`` is specified, </span>
+<span class="sd">        Computes the maximum depth in the domain. If `base_depth_` is specified, </span>
 <span class="sd">        returns that. Otherwise:</span>
-<span class="sd">        </span>
+
 <span class="sd">            - For 1D (&#39;xz&#39;): returns the maximum of the interpolated topofield array.</span>
 <span class="sd">            - For 2D (&#39;xyz&#39;, &#39;celeris&#39;): returns the maximum of topofield array values.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">        </span>
-<span class="sd">            float: Maximum depth (``base_depth_`` if set, else maximum from topofield).</span>
+
+<span class="sd">            float: Maximum depth (`base_depth_` if set, else maximum from topofield).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_depth_</span> <span class="o">==</span><span class="kc">None</span><span class="p">:</span>
             <span class="c1"># 1D domain</span>
@@ -737,7 +733,6 @@
 <span class="sd">        for a similar reason.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">        </span>
 <span class="sd">            float: The highest elevation (or least negative) in the domain.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">topodata</span><span class="o">.</span><span class="n">datatype</span><span class="o">==</span><span class="s1">&#39;xz&#39;</span><span class="p">:</span>
@@ -751,7 +746,6 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes the time step based on the Courant criterion:</span>
-<span class="sd">        </span>
 <span class="sd">            dt = Courant * dx / sqrt(g * maxdepth)</span>
 
 <span class="sd">        Returns:</span>

@@ -64,7 +64,7 @@
 \DeclareUnicodeCharacter{200B}{}
 
 \title{CelerisAi}
-\date{Feb 20, 2025}
+\date{Mar 24, 2025}
 \release{0.0.1}
 \author{Willington Rentería}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -352,7 +352,7 @@ str, optional
 \subsubsection*{Example}
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
-\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{celeris}\PYG{n+nn}{.}\PYG{n+nn}{domain}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{Topodata}
+\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{Bfrom} \PYG{n}{celeris}\PYG{o}{.}\PYG{n}{domain} \PYG{k+kn}{import}\PYG{+w}{ }\PYG{n+nn}{Topodata}
 \PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{baty} \PYG{o}{=} \PYG{n}{Topodata}\PYG{p}{(}\PYG{n}{datatype}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{celeris}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}\PYG{n}{path}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{./examples/DuckFRF\PYGZus{}NC}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
 \end{sphinxVerbatim}
 \index{z() (celeris.domain.Topodata method)@\spxentry{z()}\spxextra{celeris.domain.Topodata method}}
@@ -379,6 +379,10 @@ For “xyz”: Expects a file with three columns (x, y, z).
 \item {} 
 \sphinxAtStartPar
 For “xz”: Expects a file with two columns (x, z).
+
+\item {} 
+\sphinxAtStartPar
+For “xyz” and “xz”, bathymetry must be positive.
 
 \item {} 
 \sphinxAtStartPar
@@ -447,13 +451,13 @@ Boundary conditions can be set in one of two ways:
 \end{enumerate}
 
 \sphinxAtStartPar
-If incoming waves (boundary type = 2) are defined, the wave type can be specified
-via \sphinxtitleref{WaveType}. If \sphinxtitleref{WaveType} is \sphinxhyphen{}1, the wave parameters are read from a file
-(e.g., \sphinxtitleref{“waves.txt”}). Otherwise, a sine wave is assumed and set by \sphinxtitleref{sine\_wave}.
+If incoming waves (boundary type = 2) are defined, the wave type can be specified via
+\sphinxtitleref{WaveType}. If \sphinxtitleref{WaveType} is \sphinxhyphen{}1, the wave parameters are read from a file (e.g.,
+\sphinxtitleref{“waves.txt”}). Otherwise, a sine wave is assumed and set by \sphinxtitleref{sine\_wave}.
 
 \sphinxAtStartPar
-This class also includes utility methods for handling wave data input and
-conversion from NumPy arrays to Taichi tensors.
+This class also includes utility methods for handling wave data input and conversion
+from NumPy arrays to Taichi tensors.
 \index{precision (celeris.domain.BoundaryConditions attribute)@\spxentry{precision}\spxextra{celeris.domain.BoundaryConditions attribute}}
 
 \begin{fulllineitems}
@@ -572,7 +576,7 @@ int
 {\sphinxbfcode{\sphinxupquote{WaveType}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Wave type indicator. Valid values are:
+Wave type indicator:
 \begin{itemize}
 \item {} 
 \sphinxAtStartPar
@@ -580,7 +584,7 @@ Wave type indicator. Valid values are:
 
 \item {} 
 \sphinxAtStartPar
-Any other integer: Use the \sphinxtitleref{sine\_wave} array for wave parameters
+Any other integer: Use \sphinxtitleref{sine\_wave} array for wave parameters
 
 \end{itemize}
 \begin{quote}\begin{description}
@@ -786,7 +790,7 @@ None
 
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{celeris}\PYG{n+nn}{.}\PYG{n+nn}{domain}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{BoundaryConditions}
-\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{bc} \PYG{o}{=} \PYG{n}{BoundaryConditions}\PYG{p}{(}\PYG{n}{celeris}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{path}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{./examples/DuckFRF\PYGZus{}NC}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{precision}\PYG{o}{=}\PYG{n}{precision}\PYG{p}{)}
+\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{bc} \PYG{o}{=} \PYG{n}{BoundaryConditions}\PYG{p}{(}\PYG{n}{celeris}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,}\PYG{n}{path}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{./examples/DuckFRF\PYGZus{}NC}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,}\PYG{n}{precision}\PYG{o}{=}\PYG{n}{precision}\PYG{p}{)}
 \end{sphinxVerbatim}
 \index{SineWave() (celeris.domain.BoundaryConditions method)@\spxentry{SineWave()}\spxextra{celeris.domain.BoundaryConditions method}}
 
@@ -1412,10 +1416,8 @@ float
 \sphinxAtStartPar
 Creates a 3D NumPy array of shape (4, Nx, Ny) to store bottom elevation
 (inverted sign), plus any other auxiliary fields (e.g., near\sphinxhyphen{}dry flags).
-
-\sphinxAtStartPar
-Index mapping:
-\begin{itemize}
+\begin{description}
+\sphinxlineitem{Index mapping:}\begin{itemize}
 \item {} 
 \sphinxAtStartPar
 {[}2, :, :{]} =\textgreater{} Stores the bathymetry/topography (with a \sphinxhyphen{}1 factor).
@@ -1425,6 +1427,8 @@ Index mapping:
 {[}3, :, :{]} =\textgreater{} A placeholder used for near\sphinxhyphen{}dry or similar state flags.
 
 \end{itemize}
+
+\end{description}
 \begin{quote}\begin{description}
 \sphinxlineitem{Returns}
 \sphinxAtStartPar
@@ -1447,14 +1451,12 @@ ti.field
 {\sphinxbfcode{\sphinxupquote{dt}}}
 {}
 {}
-\pysigstopsignatures
-\sphinxAtStartPar
-Computes the time step based on the Courant criterion:
-\begin{quote}
-
+\pysigstopsignatures\begin{description}
+\sphinxlineitem{Computes the time step based on the Courant criterion:}
 \sphinxAtStartPar
 dt = Courant * dx / sqrt(g * maxdepth)
-\end{quote}
+
+\end{description}
 \begin{quote}\begin{description}
 \sphinxlineitem{Returns}
 \sphinxAtStartPar
@@ -1520,7 +1522,7 @@ tuple
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
-Computes the maximum depth in the domain. If \sphinxcode{\sphinxupquote{base\_depth\_}} is specified,
+Computes the maximum depth in the domain. If \sphinxtitleref{base\_depth\_} is specified,
 returns that. Otherwise:
 \begin{itemize}
 \item {} 
@@ -1535,7 +1537,7 @@ For 2D (‘xyz’, ‘celeris’): returns the maximum of topofield array values
 \begin{quote}\begin{description}
 \sphinxlineitem{Returns}
 \sphinxAtStartPar
-Maximum depth (\sphinxcode{\sphinxupquote{base\_depth\_}} if set, else maximum from topofield).
+Maximum depth (\sphinxtitleref{base\_depth\_} if set, else maximum from topofield).
 
 \sphinxlineitem{Return type}
 \sphinxAtStartPar

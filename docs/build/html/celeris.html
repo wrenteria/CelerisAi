@@ -165,7 +165,7 @@ data. If <cite>path</cite> is provided, the file is assumed to be located there.
 </dd></dl>
 
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">celeris.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Topodata</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Bfrom</span> <span class="n">celeris</span><span class="o">.</span><span class="n">domain</span> <span class="kn">import</span><span class="w"> </span><span class="nn">Topodata</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">baty</span> <span class="o">=</span> <span class="n">Topodata</span><span class="p">(</span><span class="n">datatype</span><span class="o">=</span><span class="s1">&#39;celeris&#39;</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./examples/DuckFRF_NC&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -178,6 +178,7 @@ returns the data as a NumPy array.</p>
 <ul class="simple">
 <li><p>For “xyz”: Expects a file with three columns (x, y, z).</p></li>
 <li><p>For “xz”: Expects a file with two columns (x, z).</p></li>
+<li><p>For “xyz” and “xz”, bathymetry must be positive.</p></li>
 <li><p>For “celeris”: Expects a folder containing a file named “bathy.txt”.
 The returned array values are multiplied by -1.</p></li>
 </ul>
@@ -212,11 +213,11 @@ Boundary conditions can be set in one of two ways:</p>
 <li><p><strong>Celeris format</strong> (<cite>celeris=True</cite>): Reads from a <cite>config.json</cite> file.</p></li>
 <li><p><strong>Manual</strong> (<cite>celeris=False</cite>): Uses manually supplied values.</p></li>
 </ol>
-<p>If incoming waves (boundary type = 2) are defined, the wave type can be specified
-via <cite>WaveType</cite>. If <cite>WaveType</cite> is -1, the wave parameters are read from a file
-(e.g., <cite>“waves.txt”</cite>). Otherwise, a sine wave is assumed and set by <cite>sine_wave</cite>.</p>
-<p>This class also includes utility methods for handling wave data input and
-conversion from NumPy arrays to Taichi tensors.</p>
+<p>If incoming waves (boundary type = 2) are defined, the wave type can be specified via
+<cite>WaveType</cite>. If <cite>WaveType</cite> is -1, the wave parameters are read from a file (e.g.,
+<cite>“waves.txt”</cite>). Otherwise, a sine wave is assumed and set by <cite>sine_wave</cite>.</p>
+<p>This class also includes utility methods for handling wave data input and conversion
+from NumPy arrays to Taichi tensors.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.precision">
 <span class="sig-name descname"><span class="pre">precision</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.precision" title="Link to this definition"></a></dt>
@@ -280,10 +281,10 @@ conversion from NumPy arrays to Taichi tensors.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.WaveType">
 <span class="sig-name descname"><span class="pre">WaveType</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.WaveType" title="Link to this definition"></a></dt>
-<dd><p>Wave type indicator. Valid values are:</p>
+<dd><p>Wave type indicator:</p>
 <ul class="simple">
 <li><p>-1: Wave parameters read from a file (<cite>waves.txt</cite>)</p></li>
-<li><p>Any other integer: Use the <cite>sine_wave</cite> array for wave parameters</p></li>
+<li><p>Any other integer: Use <cite>sine_wave</cite> array for wave parameters</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -404,7 +405,7 @@ conversion from NumPy arrays to Taichi tensors.</p>
 
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">celeris.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundaryConditions</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bc</span> <span class="o">=</span> <span class="n">BoundaryConditions</span><span class="p">(</span><span class="n">celeris</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;./examples/DuckFRF_NC&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bc</span> <span class="o">=</span> <span class="n">BoundaryConditions</span><span class="p">(</span><span class="n">celeris</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./examples/DuckFRF_NC&#39;</span><span class="p">,</span><span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="py method">
@@ -756,13 +757,13 @@ If None, it is inferred from the topography.</p>
 <span class="sig-name descname"><span class="pre">bottom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.bottom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.bottom" title="Link to this definition"></a></dt>
 <dd><p>Creates a 3D NumPy array of shape (4, Nx, Ny) to store bottom elevation
 (inverted sign), plus any other auxiliary fields (e.g., near-dry flags).</p>
-<p>Index mapping:</p>
-<blockquote>
-<div><ul class="simple">
+<dl class="simple">
+<dt>Index mapping:</dt><dd><ul class="simple">
 <li><p>[2, :, :] =&gt; Stores the bathymetry/topography (with a -1 factor).</p></li>
 <li><p>[3, :, :] =&gt; A placeholder used for near-dry or similar state flags.</p></li>
 </ul>
-</div></blockquote>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A Taichi field of shape [4, Nx, Ny] with the bottom information.</p>
@@ -776,10 +777,10 @@ If None, it is inferred from the topography.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="celeris.domain.Domain.dt">
 <span class="sig-name descname"><span class="pre">dt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.dt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.dt" title="Link to this definition"></a></dt>
-<dd><p>Computes the time step based on the Courant criterion:</p>
-<blockquote>
-<div><p>dt = Courant * dx / sqrt(g * maxdepth)</p>
-</div></blockquote>
+<dd><dl class="simple">
+<dt>Computes the time step based on the Courant criterion:</dt><dd><p>dt = Courant * dx / sqrt(g * maxdepth)</p>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The computed time step.</p>
@@ -814,7 +815,7 @@ None or irrelevant in 1D case (depending on interpretation).</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="celeris.domain.Domain.maxdepth">
 <span class="sig-name descname"><span class="pre">maxdepth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.maxdepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.maxdepth" title="Link to this definition"></a></dt>
-<dd><p>Computes the maximum depth in the domain. If <code class="docutils literal notranslate"><span class="pre">base_depth_</span></code> is specified,
+<dd><p>Computes the maximum depth in the domain. If <cite>base_depth_</cite> is specified,
 returns that. Otherwise:</p>
 <blockquote>
 <div><ul class="simple">
@@ -824,7 +825,7 @@ returns that. Otherwise:</p>
 </div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Maximum depth (<code class="docutils literal notranslate"><span class="pre">base_depth_</span></code> if set, else maximum from topofield).</p>
+<dd class="field-odd"><p>Maximum depth (<cite>base_depth_</cite> if set, else maximum from topofield).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>float</p>
