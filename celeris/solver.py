@@ -2381,7 +2381,7 @@ class Solver:
                     h_here = eta_here - B_here
                     c_here = ti.sqrt(self.g * h_here)
                     h2 = h_here * h_here
-                    divide_by_h = ti.sqrt(2.0) * h_here / (h2 + ti.max(h2, self.epsilon))
+                    divide_by_h = 2.0 * h_here / (h2 + ti.max(h2, self.epsilon))
 
                     # Kennedy et al breaking model, default parameters
                     T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
@@ -2490,7 +2490,7 @@ class Solver:
                 h_here = eta_here - B_here
                 c_here = ti.sqrt(self.g * h_here)
                 h2 = h_here * h_here
-                divide_by_h = ti.sqrt(2.0) * h_here / (h2 + ti.max(h2, self.epsilon))
+                divide_by_h = 2.0 * h_here / (h2 + ti.max(h2, self.epsilon))
 
                 # Kennedy et al breaking model, default parameters
                 T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
