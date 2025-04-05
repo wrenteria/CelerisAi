@@ -93,7 +93,7 @@
 \indexentry{Pass3() (celeris.solver.Solver method)@\spxentry{Pass3()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
 \indexentry{Pass3Bous() (celeris.solver.Solver method)@\spxentry{Pass3Bous()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
 \indexentry{Pass3\_SedTrans() (celeris.solver.Solver method)@\spxentry{Pass3\_SedTrans()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
-\indexentry{Pass\_Breaking() (celeris.solver.Solver method)@\spxentry{Pass\_Breaking()}\spxextra{celeris.solver.Solver method}|hyperpage}{19}
+\indexentry{Pass\_Breaking() (celeris.solver.Solver method)@\spxentry{Pass\_Breaking()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
 \indexentry{Run\_Tridiag\_solver() (celeris.solver.Solver method)@\spxentry{Run\_Tridiag\_solver()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
 \indexentry{SolitaryWave() (celeris.solver.Solver method)@\spxentry{SolitaryWave()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
 \indexentry{TriDiag\_PCRx() (celeris.solver.Solver method)@\spxentry{TriDiag\_PCRx()}\spxextra{celeris.solver.Solver method}|hyperpage}{20}
@@ -108,7 +108,7 @@
 \indexentry{Evolve (class in celeris.runner)@\spxentry{Evolve}\spxextra{class in celeris.runner}|hyperpage}{21}
 \indexentry{solver (celeris.runner.Evolve attribute)@\spxentry{solver}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{22}
 \indexentry{maxsteps (celeris.runner.Evolve attribute)@\spxentry{maxsteps}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{22}
-\indexentry{dt (celeris.runner.Evolve attribute)@\spxentry{dt}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{22}
+\indexentry{dt (celeris.runner.Evolve attribute)@\spxentry{dt}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
 \indexentry{timeScheme (celeris.runner.Evolve attribute)@\spxentry{timeScheme}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
 \indexentry{saveimg (celeris.runner.Evolve attribute)@\spxentry{saveimg}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
 \indexentry{vmin (celeris.runner.Evolve attribute)@\spxentry{vmin}\spxextra{celeris.runner.Evolve attribute}|hyperpage}{23}
@@ -124,9 +124,9 @@
 \indexentry{Evolve\_Steps() (celeris.runner.Evolve method)@\spxentry{Evolve\_Steps()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
 \indexentry{InitColors() (celeris.runner.Evolve method)@\spxentry{InitColors()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
 \indexentry{bottom\_paint() (celeris.runner.Evolve method)@\spxentry{bottom\_paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
-\indexentry{brk\_color() (celeris.runner.Evolve method)@\spxentry{brk\_color()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
-\indexentry{eta\_paint() (celeris.runner.Evolve method)@\spxentry{eta\_paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
-\indexentry{paint() (celeris.runner.Evolve method)@\spxentry{paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{25}
+\indexentry{brk\_color() (celeris.runner.Evolve method)@\spxentry{brk\_color()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
+\indexentry{eta\_paint() (celeris.runner.Evolve method)@\spxentry{eta\_paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
+\indexentry{paint() (celeris.runner.Evolve method)@\spxentry{paint()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
 \indexentry{paint\_new() (celeris.runner.Evolve method)@\spxentry{paint\_new()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
 \indexentry{painting\_eta() (celeris.runner.Evolve method)@\spxentry{painting\_eta()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
 \indexentry{painting\_h() (celeris.runner.Evolve method)@\spxentry{painting\_h()}\spxextra{celeris.runner.Evolve method}|hyperpage}{26}
@@ -137,14 +137,14 @@
 \indexentry{CalcUV\_Sed() (in module celeris.utils)@\spxentry{CalcUV\_Sed()}\spxextra{in module celeris.utils}|hyperpage}{27}
 \indexentry{ColorsfromMPL() (in module celeris.utils)@\spxentry{ColorsfromMPL()}\spxextra{in module celeris.utils}|hyperpage}{27}
 \indexentry{FrictionCalc() (in module celeris.utils)@\spxentry{FrictionCalc()}\spxextra{in module celeris.utils}|hyperpage}{28}
-\indexentry{MinMod() (in module celeris.utils)@\spxentry{MinMod()}\spxextra{in module celeris.utils}|hyperpage}{28}
+\indexentry{MinMod() (in module celeris.utils)@\spxentry{MinMod()}\spxextra{in module celeris.utils}|hyperpage}{29}
 \indexentry{NumericalFlux() (in module celeris.utils)@\spxentry{NumericalFlux()}\spxextra{in module celeris.utils}|hyperpage}{29}
 \indexentry{Reconstruct() (in module celeris.utils)@\spxentry{Reconstruct()}\spxextra{in module celeris.utils}|hyperpage}{29}
 \indexentry{ScalarAntiDissipation() (in module celeris.utils)@\spxentry{ScalarAntiDissipation()}\spxextra{in module celeris.utils}|hyperpage}{30}
 \indexentry{celeris\_matplotlib() (in module celeris.utils)@\spxentry{celeris\_matplotlib()}\spxextra{in module celeris.utils}|hyperpage}{30}
 \indexentry{celeris\_waves() (in module celeris.utils)@\spxentry{celeris\_waves()}\spxextra{in module celeris.utils}|hyperpage}{31}
 \indexentry{cosh() (in module celeris.utils)@\spxentry{cosh()}\spxextra{in module celeris.utils}|hyperpage}{31}
-\indexentry{sineWave() (in module celeris.utils)@\spxentry{sineWave()}\spxextra{in module celeris.utils}|hyperpage}{31}
-\indexentry{module@\spxentry{module}!celeris@\spxentry{celeris}|hyperpage}{32}
-\indexentry{celeris@\spxentry{celeris}!module@\spxentry{module}|hyperpage}{32}
+\indexentry{sineWave() (in module celeris.utils)@\spxentry{sineWave()}\spxextra{in module celeris.utils}|hyperpage}{32}
+\indexentry{module@\spxentry{module}!celeris@\spxentry{celeris}|hyperpage}{33}
+\indexentry{celeris@\spxentry{celeris}!module@\spxentry{module}|hyperpage}{33}
 \indexentry{\_\_version\_\_ (in module celeris)@\spxentry{\_\_version\_\_}\spxextra{in module celeris}|hyperpage}{33}

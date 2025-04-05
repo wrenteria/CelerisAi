@@ -158,7 +158,7 @@ class Evolve:
         """
         i = step
 
-        self.solver.Pass1()
+        self.solver.Pass1(step=i)
 
         if self.solver.useSedTransModel:
             self.solver.Pass1_SedTrans()
@@ -196,7 +196,7 @@ class Evolve:
             if self.solver.useSedTransModel:
                 self.solver.copy_states(src=self.solver.NewState_Sed,dst=self.solver.State_Sed)
 
-            self.solver.Pass1()
+            self.solver.Pass1(step=i)
 
             if self.solver.useSedTransModel:
                 self.solver.Pass1_SedTrans()
@@ -472,7 +472,7 @@ class Evolve:
         plotpath = './plots'
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
-        i = 0.0
+        i = 0
         use_ggui = None
         window = None
         canvas = None
