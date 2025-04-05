@@ -19,7 +19,7 @@
 \contentsline {subsubsection}{Solver module}{15}{subsubsection*.67}%
 \contentsline {subsubsection}{Runner module}{21}{subsubsection*.108}%
 \contentsline {subsubsection}{Utils module}{26}{subsubsection*.135}%
-\contentsline {subsubsection}{Current Version}{32}{subsubsection*.148}%
+\contentsline {subsubsection}{Current Version}{33}{subsubsection*.148}%
 \contentsline {chapter}{Bibliography}{35}{chapter*.150}%
 \contentsline {chapter}{Python Module Index}{37}{section*.151}%
 \contentsline {chapter}{Index}{39}{section*.152}%

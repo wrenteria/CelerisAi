@@ -1276,7 +1276,7 @@ of the simulation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="celeris.solver.Solver.Pass1">
-<span class="sig-name descname"><span class="pre">Pass1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass1" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">Pass1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass1" title="Link to this definition"></a></dt>
 <dd><dl class="simple">
 <dt>Reconstruction step (Pass1):</dt><dd><ul class="simple">
 <li><p>Builds left/right (or N/E/S/W) interface values of eta, momentum, and
@@ -1288,6 +1288,11 @@ scalar concentration using a generalized minmod limiter.</p></li>
 </dl>
 <p>For 1D (ny=1), a simpler logic is used. For 2D, reconstruction is in both
 x- and y-directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>step</strong> (<em>int</em>) – Counter to compute statistics.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

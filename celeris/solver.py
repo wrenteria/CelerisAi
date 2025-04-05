@@ -418,6 +418,7 @@ class Solver:
         for i,j in self.State:
             self.State[i,j] = ti.Vector([0.0,0.0,0.0,0.0],self.precision)
             self.stateUVstar[i,j]= ti.Vector([0.0,0.0,0.0,0.0],self.precision)
+            self.Auxiliary[i,j]= ti.Vector([0.0,50000.0,0.0,0.0],self.precision)
 
     @ti.kernel
     def fill_bottom_field(self):
@@ -968,7 +969,7 @@ class Solver:
 
 
     @ti.kernel
-    def Pass1(self):
+    def Pass1(self,step:ti.i32):
         """
         Reconstruction step (Pass1):
           - Builds left/right (or N/E/S/W) interface values of eta, momentum, and 
@@ -978,6 +979,9 @@ class Solver:
 
         For 1D (ny=1), a simpler logic is used. For 2D, reconstruction is in both 
         x- and y-directions.
+
+        Args:
+            step (int): Counter to compute statistics.
         """
         zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         if self.ny==1:
@@ -1013,6 +1017,7 @@ class Solver:
                         self.U[i,j] = zro
                         self.V[i,j] = zro
                         self.C[i,j] = zro
+                        self.Auxiliary[i,j] = zro
                         continue
                 ########################################################
                 # Pass 1
@@ -1076,15 +1081,20 @@ class Solver:
                 if Frumax > Fr_maxallowed :
                     Fr_red = Fr_maxallowed / Frumax
                     output_u = output_u * Fr_red
-                    
-                maxInundatedDepth = max(( h[1] + h[3]) / 2, self.Auxiliary[i,j][0])
+                
+                # compute statistics of flow depth
+                flow_depth = ( h[1] + h[3]) / 2
+                maxInundatedDepth = ti.max(flow_depth, self.Auxiliary[i,j][0])
+                minFlow_depth = ti.min(flow_depth, self.Auxiliary[i,j][1])
+                meanFlow_depth = (self.Auxiliary[i,j][2]*step + flow_depth)/(step+1)
+
 
                 # Write H, U, V, C vector fields
                 self.H[i,j] = h
                 self.U[i,j] = output_u
                 self.V[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0])
                 self.C[i,j] = output_c
-                self.Auxiliary[i,j] = ti.Vector([maxInundatedDepth, 0.0, 0.0, 0.0],self.precision)
+                self.Auxiliary[i,j] = ti.Vector([maxInundatedDepth, minFlow_depth, meanFlow_depth, 0.0],self.precision)
         else:
             for i,j in self.State:
                 # Compute the coordinates of the neighbors
@@ -1125,6 +1135,7 @@ class Solver:
                         self.U[i,j] = zro
                         self.V[i,j] = zro
                         self.C[i,j] = zro
+                        self.Auxiliary[i,j] = zro
                         continue
 
                 ########################################################
@@ -1203,14 +1214,18 @@ class Solver:
                     output_u = output_u * Fr_red
                     output_v = output_v * Fr_red
 
-                maxInundatedDepth = max((h[0] + h[1] + h[2] + h[3]) / 4, self.Auxiliary[i,j][0])
+                # compute statistics of flow depth
+                flow_depth = (h[0] + h[1] + h[2] + h[3]) / 4
+                maxInundatedDepth = max(flow_depth, self.Auxiliary[i,j][0])
+                minInundatedDepth = min(flow_depth, self.Auxiliary[i,j][1])
+                meanFlow_depth = (self.Auxiliary[i,j][2]*step + flow_depth)/(step+1)
 
                 # Write H, U, V, C vector fields
                 self.H[i,j] = h
                 self.U[i,j] = output_u
                 self.V[i,j] = output_v
                 self.C[i,j] = output_c
-                self.Auxiliary[i,j] = ti.Vector([maxInundatedDepth, 0.0, 0.0, 0.0],self.precision)
+                self.Auxiliary[i,j] = ti.Vector([maxInundatedDepth, minInundatedDepth,meanFlow_depth, 0.0],self.precision)
 
 
     @ti.kernel
@@ -2384,6 +2399,7 @@ class Solver:
                     divide_by_h = 2.0 * h_here / (h2 + ti.max(h2, self.epsilon))
 
                     # Kennedy et al breaking model, default parameters
+                    # Transition time
                     T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
                     dzdt_I = self.dzdt_I_coef*c_here
                     dzdt_F = self.dzdt_F_coef*c_here

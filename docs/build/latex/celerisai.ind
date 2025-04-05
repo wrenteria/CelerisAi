@@ -24,14 +24,14 @@
   \item \spxentry{BoundaryWidth}\spxextra{celeris.domain.BoundaryConditions attribute}, 
 		\hyperpage{8}
   \item \spxentry{BoundSineWaves()}\spxextra{celeris.solver.Solver method}, \hyperpage{18}
-  \item \spxentry{brk\_color()}\spxextra{celeris.runner.Evolve method}, \hyperpage{25}
+  \item \spxentry{brk\_color()}\spxextra{celeris.runner.Evolve method}, \hyperpage{26}
 
   \indexspace
   \bigletter C
   \item \spxentry{CalcUV()}\spxextra{in module celeris.utils}, \hyperpage{26}
   \item \spxentry{CalcUV\_Sed()}\spxextra{in module celeris.utils}, \hyperpage{27}
   \item \spxentry{celeris}
-    \subitem \spxentry{module}, \hyperpage{32}
+    \subitem \spxentry{module}, \hyperpage{33}
   \item \spxentry{celeris}\spxextra{celeris.domain.BoundaryConditions attribute}, \hyperpage{9}
   \item \spxentry{celeris.domain}
     \subitem \spxentry{module}, \hyperpage{6}
@@ -61,7 +61,7 @@
   \item \spxentry{dissipation\_threshold}\spxextra{celeris.solver.Solver attribute}, \hyperpage{16}
   \item \spxentry{domain}\spxextra{celeris.solver.Solver attribute}, \hyperpage{16}
   \item \spxentry{Domain}\spxextra{class in celeris.domain}, \hyperpage{10}
-  \item \spxentry{dt}\spxextra{celeris.runner.Evolve attribute}, \hyperpage{22}
+  \item \spxentry{dt}\spxextra{celeris.runner.Evolve attribute}, \hyperpage{23}
   \item \spxentry{dt()}\spxextra{celeris.domain.Domain method}, \hyperpage{13}
   \item \spxentry{dzdt\_F\_coef}\spxextra{celeris.solver.Solver attribute}, \hyperpage{17}
   \item \spxentry{dzdt\_I\_coef}\spxextra{celeris.solver.Solver attribute}, \hyperpage{17}
@@ -70,7 +70,7 @@
   \bigletter E
   \item \spxentry{East}\spxextra{celeris.domain.BoundaryConditions attribute}, \hyperpage{8}
   \item \spxentry{east\_sl}\spxextra{celeris.domain.Domain attribute}, \hyperpage{12}
-  \item \spxentry{eta\_paint()}\spxextra{celeris.runner.Evolve method}, \hyperpage{25}
+  \item \spxentry{eta\_paint()}\spxextra{celeris.runner.Evolve method}, \hyperpage{26}
   \item \spxentry{Evolve}\spxextra{class in celeris.runner}, \hyperpage{21}
   \item \spxentry{Evolve\_0()}\spxextra{celeris.runner.Evolve method}, \hyperpage{24}
   \item \spxentry{Evolve\_1D\_Display()}\spxextra{celeris.runner.Evolve method}, \hyperpage{24}
@@ -109,10 +109,10 @@
   \item \spxentry{maxdepth()}\spxextra{celeris.domain.Domain method}, \hyperpage{14}
   \item \spxentry{maxsteps}\spxextra{celeris.runner.Evolve attribute}, \hyperpage{22}
   \item \spxentry{maxtopo()}\spxextra{celeris.domain.Domain method}, \hyperpage{14}
-  \item \spxentry{MinMod()}\spxextra{in module celeris.utils}, \hyperpage{28}
+  \item \spxentry{MinMod()}\spxextra{in module celeris.utils}, \hyperpage{29}
   \item \spxentry{model}\spxextra{celeris.solver.Solver attribute}, \hyperpage{16}
   \item \spxentry{module}
-    \subitem \spxentry{celeris}, \hyperpage{32}
+    \subitem \spxentry{celeris}, \hyperpage{33}
     \subitem \spxentry{celeris.domain}, \hyperpage{6}
     \subitem \spxentry{celeris.runner}, \hyperpage{21}
     \subitem \spxentry{celeris.solver}, \hyperpage{15}
@@ -134,7 +134,7 @@
 
   \indexspace
   \bigletter P
-  \item \spxentry{paint()}\spxextra{celeris.runner.Evolve method}, \hyperpage{25}
+  \item \spxentry{paint()}\spxextra{celeris.runner.Evolve method}, \hyperpage{26}
   \item \spxentry{paint\_new()}\spxextra{celeris.runner.Evolve method}, \hyperpage{26}
   \item \spxentry{painting\_eta()}\spxextra{celeris.runner.Evolve method}, \hyperpage{26}
   \item \spxentry{painting\_h()}\spxextra{celeris.runner.Evolve method}, \hyperpage{26}
@@ -145,7 +145,7 @@
   \item \spxentry{Pass3()}\spxextra{celeris.solver.Solver method}, \hyperpage{19}
   \item \spxentry{Pass3\_SedTrans()}\spxextra{celeris.solver.Solver method}, \hyperpage{19}
   \item \spxentry{Pass3Bous()}\spxextra{celeris.solver.Solver method}, \hyperpage{19}
-  \item \spxentry{Pass\_Breaking()}\spxextra{celeris.solver.Solver method}, \hyperpage{19}
+  \item \spxentry{Pass\_Breaking()}\spxextra{celeris.solver.Solver method}, \hyperpage{20}
   \item \spxentry{path}\spxextra{celeris.domain.BoundaryConditions attribute}, \hyperpage{8}
   \item \spxentry{path}\spxextra{celeris.domain.Topodata attribute}, \hyperpage{6}
   \item \spxentry{pixels}\spxextra{celeris.domain.Domain attribute}, \hyperpage{12}
@@ -170,7 +170,7 @@
   \item \spxentry{showBreaking}\spxextra{celeris.solver.Solver attribute}, \hyperpage{17}
   \item \spxentry{sine\_wave}\spxextra{celeris.domain.BoundaryConditions attribute}, \hyperpage{9}
   \item \spxentry{SineWave()}\spxextra{celeris.domain.BoundaryConditions method}, \hyperpage{9}
-  \item \spxentry{sineWave()}\spxextra{in module celeris.utils}, \hyperpage{31}
+  \item \spxentry{sineWave()}\spxextra{in module celeris.utils}, \hyperpage{32}
   \item \spxentry{SolitaryWave()}\spxextra{celeris.solver.Solver method}, \hyperpage{20}
   \item \spxentry{solver}\spxextra{celeris.runner.Evolve attribute}, \hyperpage{22}
   \item \spxentry{Solver}\spxextra{class in celeris.solver}, \hyperpage{15}
