@@ -577,7 +577,7 @@ class Evolve:
         plotpath = './plots'
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
-        i = 0.0
+        i = int(0)
         use_ggui = None
         window = None
         canvas = None
