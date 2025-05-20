@@ -9,7 +9,7 @@ CelerisAi is a Python and Taichi-based framework for nearshore wave modeling tha
 Methods
 -------
 
-CelerisAi is built upon Celeris Base [TavakkolLynett2020]_, which solves the extended Boussinesq equations derived by [MadseSorensen1992]_ to account for nonlinear and dispersive effects in nearshore wave transformation, and follows the architecture presented in the CelerisWebGPU version (`CelerisWebGPU <https://plynett.github.io/>`_).
+CelerisAi [RenteriaLynett2025]_ is built upon Celeris Base [TavakkolLynett2020]_, which solves the extended Boussinesq equations derived by [MadseSorensen1992]_ to account for nonlinear and dispersive effects in nearshore wave transformation, and follows the architecture presented in the CelerisWebGPU version (`CelerisWebGPU <https://plynett.github.io/>`_).
 
 
 Characteristics
@@ -65,6 +65,8 @@ At run-time, simulation states can be transferred to PyTorch tensors, enabling d
 
 References
 ----------
+
+.. [RenteriaLynett2025] Renteria, W., Lynett, P., Bonus, J., Mccann, M., & Ebrahimi, B. (2025). CelerisAi: A Nearshore Wave Modeling Framework for Integrated AI Applications. https://doi.org/10.22541/essoar.174129311.11936719/v1
 
 .. [TavakkolLynett2020] Tavakkol, S., & Lynett, P. (2020). Celeris Base: An interactive and immersive Boussinesq-type nearshore wave simulation software. Computer Physics Communications, 248, 106966. https://doi.org/10.1016/j.cpc.2019.106966
 
