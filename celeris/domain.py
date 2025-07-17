@@ -378,7 +378,6 @@ class Domain:
         base_depth_ (float or None): Reference base depth of the domain. 
             If None, it is inferred from the topography.
         Boundary_shift (int): Shift parameter used for boundary indexing or conditions.
-        pixels (ti.field): Taichi field for potential 2D visualization or debugging (shape = [Nx, Ny]).
         g (float): Gravitational constant (9.80665).
         configfile (dict or None): Loaded JSON dictionary if using Celeris format.
         seaLevel (float): Reference sea level (set to 0.0 here).
@@ -408,7 +407,8 @@ class Domain:
                  isManning = 0,
                  friction =0.001,
                  base_depth=None,
-                 BoundaryShift=4
+                 BoundaryShift=4,
+                 differentiability=False,
                  ):
         """
         Initializes the Domain object with specified domain parameters and reads from 
@@ -437,6 +437,7 @@ class Domain:
                 will be inferred from topography. Defaults to None.
             BoundaryShift (int, optional): Shift value used for boundary conditions. 
                 Defaults to 4.
+            differentiability (bool, optional): If True, enables differentiability. Defaults to False.
         """
         self.precision = precision
         self.x1 = x1
@@ -454,6 +455,8 @@ class Domain:
         self.g = 9.80665
         self.configfile=None
         self.Boundary_shift=BoundaryShift
+        self.differentiability=differentiability
+
         # When topodata.datatype == 'celeris', read from config.json.
         if self.topodata.datatype=='celeris':
             with open(os.path.join(self.topodata.path, 'config.json'),'r') as uf:
@@ -546,6 +549,8 @@ class Domain:
         """
         Creates a 3D NumPy array of shape (4, Nx, Ny) to store bottom elevation 
         (inverted sign), plus any other auxiliary fields (e.g., near-dry flags).
+        When differentiability is selected, the scalar field uses the gradient to 
+        calculate the derivative.
 
         Index mapping:
             - [2, :, :] => Stores the bathymetry/topography (with a -1 factor).
@@ -564,6 +569,8 @@ class Domain:
         nbottom[3] = 99.
 
         bottom = ti.field(self.precision,shape=(4,self.Nx,self.Ny,))
+        if self.differentiability:
+            bottom = ti.field(self.precision,shape=(4,self.Nx,self.Ny,),needs_grad=True)
         bottom.from_numpy(nbottom)
         return bottom
 
@@ -653,12 +660,16 @@ class Domain:
     def states(self):
         """
         Creates a Taichi Vector field of shape [Nx, Ny], each containing 4 components 
-        (e.g., water depth, momentum in x, momentum in y, and an scalaritional parameter).
+        (e.g., water depth, momentum in x, momentum in y, and an scalar parameter).
+        When differentiability is selected, the vector field uses the gradient to 
+        calculate the derivative.
 
         Returns:
             ti.types.vector.field: A 4-component vector field in Taichi.
         """
         foo = ti.Vector.field(4,self.precision,shape=(self.Nx,self.Ny,))
+        if self.differentiability:
+            foo = ti.Vector.field(4,self.precision,shape=(self.Nx,self.Ny,),needs_grad=True)
         return foo
 
     def states_one(self):
@@ -669,6 +680,8 @@ class Domain:
             ti.types.vector.field: A 1-component vector field in Taichi.
         """
         foo = ti.Vector.field(1,self.precision,shape=(self.Nx,self.Ny,))
+        if self.differentiability:
+            foo = ti.Vector.field(1,self.precision,shape=(self.Nx,self.Ny,),needs_grad=True)
         return foo
 
 
