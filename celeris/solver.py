@@ -1229,7 +1229,7 @@ class Solver:
                 #Froude number limiter
                 epsilon_c = ti.max(self.epsilon, dB_max)
                 divide_by_h = 2.0 * h / (h*h + ti.max(h*h, epsilon_c))
-
+                Fr = ti.sqrt(output_u*output_u + output_v*output_v) / (ti.sqrt(9.81 / divide_by_h))
                 if self.differentiability:
                     # safe denominator for the wave speed
                     denom = ti.sqrt(9.81 / (divide_by_h + 1e-6)) + 1e-6
