@@ -162,7 +162,7 @@ class Solver:
         # Physical "state" values, eval at center of cell
         self.State = self.domain.states()                   # stores the state[eta, P, Q, hc] at t = n
         self.NewState = self.domain.states()                # stores the state[eta, P, Q, hc] at t = n + 1
-        self.BottomFriction = self.domain.states()
+        self.BottomFriction = self.domain.states_one()      # friction as a vector field
         self.stateUVstar =self.domain.states()              # the values of the current (n) bous-grouped state, or eta, U, V, and c
         self.current_stateUVstar =self.domain.states()      # next bous-grouped state
         # State variables, texture gives values along cell edges
@@ -268,6 +268,11 @@ class Solver:
         self.T_star_coef = T_star_coef
         self.dzdt_F_coef = dzdt_F_coef
         self.dzdt_I_coef = dzdt_I_coef
+        # DIFFERENTIABILITY
+        self.differentiability = self.domain.differentiability
+        self.flagDiff=0.0
+        if self.differentiability:
+            self.flagDiff=1.0
 
         # If using celeris-type config, override some parameters from JSON if present
         if self.bc.celeris==True:
@@ -332,7 +337,7 @@ class Solver:
                 self.Py = int(ti.ceil(ti.log(self.ny) / ti.log(2)))
 
             if checjson('friction',self.bc.configfile)==1:
-                self.friction = int(self.bc.configfile['friction'])
+                self.friction = float(self.bc.configfile['friction'])
             else:
                 self.friction = self.bc.friction
 
@@ -420,6 +425,14 @@ class Solver:
             self.stateUVstar[i,j]= ti.Vector([0.0,0.0,0.0,0.0],self.precision)
             self.Auxiliary[i,j]= ti.Vector([0.0,50000.0,0.0,0.0],self.precision)
 
+    @ti.kernel
+    def fill_bottom_friction(self):
+            """
+            Fills the bottom friction vector field  array with the frictions parameters
+            given.
+            """
+            for i,j in self.BottomFriction:
+                self.BottomFriction[i,j].x = self.precision(self.friction)
     @ti.kernel
     def fill_bottom_field(self):
         """
@@ -983,7 +996,6 @@ class Solver:
         Args:
             step (int): Counter to compute statistics.
         """
-        zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         if self.ny==1:
             # RUN 1D
             for i,j in self.State:
@@ -1010,15 +1022,19 @@ class Solver:
                 self.Hnear[ i , j ] = [0.0,  h_east, 0.0 , h_west]
 
                 # To avoid unnecesary computations
-                h_cut = self.delta
-                if h_here <= h_cut:
-                    if h_east <= h_cut and h_west <= h_cut:
-                        self.H[i,j] = zro
-                        self.U[i,j] = zro
-                        self.V[i,j] = zro
-                        self.C[i,j] = zro
-                        self.Auxiliary[i,j] = zro
-                        continue
+                #h_cut = self.delta
+                #dry = (h_here <= h_cut) & (h_east <= h_cut) & (h_west <= h_cut)
+                #if h_here <= h_cut:
+                #    if h_east <= h_cut and h_west <= h_cut:
+                #        self.H[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.U[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.V[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.C[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.Auxiliary[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        continue
+                #COMMENT: To keep a unique control-flow path in forward/bakcward operations to avoid
+                #        that Autodiff produce NaN gradients
+                # DIFF-SOLV  
                 ########################################################
                 # Pass 1
                 # Load bed elevation data for this cell's edges.
@@ -1030,7 +1046,7 @@ class Solver:
                 dB_max = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
                 dB_west = ti.abs(B_here - B_west)
                 dB_east = ti.abs(B_here - B_east)
-               
+                
                 # Initialize variables for water height, momentum components, and standard deviation
                 h = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
                 w = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
@@ -1043,7 +1059,7 @@ class Solver:
                 #transition to full upwinding near the shoreline / inundation limit, start transition with a total water depth of base_depth/50
                 TWO_THETAc = self.two_theta * rampcoef + 2.0 * (1.0 - rampcoef)
 
-                if wetdry <= self.epsilon :
+                if wetdry <= self.epsilon:
                     dB_max = 0.5*ti.Vector([0.0, dB_east, 0.0, dB_west],self.precision)
 
                 # Reconstruction eta
@@ -1056,43 +1072,53 @@ class Solver:
 
                 # Reconstruction hu ~P
                 huwy  = Reconstruct(in_W[1], in_here[1], in_E[1],TWO_THETAc)
-                hu = ti.Vector([0.0, huwy.y, 0.0, huwy.x])
+                hu = ti.Vector([0.0, huwy.y, 0.0, huwy.x],self.precision)
 
                 # Reconstruction hv - Q
                 #hvwy = Reconstruct(in_W[2], in_here[2], in_E[2],TWO_THETAc)
-                hv = ti.Vector([0.0, 0.0, 0.0, 0.0])
+                hv = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
 
                 # Reconstruction hc - scalar - sediment concentration or contaminent
                 hcwy = Reconstruct(in_W[3], in_here[3], in_E[3],TWO_THETAc)
-                hc = ti.Vector([0.0, hcwy.y, 0.0, hcwy.x])
+                hc = ti.Vector([0.0, hcwy.y, 0.0, hcwy.x],self.precision)
 
                 output_u, output_v, output_c = CalcUV(h, hu, hv, hc, self.epsilon, dB_max)
 
                 #Froude number limiter
                 epsilon_c = ti.max(self.epsilon, dB_max)
-                divide_by_h = 2.0 * h / (h*h + max(h*h, epsilon_c))
-
+                divide_by_h = 2.0 * h / (h*h + ti.max(h*h, epsilon_c))
+                
                 Fr = ti.sqrt(output_u*output_u ) / (ti.sqrt(9.81 / divide_by_h))
+                if self.differentiability:
+                    # safe denominator for the wave speed
+                    denom = ti.sqrt(9.81 / (divide_by_h + 1e-6)) + 1e-6
+                    Fr = ti.abs(output_u) / denom    # vector
+
                 Frumax = ti.max(Fr.y, Fr.w)
                 dBdx = ti.abs(B_east - B_west) / self.double_dx
                 #max Fr allowed on slopes less than 45 degrees is 3;
                 #for very steep slopes, artificially slow velocity - physics are just completely wrong here anyhow
                 Fr_maxallowed = 3.0 / ti.max(1.0, dBdx)
-                if Frumax > Fr_maxallowed :
+                
+                if Frumax > Fr_maxallowed:
                     Fr_red = Fr_maxallowed / Frumax
                     output_u = output_u * Fr_red
-                
+                    if self.differentiability:
+                        # compute scaling factor, but clamp to [0,1]
+                        ratio = Fr_maxallowed / (Frumax + 1e-6)
+                        Fr_red = ti.min(1.0, ratio)
+                        output_u = output_u * Fr_red
+                    
                 # compute statistics of flow depth
                 flow_depth = ( h[1] + h[3]) / 2
                 maxInundatedDepth = ti.max(flow_depth, self.Auxiliary[i,j][0])
                 minFlow_depth = ti.min(flow_depth, self.Auxiliary[i,j][1])
                 meanFlow_depth = (self.Auxiliary[i,j][2]*step + flow_depth)/(step+1)
 
-
                 # Write H, U, V, C vector fields
                 self.H[i,j] = h
                 self.U[i,j] = output_u
-                self.V[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0])
+                self.V[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
                 self.C[i,j] = output_c
                 self.Auxiliary[i,j] = ti.Vector([maxInundatedDepth, minFlow_depth, meanFlow_depth, 0.0],self.precision)
         else:
@@ -1128,16 +1154,19 @@ class Solver:
                 self.Hnear[ i , j ] = [h_north,  h_east, h_south , h_west]
 
                 # To avoid unnecesary computations
-                h_cut = self.delta
-                if h_here <= h_cut:
-                    if h_north <= h_cut and h_east <= h_cut and h_south <= h_cut and h_west <= h_cut:
-                        self.H[i,j] = zro
-                        self.U[i,j] = zro
-                        self.V[i,j] = zro
-                        self.C[i,j] = zro
-                        self.Auxiliary[i,j] = zro
-                        continue
-
+                #h_cut = self.delta
+                #dry = (h_here <= h_cut) & (h_east <= h_cut) & (h_west <= h_cut)
+                #if h_here <= h_cut:
+                #    if h_north <= h_cut and h_east <= h_cut and h_south <= h_cut and h_west <= h_cut:
+                #        self.H[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.U[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.V[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.C[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        self.Auxiliary[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                #        continue
+                #COMMENT: To keep a unique control-flow path in forward/bakcward operations to avoid
+                #        that Autodiff produce NaN gradients  
+                # DIFF-SOLV
                 ########################################################
                 # Pass 1
                 # Load bed elevation data for this cell's edges.
@@ -1183,41 +1212,53 @@ class Solver:
                 # Reconstruction hu ~P
                 huwy  = Reconstruct(in_W[1], in_here[1], in_E[1],TWO_THETAc)
                 huzx = Reconstruct(in_S[1], in_here[1], in_N[1],TWO_THETAc)
-                hu = ti.Vector([huzx.y, huwy.y, huzx.x, huwy.x])
+                hu = ti.Vector([huzx.y, huwy.y, huzx.x, huwy.x],self.precision)
 
                 # Reconstruction hv - Q
                 hvwy = Reconstruct(in_W[2], in_here[2], in_E[2],TWO_THETAc)
                 hvzx = Reconstruct(in_S[2], in_here[2], in_N[2],TWO_THETAc)
-                hv = ti.Vector([hvzx.y, hvwy.y, hvzx.x, hvwy.x])
+                hv = ti.Vector([hvzx.y, hvwy.y, hvzx.x, hvwy.x],self.precision)
 
                 # Reconstruction hc - scalar - sediment concentration or contaminent
                 hcwy = Reconstruct(in_W[3], in_here[3], in_E[3],TWO_THETAc)
                 hczx = Reconstruct(in_S[3], in_here[3], in_N[3],TWO_THETAc)
-                hc = ti.Vector([hczx.y, hcwy.y, hczx.x, hcwy.x])
+                hc = ti.Vector([hczx.y, hcwy.y, hczx.x, hcwy.x],self.precision)
 
                 output_u, output_v, output_c = CalcUV(h, hu, hv, hc, self.epsilon, dB_max)
 
                 #Froude number limiter
                 epsilon_c = ti.max(self.epsilon, dB_max)
-                divide_by_h = 2.0 * h / (h*h + max(h*h, epsilon_c))
-
+                divide_by_h = 2.0 * h / (h*h + ti.max(h*h, epsilon_c))
                 Fr = ti.sqrt(output_u*output_u + output_v*output_v) / (ti.sqrt(9.81 / divide_by_h))
+                if self.differentiability:
+                    # safe denominator for the wave speed
+                    denom = ti.sqrt(9.81 / (divide_by_h + 1e-6)) + 1e-6
+                    Fr = ti.sqrt(output_u*output_u + output_v*output_v+self.flagDiff*1e-6)  / denom    # vector
+                
                 Frumax = ti.max(Fr.x, ti.max(Fr.y, ti.max(Fr.z, Fr.w)))
+
                 dBdx = ti.abs(B_east - B_west) / self.double_dx
                 dBdy = ti.abs(B_north - B_south) / self.double_dy
                 dBds_max = ti.max(dBdx, dBdy)
                 #max Fr allowed on slopes less than 45 degrees is 3;
                 #for very steep slopes, artificially slow velocity - physics are just completely wrong here anyhow
                 Fr_maxallowed = 3.0 / ti.max(1.0, dBds_max)
-                if Frumax > Fr_maxallowed :
+
+                if Frumax > Fr_maxallowed:
                     Fr_red = Fr_maxallowed / Frumax
                     output_u = output_u * Fr_red
                     output_v = output_v * Fr_red
+                    if self.differentiability:
+                        # compute scaling factor, but clamp to [0,1]
+                        ratio = Fr_maxallowed / (Frumax + 1e-6)
+                        Fr_red = ti.min(1.0, ratio)
+                        output_u = output_u * Fr_red
+                        output_v = output_v * Fr_red
 
                 # compute statistics of flow depth
                 flow_depth = (h[0] + h[1] + h[2] + h[3]) / 4
-                maxInundatedDepth = max(flow_depth, self.Auxiliary[i,j][0])
-                minInundatedDepth = min(flow_depth, self.Auxiliary[i,j][1])
+                maxInundatedDepth = ti.max(flow_depth, self.Auxiliary[i,j][0])
+                minInundatedDepth = ti.min(flow_depth, self.Auxiliary[i,j][1])
                 meanFlow_depth = (self.Auxiliary[i,j][2]*step + flow_depth)/(step+1)
 
                 # Write H, U, V, C vector fields
@@ -1319,9 +1360,9 @@ class Solver:
                     u_here[1] = self.U[i,j][1]
                     uW_east = self.U[rightIdx,j][3]
 
-                    # Compute wave speeds
-                    cNE = ti.sqrt(self.g * h_here)
-                    cW = ti.sqrt(self.g * hW_east)     # cW evaluated at (j+1, k)
+                    # Compute wave speeds | Differentiability
+                    cNE = ti.sqrt(self.g * h_here + self.flagDiff*1e-6)
+                    cW = ti.sqrt(self.g * hW_east + self.flagDiff*1e-6)     # cW evaluated at (j+1, k)
                     
                     # Compute propagation speeds
                     aplus = ti.max(ti.max(u_here[1] + cNE[1], uW_east + cW), 0.0)
@@ -1394,10 +1435,10 @@ class Solver:
                 vW_east = self.V[rightIdx , j][3]
                 vS_north = self.V[i, upIdx][2]
 
-                # Compute wave speeds
-                cNE = ti.sqrt(self.g * h_here)
-                cW = ti.sqrt(self.g * hW_east)     # cW evaluated at (j+1, k)
-                cS = ti.sqrt(self.g * hS_north)    # cS evaluated at (j, k+1)
+                # Compute wave speeds | Differentiability
+                cNE = ti.sqrt(self.g * h_here + self.flagDiff*1e-6)
+                cW = ti.sqrt(self.g * hW_east + self.flagDiff*1e-6)     # cW evaluated at (j+1, k)
+                cS = ti.sqrt(self.g * hS_north + self.flagDiff*1e-6)    # cS evaluated at (j, k+1)
 
                 # Compute propagation speeds
                 aplus = ti.max(ti.max(u_here[1] + cNE[1], uW_east + cW), 0.0)
@@ -1480,269 +1521,289 @@ class Solver:
         Args:
             pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
         """
-        zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         if self.ny==1:
             for i,j in self.NewState:
                 if i >= (self.nx - 2) or i <= 1:
-                    self.NewState[i,j] = zro
-                    self.dU_by_dt[i,j]= zro
-                    self.predictedF_G_star[i,j] = zro
-                    self.current_stateUVstar[i,j] = zro
-                    continue
-                # Load values from txBottom using index
-                B_here = self.Bottom[ 2, i, j] #
+                    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.dU_by_dt[i,j]= ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                else:
+                    # Load values from txBottom using index
+                    B_here = self.Bottom[ 2, i, j] #
 
-                in_state_here = self.State[i , j] # w, hu and hv, c (cell avgs, evaluated here)
-                in_state_here_UV = self.stateUVstar[i, j]
+                    in_state_here = self.State[i , j] # w, hu and hv, c (cell avgs, evaluated here)
+                    in_state_here_UV = self.stateUVstar[i, j]
 
-                B_west = self.Bottom[2,i-1 , j]
-                B_east = self.Bottom[2,i+1 , j]
+                    B_west = self.Bottom[2,i-1 , j]
+                    B_east = self.Bottom[2,i+1 , j]
 
-                eta_here = in_state_here[0]
-                eta_west = self.State[i-1 , j][0]
-                eta_east = self.State[i+1 , j][0]
+                    eta_here = in_state_here[0]
+                    eta_west = self.State[i-1 , j][0]
+                    eta_east = self.State[i+1 , j][0]
 
-                h_here = in_state_here[0] - B_here
-                h_west = eta_west - B_west
-                h_east = eta_east - B_east
+                    h_here = in_state_here[0] - B_here
+                    h_west = eta_west - B_west
+                    h_east = eta_east - B_east
 
-                h_cut = self.delta
-                if h_here <= h_cut:
-                    if h_east <= h_cut and h_west <= h_cut:
-                        self.NewState[i,j] = zro
-                        self.dU_by_dt[i,j] = zro
-                        self.predictedF_G_star[i,j] = zro
-                        self.current_stateUVstar[i,j] = zro
-                        continue
+                    h_cut = self.delta
+                    dry = (h_here <= h_cut) & (h_east <= h_cut) & (h_west <= h_cut)
+                    #if h_here <= h_cut:
+                    #    if h_east <= h_cut and h_west <= h_cut:
+                    #        self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        continue
+                    #if dry:
+                    #    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #    self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #    self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #    self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    h_min = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    h_min[1]= ti.min(h_here, h_east)
+                    h_min[3]= ti.min(h_here, h_west)
 
-                h_min = zro
-                h_min[1]= ti.min(h_here, h_east)
-                h_min[3]= ti.min(h_here, h_west)
+                    detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
 
-                detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
+                    # Load values from txXFlux and txYFlux using idx
+                    xflux_here = self.XFlux[i , j]  # at i+1/2
+                    xflux_west = self.XFlux[i-1 , j]  # at i-1/2
 
-                # Load values from txXFlux and txYFlux using idx
-                xflux_here = self.XFlux[i , j]  # at i+1/2
-                xflux_west = self.XFlux[i-1 , j]  # at i-1/2
+                    #friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
+                    friction_here =  self.BottomFriction[i,j].x
+                    friction_ = FrictionCalc(in_state_here[1], 0.0, h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here,self.differentiability)
+                    
 
-                friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
-                friction_ = FrictionCalc(in_state_here[1], 0.0, h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here)
+                    # Pressure stencil calculations
+                    P_left = self.ShipPressure[i-1 , j].x
+                    P_right = self.ShipPressure[ i+1 , j].x
 
-                # Pressure stencil calculations
-                P_left = self.ShipPressure[i-1 , j].x
-                P_right = self.ShipPressure[ i+1 , j].x
+                    press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
 
-                press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
+                    # Calculate scalar transport additions
+                    C_state_here = self.State[i , j][3]
+                    C_state_left = self.State[i-1 , j][3]
+                    C_state_right = self.State[i+1 , j][3]
 
-                # Calculate scalar transport additions
-                C_state_here = self.State[i , j][3]
-                C_state_left = self.State[i-1 , j][3]
-                C_state_right = self.State[i+1 , j][3]
+                    Dxx = self.whiteWaterDispersion               
 
-                Dxx = self.whiteWaterDispersion               
+                    hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here[3] + C_state_left)
 
-                hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here[3] + C_state_left)
+                    c_dissipation = -self.whiteWaterDecayRate * C_state_here
 
-                c_dissipation = -self.whiteWaterDecayRate * C_state_here
+                    breaking_B = 0.0
+                    if(self.useBreakingModel == True):
+                        breaking_B = self.Breaking[i,j].z  # breaking front parameter, non-breaking [0 - 1] breaking
 
-                breaking_B = 0.0
-                if(self.useBreakingModel == True):
-                    breaking_B = self.Breaking[i,j].z  # breaking front parameter, non-breaking [0 - 1] breaking
+                    if h_min.y <= h_cut and h_min.w <= h_cut:
+                        detadx = 0.0
+                    elif h_min.y <= h_cut:
+                        detadx = 1.*(eta_here - eta_west) * self.one_over_dx
+                    elif h_min.w <= h_cut:
+                        detadx = 1.*(eta_east - eta_here) * self.one_over_dx
 
-                if h_min.y <= h_cut and h_min.w <= h_cut:
-                    detadx = 0.0
-                elif h_min.y <= h_cut:
-                    detadx = 1.*(eta_here - eta_west) * self.one_over_dx
-                elif h_min.w <= h_cut:
-                    detadx = 1.*(eta_east - eta_here) * self.one_over_dx
+                    overflow_dry = 0.0
+                    if B_here > 0.0 :
+                        overflow_dry = -self.infiltrationRate #hydraulic conductivity of coarse, unsaturated sand
 
-                overflow_dry = 0.0
-                if B_here > 0.0 :
-                    overflow_dry = -self.infiltrationRate #hydraulic conductivity of coarse, unsaturated sand
+                    source_term = ti.Vector([overflow_dry, -self.g * h_here * detadx - in_state_here.y * friction_+press_x, 0.0, hc_by_dx_dx + c_dissipation],self.precision)
 
-                source_term = ti.Vector([overflow_dry, -self.g * h_here * detadx - in_state_here.y * friction_+press_x, 0.0, hc_by_dx_dx + c_dissipation],self.precision)
+                    d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + source_term
 
-                d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + source_term
+                    # previous derivatives
+                    oldies = self.oldGradients[i , j]
+                    oldOldies = self.oldOldGradients[i , j]
 
-                # previous derivatives
-                oldies = self.oldGradients[i , j]
-                oldOldies = self.oldOldGradients[i , j]
+                    newState = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)   # w , hu, hv ,hc
 
-                newState = zro   # w , hu, hv ,hc
+                    if self.timeScheme==0: # if timeScheme is Euler do:
+                        newState = in_state_here_UV + self.dt * d_by_dt
 
-                if self.timeScheme==0: # if timeScheme is Euler do:
-                    newState = in_state_here_UV + self.dt * d_by_dt
+                    elif pred_or_corrector==1:
+                        # if time scheme is predictor
+                        newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
 
-                elif pred_or_corrector==1:
-                    # if time scheme is predictor
-                    newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
+                    elif pred_or_corrector==2:
+                        # if time scheme is corrector
+                        predicted = self.predictedGradients[i , j]
+                        newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
 
-                elif pred_or_corrector==2:
-                    # if time scheme is corrector
-                    predicted = self.predictedGradients[i , j]
-                    newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
+                    if self.showBreaking ==True :
+                        # add breaking source
+                        newState.a = ti.max(newState.a, breaking_B) # use the B value from Kennedy et al as a foam intensity
+                    elif self.showBreaking == 2 :
+                        contaminent_source = self.ContSource[i , j].x
+                        newState.a = ti.min(1.0, newState.a + contaminent_source)
 
-                if self.showBreaking ==True :
-                    # add breaking source
-                    newState.a = ti.max(newState.a, breaking_B) # use the B value from Kennedy et al as a foam intensity
-                elif self.showBreaking == 2 :
-                    contaminent_source = self.ContSource[i , j].x
-                    newState.a = ti.min(1.0, newState.a + contaminent_source)
+                    F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0],self.precision)
 
-                F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0],self.precision)
-
-                self.NewState[i , j] = newState
-                self.dU_by_dt[i , j] = d_by_dt
-                self.predictedF_G_star[i,j] = F_G_vec
-                self.current_stateUVstar[i , j] = newState
+                    self.NewState[i , j] = newState
+                    self.dU_by_dt[i , j] = d_by_dt
+                    self.predictedF_G_star[i,j] = F_G_vec
+                    self.current_stateUVstar[i , j] = newState
+                    if dry:
+                        self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                        self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                        self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                        self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         else:
             for i,j in self.NewState:
                 if i >= (self.nx - 2) or j >= (self.ny - 2) or i <= 1 or j <= 1:
-                    self.NewState[i,j] = zro
-                    self.dU_by_dt[i,j]= zro
-                    self.predictedF_G_star[i,j] = zro
-                    self.current_stateUVstar[i,j] = zro
-                    continue
+                    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.dU_by_dt[i,j]= ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                else:    
+                    # Load values from txBottom using index
+                    B_here = self.Bottom[ 2, i, j] #
 
-                # Load values from txBottom using index
-                B_here = self.Bottom[ 2, i, j] #
+                    in_state_here = self.State[i , j] # w, hu and hv, c (cell avgs, evaluated here)
+                    in_state_here_UV = self.stateUVstar[i, j]
 
-                in_state_here = self.State[i , j] # w, hu and hv, c (cell avgs, evaluated here)
-                in_state_here_UV = self.stateUVstar[i, j]
+                    B_south = self.Bottom[2,i , j-1]
+                    B_north = self.Bottom[2,i , j+1]
+                    B_west = self.Bottom[2,i-1 , j]
+                    B_east = self.Bottom[2,i+1 , j]
 
-                B_south = self.Bottom[2,i , j-1]
-                B_north = self.Bottom[2,i , j+1]
-                B_west = self.Bottom[2,i-1 , j]
-                B_east = self.Bottom[2,i+1 , j]
+                    eta_here = in_state_here[0]
+                    eta_west = self.State[i-1 , j][0]
+                    eta_east = self.State[i+1 , j][0]
+                    eta_south = self.State[i, j-1][0]
+                    eta_north = self.State[i, j+1][0]
 
-                eta_here = in_state_here[0]
-                eta_west = self.State[i-1 , j][0]
-                eta_east = self.State[i+1 , j][0]
-                eta_south = self.State[i, j-1][0]
-                eta_north = self.State[i, j+1][0]
+                    h_here = in_state_here[0] - B_here
+                    h_west = eta_west - B_west
+                    h_east = eta_east - B_east
+                    h_north = eta_north - B_north
+                    h_south = eta_south - B_south
 
-                h_here = in_state_here[0] - B_here
-                h_west = eta_west - B_west
-                h_east = eta_east - B_east
-                h_north = eta_north - B_north
-                h_south = eta_south - B_south
+                    h_cut = self.delta
+                    #if h_here <= h_cut:
+                    #    if h_north <= h_cut and h_east <= h_cut and h_south <= h_cut and h_west <= h_cut:
+                    #        self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        continue
+                    dry = (h_here <= h_cut) & (h_east <= h_cut) & (h_west <= h_cut)
+                    #if dry:
+                    #    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #    self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #    self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #    self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    h_min = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    h_min[0]= ti.min(h_here, h_north)
+                    h_min[1]= ti.min(h_here, h_east)
+                    h_min[2]= ti.min(h_here, h_south)
+                    h_min[3]= ti.min(h_here, h_west)
 
-                h_cut = self.delta
-                if h_here <= h_cut:
-                    if h_north <= h_cut and h_east <= h_cut and h_south <= h_cut and h_west <= h_cut:
-                        self.NewState[i,j] = zro
-                        self.dU_by_dt[i,j] = zro
-                        self.predictedF_G_star[i,j] = zro
-                        self.current_stateUVstar[i,j] = zro
-                        continue
+                    detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
+                    detady = 0.5*(eta_north - eta_south) * self.one_over_dy
 
-                h_min = zro
-                h_min[0]= ti.min(h_here, h_north)
-                h_min[1]= ti.min(h_here, h_east)
-                h_min[2]= ti.min(h_here, h_south)
-                h_min[3]= ti.min(h_here, h_west)
+                    # Load values from txXFlux and txYFlux using idx
+                    xflux_here = self.XFlux[i , j]  # at i+1/2
+                    xflux_west = self.XFlux[i-1 , j]  # at i-1/2
+                    yflux_here = self.YFlux[i , j]  # at j+1/2
+                    yflux_south = self.YFlux[i , j-1]  # at j-1/2
 
-                detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
-                detady = 0.5*(eta_north - eta_south) * self.one_over_dy
+                    friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
+                    friction_ = FrictionCalc(in_state_here[1], in_state_here[2], h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here,self.differentiability)
 
-                # Load values from txXFlux and txYFlux using idx
-                xflux_here = self.XFlux[i , j]  # at i+1/2
-                xflux_west = self.XFlux[i-1 , j]  # at i-1/2
-                yflux_here = self.YFlux[i , j]  # at j+1/2
-                yflux_south = self.YFlux[i , j-1]  # at j-1/2
+                    # Pressure stencil calculations
+                    P_left = self.ShipPressure[i-1 , j].x
+                    P_right = self.ShipPressure[ i+1 , j].x
+                    P_down = self.ShipPressure[i , j-1].x
+                    P_up = self.ShipPressure[i , j+1].x
 
-                friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
-                friction_ = FrictionCalc(in_state_here[1], in_state_here[2], h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here)
+                    press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
+                    press_y = -0.5 * h_here * self.g_over_dy * (P_up - P_down)
 
-                # Pressure stencil calculations
-                P_left = self.ShipPressure[i-1 , j].x
-                P_right = self.ShipPressure[ i+1 , j].x
-                P_down = self.ShipPressure[i , j-1].x
-                P_up = self.ShipPressure[i , j+1].x
+                    # Calculate scalar transport additions
+                    C_state_here = self.State[i , j][3]
 
-                press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
-                press_y = -0.5 * h_here * self.g_over_dy * (P_up - P_down)
+                    C_state_left = self.State[i-1 , j][3]
+                    C_state_right = self.State[i+1 , j][3]
+                    C_state_up = self.State[i , j+1 ][3]
+                    C_state_down = self.State[i , j-1][3]
+                    C_state_up_left = self.State[i-1 ,j+1][3]
+                    C_state_up_right = self.State[i+1,j+1][3]
+                    C_state_down_left = self.State[i-1,j-1][3]
+                    C_state_down_right = self.State[ i+1,j-1][3]
 
-                # Calculate scalar transport additions
-                C_state_here = self.State[i , j][3]
+                    Dxx = self.whiteWaterDispersion
+                    Dxy = self.whiteWaterDispersion
+                    Dyy = self.whiteWaterDispersion
 
-                C_state_left = self.State[i-1 , j][3]
-                C_state_right = self.State[i+1 , j][3]
-                C_state_up = self.State[i , j+1 ][3]
-                C_state_down = self.State[i , j-1][3]
-                C_state_up_left = self.State[i-1 ,j+1][3]
-                C_state_up_right = self.State[i+1,j+1][3]
-                C_state_down_left = self.State[i-1,j-1][3]
-                C_state_down_right = self.State[ i+1,j-1][3]
+                    hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here[3] + C_state_left)
+                    hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here[3] + C_state_down)
+                    hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
 
-                Dxx = self.whiteWaterDispersion
-                Dxy = self.whiteWaterDispersion
-                Dyy = self.whiteWaterDispersion
+                    c_dissipation = -self.whiteWaterDecayRate * C_state_here
 
-                hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here[3] + C_state_left)
-                hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here[3] + C_state_down)
-                hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
+                    breaking_B = 0.0
+                    if(self.useBreakingModel == True):
+                        breaking_B = self.Breaking[i,j].z  # breaking front parameter, non-breaking [0 - 1] breaking
 
-                c_dissipation = -self.whiteWaterDecayRate * C_state_here
+                    # fix slope near shoreline
+                    if h_min.x <= h_cut and h_min.z <= h_cut :
+                        detady = 0.0
+                    elif h_min.x <= h_cut :
+                        detady = 1.*(eta_here - eta_south) * self.one_over_dy
+                    elif h_min.z <= h_cut :
+                        detady = 1.*(eta_north - eta_here) * self.one_over_dy
 
-                breaking_B = 0.0
-                if(self.useBreakingModel == True):
-                    breaking_B = self.Breaking[i,j].z  # breaking front parameter, non-breaking [0 - 1] breaking
+                    if h_min.y <= h_cut and h_min.w <= h_cut:
+                        detadx = 0.0
+                    elif h_min.y <= h_cut:
+                        detadx = 1.*(eta_here - eta_west) * self.one_over_dx
+                    elif h_min.w <= h_cut:
+                        detadx = 1.*(eta_east - eta_here) * self.one_over_dx
 
-                # fix slope near shoreline
-                if h_min.x <= h_cut and h_min.z <= h_cut :
-                    detady = 0.0
-                elif h_min.x <= h_cut :
-                    detady = 1.*(eta_here - eta_south) * self.one_over_dy
-                elif h_min.z <= h_cut :
-                    detady = 1.*(eta_north - eta_here) * self.one_over_dy
+                    overflow_dry = 0.0
+                    if B_here > 0.0 :
+                        overflow_dry = -self.infiltrationRate #hydraulic conductivity of coarse, unsaturated sand
 
-                if h_min.y <= h_cut and h_min.w <= h_cut:
-                    detadx = 0.0
-                elif h_min.y <= h_cut:
-                    detadx = 1.*(eta_here - eta_west) * self.one_over_dx
-                elif h_min.w <= h_cut:
-                    detadx = 1.*(eta_east - eta_here) * self.one_over_dx
+                    source_term = ti.Vector([overflow_dry, -self.g * h_here * detadx - in_state_here.y * friction_+press_x, -self.g * h_here * detady - in_state_here.z * friction_+press_y, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation],self.precision)
 
-                overflow_dry = 0.0
-                if B_here > 0.0 :
-                    overflow_dry = -self.infiltrationRate #hydraulic conductivity of coarse, unsaturated sand
+                    d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
 
-                source_term = ti.Vector([overflow_dry, -self.g * h_here * detadx - in_state_here.y * friction_+press_x, -self.g * h_here * detady - in_state_here.z * friction_+press_y, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation],self.precision)
+                    # previous derivatives
+                    oldies = self.oldGradients[i , j]
+                    oldOldies = self.oldOldGradients[i , j]
 
-                d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
+                    newState = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)   # w , hu, hv ,hc
 
-                # previous derivatives
-                oldies = self.oldGradients[i , j]
-                oldOldies = self.oldOldGradients[i , j]
+                    if self.timeScheme==0: # if timeScheme is Euler do:
+                        newState = in_state_here_UV + self.dt * d_by_dt
 
-                newState = zro   # w , hu, hv ,hc
+                    elif pred_or_corrector==1:
+                        # if time scheme is predictor
+                        newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
 
-                if self.timeScheme==0: # if timeScheme is Euler do:
-                    newState = in_state_here_UV + self.dt * d_by_dt
+                    elif pred_or_corrector==2:
+                        # if time scheme is corrector
+                        predicted = self.predictedGradients[i , j]
+                        newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
 
-                elif pred_or_corrector==1:
-                    # if time scheme is predictor
-                    newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
+                    if self.showBreaking ==True :
+                        # add breaking source
+                        newState.a = ti.max(newState.a, breaking_B) # use the B value from Kennedy et al as a foam intensity
+                    elif self.showBreaking == 2 :
+                        contaminent_source = self.ContSource[i , j].x
+                        newState.a = ti.min(1.0, newState.a + contaminent_source)
 
-                elif pred_or_corrector==2:
-                    # if time scheme is corrector
-                    predicted = self.predictedGradients[i , j]
-                    newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
+                    F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0],self.precision)
 
-                if self.showBreaking ==True :
-                    # add breaking source
-                    newState.a = ti.max(newState.a, breaking_B) # use the B value from Kennedy et al as a foam intensity
-                elif self.showBreaking == 2 :
-                    contaminent_source = self.ContSource[i , j].x
-                    newState.a = ti.min(1.0, newState.a + contaminent_source)
-
-                F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0],self.precision)
-
-                self.NewState[i , j] = newState
-                self.dU_by_dt[i , j] = d_by_dt
-                self.predictedF_G_star[i,j] = F_G_vec
-                self.current_stateUVstar[i , j] = newState
+                    self.NewState[i , j] = newState
+                    self.dU_by_dt[i , j] = d_by_dt
+                    self.predictedF_G_star[i,j] = F_G_vec
+                    self.current_stateUVstar[i , j] = newState
+                    if dry:
+                        self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                        self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                        self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                        self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
 
 
     @ti.kernel
@@ -1857,489 +1918,490 @@ class Solver:
             pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
         """
         Bottom = ti.static(self.Bottom)
-        zro=ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
         # PASS 3 - Calculus of fluxes
         if self.ny==1:
             for i,j in self.State:
                 if i >= (self.nx - 2) or i <= 1:
-                    self.NewState[i,j] = zro
-                    self.dU_by_dt[i,j]= zro
-                    self.predictedF_G_star[i,j] = zro
-                    self.current_stateUVstar[i,j] = zro
-                    continue
-                # Load values from txBottom using index
-                B_here = Bottom[2,i,j] #
-                # Load values from txState using index
-                in_state_here = self.State[i,j] # w, hu and hv (cell avgs, evaluated here)
-                in_state_here_UV = self.stateUVstar[i,j]
+                    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.dU_by_dt[i,j]= ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #continue
+                else:
 
-                h_here = in_state_here.x - B_here # h = w - B
+                    # Load values from txBottom using index
+                    B_here = Bottom[2,i,j] #
+                    # Load values from txState using index
+                    in_state_here = self.State[i,j] # w, hu and hv (cell avgs, evaluated here)
+                    in_state_here_UV = self.stateUVstar[i,j]
 
-                # Calculate local h,w
-                B_west = Bottom[2,i-1,j]
-                B_east = Bottom[2,i+1,j]
+                    h_here = in_state_here.x - B_here # h = w - B
 
-                eta_here = in_state_here.x
-                eta_west = self.State[i-1,j].x
-                eta_east = self.State[i+1,j].x
+                    # Calculate local h,w
+                    B_west = Bottom[2,i-1,j]
+                    B_east = Bottom[2,i+1,j]
 
-                h_west = eta_west - B_west
-                h_east = eta_east - B_east
-
-                # if dry and surrounded by dry, then stay dry - no need to calc
-                h_cut = self.delta
-                if h_here <= h_cut:
-                    if h_east <= h_cut and h_west <= h_cut:
-                        self.NewState[i,j] = zro
-                        self.dU_by_dt[i,j] = zro
-                        self.predictedF_G_star[i,j] = zro
-                        self.current_stateUVstar[i,j] = zro
-                        continue
-                h_min = zro
-                h_min.y= ti.min(h_here, h_east)
-                h_min.w= ti.min(h_here, h_west)
-
-                # Load values from txXFlux and txYFlux using idx
-                xflux_here = self.XFlux[i,j]  # at i+1/2
-                xflux_west = self.XFlux[i-1,j]  # at i-1/2
-               
-                detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
-                
-                F_star = 0.0
-                Psi1x = 0.0
-                Psi2x = 0.0
-
-                d_here = -B_here #
-                near_dry = Bottom[3,i,j]
-
-                # OPTIMIZ: only proceed if not near an initially dry cell
-                if near_dry>0.:
-                    d2_here = d_here * d_here
-                    d3_here = d2_here * d_here
-
-                    in_state_left = self.State[i-1,j].xyz
-                    in_state_right = self.State[i+1,j].xyz
-                    #in_state_up = self.State[i,j+1].xyz
-                    #in_state_down = self.State[i,j-1].xyz
-                    #in_state_up_left = self.State[i-1,j+1].xyz
-                    #in_state_up_right = self.State[i+1,j+1].xyz
-                    #in_state_down_left = self.State[i-1,j-1].xyz
-                    #in_state_down_right = self.State[i+1,j-1].xyz
-
-                    F_G_star_oldOldies = self.F_G_star_oldOldGradients[i,j].xyz
-
-                    # Calculate "d" stencil
-                    d_left = -B_west
-                    d_right = -B_east
-                
-                    d_left_left = ti.max( 0.0 ,-Bottom[2,i-2,j])
-                    d_right_right = ti.max( 0.0,-Bottom[2,i+2,j])
-
-                    # Calculate "eta" stencil
                     eta_here = in_state_here.x
-                    eta_left = in_state_left.x
-                    eta_right = in_state_right.x
-                    #eta_down = in_state_down.x
-                    #eta_up = in_state_up.x
+                    eta_west = self.State[i-1,j].x
+                    eta_east = self.State[i+1,j].x
 
-                    eta_left_left = self.State[i-2,j].x
-                    eta_right_right = self.State[i+2,j].x
-                    #eta_down_down = self.State[i,j-2].x
-                    #eta_up_up = self.State[i,j+2].x
+                    h_west = eta_west - B_west
+                    h_east = eta_east - B_east
 
-                    #eta_up_left = in_state_up_left.x
-                    #eta_up_right = in_state_up_right.x
-                    #eta_down_left = in_state_down_left.x
-                    #eta_down_right = in_state_down_right.x
+                    # if dry and surrounded by dry, then stay dry - no need to calc
+                    h_cut = self.delta
+                    #if h_here <= h_cut:
+                    #    if h_east <= h_cut and h_west <= h_cut:
+                    #        self.NewState[i,j] = zro
+                    #        self.dU_by_dt[i,j] = zro
+                    #        self.predictedF_G_star[i,j] = zro
+                    #        self.current_stateUVstar[i,j] = zro
+                    #        continue
+                    h_min = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    h_min.y= ti.min(h_here, h_east)
+                    h_min.w= ti.min(h_here, h_west)
 
-                    # replace with 4th order when dispersion is included
-                    detadx = (-eta_right_right + 8.0 * eta_right - 8.0 * eta_left + eta_left_left) * self.one_over_dx / 12.0
-                    #detady = (-eta_up_up + 8.0 * eta_up - 8.0 * eta_down + eta_down_down) * self.one_over_dy / 12.0
-
-                    #u_up = in_state_up.y
-                    #u_down = in_state_down.y
-                    u_right = in_state_right.y
-                    u_left = in_state_left.y
-                    #u_up_right = in_state_up_right.y
-                    #u_down_right = in_state_down_right.y
-                    #u_up_left = in_state_up_left.y
-                    #u_down_left = in_state_down_left.y
-
-                    dd_by_dx = (-d_right_right + 8.0 * d_right - 8.0 * d_left + d_left_left) * self.one_over_dx / 12.0
-
-                    #eta_by_dx_dy = 0.25 * self.one_over_dx * self.one_over_dy * (eta_up_right - eta_down_right - eta_up_left + eta_down_left)
-                    eta_by_dx_dx = self.one_over_d2x * (eta_right - 2.0 * eta_here + eta_left)
-                    #eta_by_dy_dy = self.one_over_d2y * (eta_up - 2.0 * eta_here + eta_down)
-
-                    F_star =0.0
-
-                    Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) )
-                    Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx )) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
-
-                friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
-                friction_ = FrictionCalc(in_state_here[1],0.0, h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here)
-
-                # Pressure stencil calculations
-                P_left = self.ShipPressure[i-1,j].x
-                P_right = self.ShipPressure[i+1,j].x
-
-                press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
-
-                # Calculate scalar transport additions
-                C_state_here = self.State[i ,j].w
-
-                C_state_left = self.State[i-1,j].w
-                C_state_right = self.State[i+1,j].w
-                #C_state_up = self.State[i,j+1].w
-                #C_state_down = self.State[i,j-1].w
-                #C_state_up_left = self.State[i-1,j+1].w
-                #C_state_up_right = self.State[i+1,j+1].w
-                #C_state_down_left = self.State[i-1,j-1].w
-                #C_state_down_right = self.State[i+1,j-1].w
-
-                Dxx = self.whiteWaterDispersion
-                #Dxy = self.whiteWaterDispersion
-                #Dyy = self.whiteWaterDispersion
-
-                hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here.a + C_state_left)
-                #hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here.a + C_state_down)
-                #hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
-
-                c_dissipation = -self.whiteWaterDecayRate * C_state_here
-
-                # calculate breaking dissipation
-                breaking_x = 0.0
-                breaking_y = 0.0
-                breaking_B = 0.0
-
-                if self.useBreakingModel:
-                    breaking_B = self.Breaking[i,j].z #breaking front parameter, non-breaking [0 - 1] breaking
-                    nu_flux_here = self.DissipationFlux[i,j]
-                    nu_flux_right = self.DissipationFlux[i+1,j]
-                    nu_flux_left = self.DissipationFlux[i-1,j]
+                    # Load values from txXFlux and txYFlux using idx
+                    xflux_here = self.XFlux[i,j]  # at i+1/2
+                    xflux_west = self.XFlux[i-1,j]  # at i-1/2
                 
-                    dPdxx = 0.5 * (nu_flux_right.x - nu_flux_left.x) * self.one_over_dx
-                    dPdyx = 0.5 * (nu_flux_right.y - nu_flux_left.y) * self.one_over_dx
+                    detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
                     
-                    if near_dry > 0.0:
-                        breaking_x = dPdxx 
+                    F_star = 0.0
+                    Psi1x = 0.0
+                    Psi2x = 0.0
 
-                # fix slope near shoreline
-                if h_min.y <= h_cut and h_min.w<=h_cut:
-                    detadx = 0.0
-                elif h_min.y <= h_cut:
-                    detadx = 1.*(eta_here - eta_west) * self.one_over_dx
-                elif h_min.w <= h_cut :
-                    detadx = 1.*(eta_east - eta_here) * self.one_over_dx
+                    d_here = -B_here #
+                    near_dry = Bottom[3,i,j]
 
-                overflow_dry = 0.0
-                if B_here > 0.0 :
-                    overflow_dry = -self.infiltrationRate  #hydraulic conductivity of coarse, unsaturated sand
+                    # OPTIMIZ: only proceed if not near an initially dry cell
+                    if near_dry>0.:
+                        d2_here = d_here * d_here
+                        d3_here = d2_here * d_here
 
-                sx = -self.g * h_here * detadx - in_state_here[1] * friction_ + breaking_x + (Psi1x + Psi2x) + press_x
+                        in_state_left = self.State[i-1,j].xyz
+                        in_state_right = self.State[i+1,j].xyz
+                        #in_state_up = self.State[i,j+1].xyz
+                        #in_state_down = self.State[i,j-1].xyz
+                        #in_state_up_left = self.State[i-1,j+1].xyz
+                        #in_state_up_right = self.State[i+1,j+1].xyz
+                        #in_state_down_left = self.State[i-1,j-1].xyz
+                        #in_state_down_right = self.State[i+1,j-1].xyz
+
+                        F_G_star_oldOldies = self.F_G_star_oldOldGradients[i,j].xyz
+
+                        # Calculate "d" stencil
+                        d_left = -B_west
+                        d_right = -B_east
+                    
+                        d_left_left = ti.max( 0.0 ,-Bottom[2,i-2,j])
+                        d_right_right = ti.max( 0.0,-Bottom[2,i+2,j])
+
+                        # Calculate "eta" stencil
+                        eta_here = in_state_here.x
+                        eta_left = in_state_left.x
+                        eta_right = in_state_right.x
+                        #eta_down = in_state_down.x
+                        #eta_up = in_state_up.x
+
+                        eta_left_left = self.State[i-2,j].x
+                        eta_right_right = self.State[i+2,j].x
+                        #eta_down_down = self.State[i,j-2].x
+                        #eta_up_up = self.State[i,j+2].x
+
+                        #eta_up_left = in_state_up_left.x
+                        #eta_up_right = in_state_up_right.x
+                        #eta_down_left = in_state_down_left.x
+                        #eta_down_right = in_state_down_right.x
+
+                        # replace with 4th order when dispersion is included
+                        detadx = (-eta_right_right + 8.0 * eta_right - 8.0 * eta_left + eta_left_left) * self.one_over_dx / 12.0
+                        #detady = (-eta_up_up + 8.0 * eta_up - 8.0 * eta_down + eta_down_down) * self.one_over_dy / 12.0
+
+                        #u_up = in_state_up.y
+                        #u_down = in_state_down.y
+                        u_right = in_state_right.y
+                        u_left = in_state_left.y
+                        #u_up_right = in_state_up_right.y
+                        #u_down_right = in_state_down_right.y
+                        #u_up_left = in_state_up_left.y
+                        #u_down_left = in_state_down_left.y
+
+                        dd_by_dx = (-d_right_right + 8.0 * d_right - 8.0 * d_left + d_left_left) * self.one_over_dx / 12.0
+
+                        #eta_by_dx_dy = 0.25 * self.one_over_dx * self.one_over_dy * (eta_up_right - eta_down_right - eta_up_left + eta_down_left)
+                        eta_by_dx_dx = self.one_over_d2x * (eta_right - 2.0 * eta_here + eta_left)
+                        #eta_by_dy_dy = self.one_over_d2y * (eta_up - 2.0 * eta_here + eta_down)
+
+                        F_star =0.0
+
+                        Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) )
+                        Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx )) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
+
+                    #friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
+                    friction_here =  self.BottomFriction[i,j].x
+                    friction_ = FrictionCalc(in_state_here[1],0.0, h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here,self.differentiability)
+
+                    # Pressure stencil calculations
+                    P_left = self.ShipPressure[i-1,j].x
+                    P_right = self.ShipPressure[i+1,j].x
+
+                    press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
+
+                    # Calculate scalar transport additions
+                    C_state_here = self.State[i ,j].w
+
+                    C_state_left = self.State[i-1,j].w
+                    C_state_right = self.State[i+1,j].w
+                    #C_state_up = self.State[i,j+1].w
+                    #C_state_down = self.State[i,j-1].w
+                    #C_state_up_left = self.State[i-1,j+1].w
+                    #C_state_up_right = self.State[i+1,j+1].w
+                    #C_state_down_left = self.State[i-1,j-1].w
+                    #C_state_down_right = self.State[i+1,j-1].w
+
+                    Dxx = self.whiteWaterDispersion
+                    #Dxy = self.whiteWaterDispersion
+                    #Dyy = self.whiteWaterDispersion
+
+                    hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here.a + C_state_left)
+                    #hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here.a + C_state_down)
+                    #hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
+
+                    c_dissipation = -self.whiteWaterDecayRate * C_state_here
+
+                    # calculate breaking dissipation
+                    breaking_x = 0.0
+                    breaking_y = 0.0
+                    breaking_B = 0.0
+
+                    if self.useBreakingModel:
+                        breaking_B = self.Breaking[i,j].z #breaking front parameter, non-breaking [0 - 1] breaking
+                        nu_flux_here = self.DissipationFlux[i,j]
+                        nu_flux_right = self.DissipationFlux[i+1,j]
+                        nu_flux_left = self.DissipationFlux[i-1,j]
+                    
+                        dPdxx = 0.5 * (nu_flux_right.x - nu_flux_left.x) * self.one_over_dx
+                        dPdyx = 0.5 * (nu_flux_right.y - nu_flux_left.y) * self.one_over_dx
+                        
+                        if near_dry > 0.0:
+                            breaking_x = dPdxx 
+
+                    # fix slope near shoreline
+                    if h_min.y <= h_cut and h_min.w<=h_cut:
+                        detadx = 0.0
+                    elif h_min.y <= h_cut:
+                        detadx = 1.*(eta_here - eta_west) * self.one_over_dx
+                    elif h_min.w <= h_cut :
+                        detadx = 1.*(eta_east - eta_here) * self.one_over_dx
+
+                    overflow_dry = 0.0
+                    if B_here > 0.0 :
+                        overflow_dry = -self.infiltrationRate  #hydraulic conductivity of coarse, unsaturated sand
+
+                    sx = -self.g * h_here * detadx - in_state_here[1] * friction_ + breaking_x + (Psi1x + Psi2x) + press_x
 
 
-                source_term = ti.Vector([overflow_dry, sx, 0.0, hc_by_dx_dx + c_dissipation],self.precision)
-                d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + source_term
+                    source_term = ti.Vector([overflow_dry, sx, 0.0, hc_by_dx_dx + c_dissipation],self.precision)
+                    d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + source_term
 
-                # previous derivatives
-                oldies = self.oldGradients[i,j]
-                oldOldies = self.oldOldGradients[i,j]
-                newState = zro   # w , hu, hv ,hc
-                F_G_here = ti.Vector([0.0, F_star, 0.0 , 0.0],self.precision)
+                    # previous derivatives
+                    oldies = self.oldGradients[i,j]
+                    oldOldies = self.oldOldGradients[i,j]
+                    newState = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)   # w , hu, hv ,hc
+                    F_G_here = ti.Vector([0.0, F_star, 0.0 , 0.0],self.precision)
 
-                if self.timeScheme==0: # if timeScheme is Euler do:
-                    newState = in_state_here_UV + self.dt * d_by_dt
+                    if self.timeScheme==0: # if timeScheme is Euler do:
+                        newState = in_state_here_UV + self.dt * d_by_dt
 
-                elif pred_or_corrector==1:
-                    newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
+                    elif pred_or_corrector==1:
+                        newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
 
-                elif pred_or_corrector==2:
-                    predicted = self.predictedGradients[i,j]
-                    newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
+                    elif pred_or_corrector==2:
+                        predicted = self.predictedGradients[i,j]
+                        newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
 
-                if self.showBreaking ==True :
-                    # add breaking source
-                    newState.w = ti.max(newState.w, breaking_B) # use the B value from Kennedy et al as a foam intensity
-                elif self.showBreaking == 2 :
-                    contaminent_source = self.ContSource[i , j].x
-                    newState.w = ti.min(1.0, newState.w + contaminent_source)
+                    if self.showBreaking ==True :
+                        # add breaking source
+                        newState.w = ti.max(newState.w, breaking_B) # use the B value from Kennedy et al as a foam intensity
+                    elif self.showBreaking == 2 :
+                        contaminent_source = self.ContSource[i , j].x
+                        newState.w = ti.min(1.0, newState.w + contaminent_source)
 
-                self.NewState[i,j] = newState
-                self.dU_by_dt[i,j] = d_by_dt
-                self.predictedF_G_star[i,j] = F_G_here
-                self.current_stateUVstar[i,j] = newState
+                    self.NewState[i,j] = newState
+                    self.dU_by_dt[i,j] = d_by_dt
+                    self.predictedF_G_star[i,j] = F_G_here
+                    self.current_stateUVstar[i,j] = newState
         else:
             for i,j in self.State:
                 if i >= (self.nx - 2) or j >= (self.ny - 2) or i <= 1 or j <= 1:
-                    self.NewState[i,j] = zro
-                    self.dU_by_dt[i,j]= zro
-                    self.predictedF_G_star[i,j] = zro
-                    self.current_stateUVstar[i,j] = zro
-                    continue
+                    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.dU_by_dt[i,j]= ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                else:
+                    # Load values from txBottom using index
+                    B_here = Bottom[2,i,j] #
 
-                # Load values from txBottom using index
-                B_here = Bottom[2,i,j] #
+                    # Load values from txState using index
+                    in_state_here = self.State[i,j] # w, hu and hv (cell avgs, evaluated here)
+                    in_state_here_UV = self.stateUVstar[i,j]
 
-                # Load values from txState using index
-                in_state_here = self.State[i,j] # w, hu and hv (cell avgs, evaluated here)
-                in_state_here_UV = self.stateUVstar[i,j]
+                    h_here = in_state_here.x - B_here # h = w - B
 
-                h_here = in_state_here.x - B_here # h = w - B
+                    # Calculate local h,w
+                    B_south = Bottom[2,i,j-1]
+                    B_north = Bottom[2,i,j+1]
+                    B_west = Bottom[2,i-1,j]
+                    B_east = Bottom[2,i+1,j]
 
-                # Calculate local h,w
-                B_south = Bottom[2,i,j-1]
-                B_north = Bottom[2,i,j+1]
-                B_west = Bottom[2,i-1,j]
-                B_east = Bottom[2,i+1,j]
-
-                eta_here = in_state_here.x
-
-                eta_west = self.State[i-1,j].x
-                eta_east = self.State[i+1,j].x
-                eta_south = self.State[i,j-1].x
-                eta_north = self.State[i,j+1].x
-
-                h_west = eta_west - B_west
-                h_east = eta_east - B_east
-                h_north = eta_north - B_north
-                h_south = eta_south - B_south
-
-                # if dry and surrounded by dry, then stay dry - no need to calc
-                h_cut = self.delta
-                if h_here <= h_cut:
-                    if h_north <= h_cut and h_east <= h_cut and h_south <= h_cut and h_west <= h_cut:
-                        self.NewState[i,j] = zro
-                        self.dU_by_dt[i,j] = zro
-                        self.predictedF_G_star[i,j] = zro
-                        self.current_stateUVstar[i,j] = zro
-                        continue
-
-                h_min = zro
-                h_min.x= ti.min(h_here, h_north)
-                h_min.y= ti.min(h_here, h_east)
-                h_min.z= ti.min(h_here, h_south)
-                h_min.w= ti.min(h_here, h_west)
-
-                # Load values from txXFlux and txYFlux using idx
-                xflux_here = self.XFlux[i,j]  # at i+1/2
-                xflux_west = self.XFlux[i-1,j]  # at i-1/2
-                yflux_here = self.YFlux[i,j]  # at j+1/2
-                yflux_south = self.YFlux[i,j-1]  # at j-1/2
-
-                detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
-                detady = 0.5*(eta_north - eta_south) * self.one_over_dy
-
-                F_star = 0.0
-                G_star = 0.0
-                Psi1x = 0.0
-                Psi2x = 0.0
-                Psi1y = 0.0
-                Psi2y = 0.0
-
-                d_here = -B_here #
-                near_dry = self.Bottom[3,i,j]
-
-                # OPTIMIZ: only proceed if not near an initially dry cell
-                if near_dry>0.:
-                    d2_here = d_here * d_here
-                    d3_here = d2_here * d_here
-
-                    in_state_left = self.State[i-1,j].xyz
-                    in_state_right = self.State[i+1,j].xyz
-                    in_state_up = self.State[i,j+1].xyz
-                    in_state_down = self.State[i,j-1].xyz
-                    in_state_up_left = self.State[i-1,j+1].xyz
-                    in_state_up_right = self.State[i+1,j+1].xyz
-                    in_state_down_left = self.State[i-1,j-1].xyz
-                    in_state_down_right = self.State[i+1,j-1].xyz
-
-                    F_G_star_oldOldies = self.F_G_star_oldOldGradients[i,j].xyz
-
-                    # Calculate "d" stencil
-                    d_left = -B_west
-                    d_right = -B_east
-                    d_down = -B_south
-                    d_up = -B_north
-
-                    d_left_left = ti.max( 0.0 ,-Bottom[2,i-2,j])
-                    d_right_right = ti.max( 0.0,-Bottom[2,i+2,j])
-                    d_down_down = ti.max( 0.0, -Bottom[2,i,j-2])
-                    d_up_up = ti.max( 0.0,-Bottom[2,i,j+2])
-
-                    # Calculate "eta" stencil
                     eta_here = in_state_here.x
-                    eta_left = in_state_left.x
-                    eta_right = in_state_right.x
-                    eta_down = in_state_down.x
-                    eta_up = in_state_up.x
 
-                    eta_left_left = self.State[i-2,j].x
-                    eta_right_right = self.State[i+2,j].x
-                    eta_down_down = self.State[i,j-2].x
-                    eta_up_up = self.State[i,j+2].x
+                    eta_west = self.State[i-1,j].x
+                    eta_east = self.State[i+1,j].x
+                    eta_south = self.State[i,j-1].x
+                    eta_north = self.State[i,j+1].x
 
-                    eta_up_left = in_state_up_left.x
-                    eta_up_right = in_state_up_right.x
-                    eta_down_left = in_state_down_left.x
-                    eta_down_right = in_state_down_right.x
+                    h_west = eta_west - B_west
+                    h_east = eta_east - B_east
+                    h_north = eta_north - B_north
+                    h_south = eta_south - B_south
 
-                    # replace with 4th order when dispersion is included
-                    #detadx = 1.0 / 12.0 * (eta_left_left - 8.0 * eta_left + 8.0 * eta_right + eta_right_right) * self.one_over_dx
-                    #detady = 1.0 / 12.0 * (eta_down_down - 8.0 * eta_down + 8.0 * eta_up + eta_up_up) * self.one_over_dy
-                    detadx = (-eta_right_right + 8.0 * eta_right - 8.0 * eta_left + eta_left_left) * self.one_over_dx / 12.0
-                    detady = (-eta_up_up + 8.0 * eta_up - 8.0 * eta_down + eta_down_down) * self.one_over_dy / 12.0
+                    # if dry and surrounded by dry, then stay dry - no need to calc
+                    h_cut = self.delta
+                    #if h_here <= h_cut:
+                    #    if h_north <= h_cut and h_east <= h_cut and h_south <= h_cut and h_west <= h_cut:
+                    #        self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    #        continue
 
-                    u_up = in_state_up.y
-                    u_down = in_state_down.y
-                    u_right = in_state_right.y
-                    u_left = in_state_left.y
-                    u_up_right = in_state_up_right.y
-                    u_down_right = in_state_down_right.y
-                    u_up_left = in_state_up_left.y
-                    u_down_left = in_state_down_left.y
+                    h_min = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
+                    h_min.x= ti.min(h_here, h_north)
+                    h_min.y= ti.min(h_here, h_east)
+                    h_min.z= ti.min(h_here, h_south)
+                    h_min.w= ti.min(h_here, h_west)
 
-                    v_up = in_state_up.z
-                    v_down = in_state_down.z
-                    v_right = in_state_right.z
-                    v_left = in_state_left.z
-                    v_up_right = in_state_up_right.z
-                    v_down_right = in_state_down_right.z
-                    v_up_left = in_state_up_left.z
-                    v_down_left = in_state_down_left.z
+                    # Load values from txXFlux and txYFlux using idx
+                    xflux_here = self.XFlux[i,j]  # at i+1/2
+                    xflux_west = self.XFlux[i-1,j]  # at i-1/2
+                    yflux_here = self.YFlux[i,j]  # at j+1/2
+                    yflux_south = self.YFlux[i,j-1]  # at j-1/2
 
-                    dd_by_dx = (-d_right_right + 8.0 * d_right - 8.0 * d_left + d_left_left) * self.one_over_dx / 12.0
-                    dd_by_dy = (-d_up_up + 8.0 * d_up - 8.0 * d_down + d_down_down) * self.one_over_dy / 12.0
-                    eta_by_dx_dy = 0.25 * self.one_over_dx * self.one_over_dy * (eta_up_right - eta_down_right - eta_up_left + eta_down_left)
-                    eta_by_dx_dx = self.one_over_d2x * (eta_right - 2.0 * eta_here + eta_left)
-                    eta_by_dy_dy = self.one_over_d2y * (eta_up - 2.0 * eta_here + eta_down)
+                    detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
+                    detady = 0.5*(eta_north - eta_south) * self.one_over_dy
 
-                    F_star =(1.0 / 6.0) * d_here * (dd_by_dx * (0.5 * self.one_over_dy) * (v_up - v_down) +\
-                                                    dd_by_dy * (0.5 * self.one_over_dx) * (v_right - v_left)) +\
-                                                    (self.Bcoef + 1.0 / 3.0) * d2_here * (self.one_over_dxdy * 0.25) *\
-                                                    (v_up_right- v_down_right - v_up_left + v_down_left)
+                    F_star = 0.0
+                    G_star = 0.0
+                    Psi1x = 0.0
+                    Psi2x = 0.0
+                    Psi1y = 0.0
+                    Psi2y = 0.0
 
-                    G_star =(1.0 / 6.0) * d_here * (dd_by_dx * (0.5 * self.one_over_dy) * (u_up - u_down) +\
-                                                    dd_by_dy * (0.5 * self.one_over_dx) * (u_right - u_left)) +\
-                                                    (self.Bcoef + 1.0 / 3.0) * d2_here * (self.one_over_dxdy * 0.25) *\
-                                                    (u_up_right - u_down_right - u_up_left + u_down_left)
+                    d_here = -B_here #
+                    near_dry = self.Bottom[3,i,j]
 
-                    Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) + (eta_up_right - eta_up_left - 2.0 * eta_right + 2.0 * eta_left + eta_down_right - eta_down_left) * (0.5 * self.one_over_dx * self.one_over_d2y))
-                    Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx + eta_by_dy_dy) + dd_by_dy * eta_by_dx_dy) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
-                    Psi1y = self.Bcoef_g * d3_here * ((eta_up_up - 2.0 * eta_up + 2.0 * eta_down - eta_down_down) * (0.5 * self.one_over_d3y) + (eta_up_right + eta_up_left - 2.0 * eta_up + 2.0 * eta_down - eta_down_right - eta_down_left) * (0.5 * self.one_over_dx * self.one_over_d2x))
-                    Psi2y = self.Bcoef_g * d2_here * (dd_by_dy * (2.0 * eta_by_dy_dy + eta_by_dx_dx) + dd_by_dx * eta_by_dx_dy) + (G_star - F_G_star_oldOldies.z) / self.dt * 0.5
+                    # OPTIMIZ: only proceed if not near an initially dry cell
+                    if near_dry>0.:
+                        d2_here = d_here * d_here
+                        d3_here = d2_here * d_here
 
-                friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
-                friction_ = FrictionCalc(in_state_here[1], in_state_here[2], h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here)
+                        in_state_left = self.State[i-1,j].xyz
+                        in_state_right = self.State[i+1,j].xyz
+                        in_state_up = self.State[i,j+1].xyz
+                        in_state_down = self.State[i,j-1].xyz
+                        in_state_up_left = self.State[i-1,j+1].xyz
+                        in_state_up_right = self.State[i+1,j+1].xyz
+                        in_state_down_left = self.State[i-1,j-1].xyz
+                        in_state_down_right = self.State[i+1,j-1].xyz
 
-                # Pressure stencil calculations
-                P_left = self.ShipPressure[i-1,j].x
-                P_right = self.ShipPressure[i+1,j].x
-                P_down = self.ShipPressure[i,j-1].x
-                P_up = self.ShipPressure[i,j+1].x
+                        F_G_star_oldOldies = self.F_G_star_oldOldGradients[i,j].xyz
 
-                press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
-                press_y = -0.5 * h_here * self.g_over_dy * (P_up - P_down)
+                        # Calculate "d" stencil
+                        d_left = -B_west
+                        d_right = -B_east
+                        d_down = -B_south
+                        d_up = -B_north
 
-                # Calculate scalar transport additions
-                C_state_here = self.State[i ,j].w
+                        d_left_left = ti.max( 0.0 ,-Bottom[2,i-2,j])
+                        d_right_right = ti.max( 0.0,-Bottom[2,i+2,j])
+                        d_down_down = ti.max( 0.0, -Bottom[2,i,j-2])
+                        d_up_up = ti.max( 0.0,-Bottom[2,i,j+2])
 
-                C_state_left = self.State[i-1,j].w
-                C_state_right = self.State[i+1,j].w
-                C_state_up = self.State[i,j+1].w
-                C_state_down = self.State[i,j-1].w
-                C_state_up_left = self.State[i-1,j+1].w
-                C_state_up_right = self.State[i+1,j+1].w
-                C_state_down_left = self.State[i-1,j-1].w
-                C_state_down_right = self.State[i+1,j-1].w
+                        # Calculate "eta" stencil
+                        eta_here = in_state_here.x
+                        eta_left = in_state_left.x
+                        eta_right = in_state_right.x
+                        eta_down = in_state_down.x
+                        eta_up = in_state_up.x
 
-                Dxx = self.whiteWaterDispersion
-                Dxy = self.whiteWaterDispersion
-                Dyy = self.whiteWaterDispersion
+                        eta_left_left = self.State[i-2,j].x
+                        eta_right_right = self.State[i+2,j].x
+                        eta_down_down = self.State[i,j-2].x
+                        eta_up_up = self.State[i,j+2].x
 
-                hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here.a + C_state_left)
-                hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here.a + C_state_down)
-                hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
+                        eta_up_left = in_state_up_left.x
+                        eta_up_right = in_state_up_right.x
+                        eta_down_left = in_state_down_left.x
+                        eta_down_right = in_state_down_right.x
 
-                c_dissipation = -self.whiteWaterDecayRate * C_state_here
+                        # replace with 4th order when dispersion is included
+                        #detadx = 1.0 / 12.0 * (eta_left_left - 8.0 * eta_left + 8.0 * eta_right + eta_right_right) * self.one_over_dx
+                        #detady = 1.0 / 12.0 * (eta_down_down - 8.0 * eta_down + 8.0 * eta_up + eta_up_up) * self.one_over_dy
+                        detadx = (-eta_right_right + 8.0 * eta_right - 8.0 * eta_left + eta_left_left) * self.one_over_dx / 12.0
+                        detady = (-eta_up_up + 8.0 * eta_up - 8.0 * eta_down + eta_down_down) * self.one_over_dy / 12.0
 
-                # calculate breaking dissipation
-                breaking_x = 0.0
-                breaking_y = 0.0
-                breaking_B = 0.0
+                        u_up = in_state_up.y
+                        u_down = in_state_down.y
+                        u_right = in_state_right.y
+                        u_left = in_state_left.y
+                        u_up_right = in_state_up_right.y
+                        u_down_right = in_state_down_right.y
+                        u_up_left = in_state_up_left.y
+                        u_down_left = in_state_down_left.y
 
-                if self.useBreakingModel:
-                    breaking_B = self.Breaking[i,j].z #breaking front parameter, non-breaking [0 - 1] breaking
-                    nu_flux_here = self.DissipationFlux[i,j]
-                    nu_flux_right = self.DissipationFlux[i+1,j]
-                    nu_flux_left = self.DissipationFlux[i-1,j]
-                    nu_flux_up = self.DissipationFlux[i,j+1]
-                    nu_flux_down = self.DissipationFlux[i,j-1]
+                        v_up = in_state_up.z
+                        v_down = in_state_down.z
+                        v_right = in_state_right.z
+                        v_left = in_state_left.z
+                        v_up_right = in_state_up_right.z
+                        v_down_right = in_state_down_right.z
+                        v_up_left = in_state_up_left.z
+                        v_down_left = in_state_down_left.z
 
-                    dPdxx = 0.5 * (nu_flux_right.x - nu_flux_left.x) * self.one_over_dx
-                    dPdyx = 0.5 * (nu_flux_right.y - nu_flux_left.y) * self.one_over_dx
-                    dPdyy = 0.5 * (nu_flux_up.y - nu_flux_down.y) * self.one_over_dy
+                        dd_by_dx = (-d_right_right + 8.0 * d_right - 8.0 * d_left + d_left_left) * self.one_over_dx / 12.0
+                        dd_by_dy = (-d_up_up + 8.0 * d_up - 8.0 * d_down + d_down_down) * self.one_over_dy / 12.0
+                        eta_by_dx_dy = 0.25 * self.one_over_dx * self.one_over_dy * (eta_up_right - eta_down_right - eta_up_left + eta_down_left)
+                        eta_by_dx_dx = self.one_over_d2x * (eta_right - 2.0 * eta_here + eta_left)
+                        eta_by_dy_dy = self.one_over_d2y * (eta_up - 2.0 * eta_here + eta_down)
 
-                    dQdxx = 0.5 * (nu_flux_right.z - nu_flux_left.z) * self.one_over_dx
-                    dQdxy = 0.5 * (nu_flux_up.z - nu_flux_down.z) * self.one_over_dy
-                    dQdyy = 0.5 * (nu_flux_up.w - nu_flux_down.w) * self.one_over_dy
+                        F_star =(1.0 / 6.0) * d_here * (dd_by_dx * (0.5 * self.one_over_dy) * (v_up - v_down) +\
+                                                        dd_by_dy * (0.5 * self.one_over_dx) * (v_right - v_left)) +\
+                                                        (self.Bcoef + 1.0 / 3.0) * d2_here * (self.one_over_dxdy * 0.25) *\
+                                                        (v_up_right- v_down_right - v_up_left + v_down_left)
 
-                    if near_dry > 0.0:
-                        breaking_x = dPdxx + 0.5 * dPdyy + 0.5 * dQdxy
-                        breaking_y = dQdyy + 0.5 * dPdyx + 0.5 * dQdxx
+                        G_star =(1.0 / 6.0) * d_here * (dd_by_dx * (0.5 * self.one_over_dy) * (u_up - u_down) +\
+                                                        dd_by_dy * (0.5 * self.one_over_dx) * (u_right - u_left)) +\
+                                                        (self.Bcoef + 1.0 / 3.0) * d2_here * (self.one_over_dxdy * 0.25) *\
+                                                        (u_up_right - u_down_right - u_up_left + u_down_left)
 
-                # fix slope near shoreline
-                if (h_min.x <= h_cut and h_min.z<=h_cut):
-                    detady = 0.0
-                elif h_min.x <= h_cut:
-                    detady = 1.*(eta_here - eta_south) * self.one_over_dy
-                elif h_min.z <= h_cut :
-                    detady = 1.*(eta_north - eta_here) * self.one_over_dy
+                        Psi1x = self.Bcoef_g * d3_here * ((eta_right_right - 2.0 * eta_right + 2.0 * eta_left - eta_left_left) * (0.5 * self.one_over_d3x) + (eta_up_right - eta_up_left - 2.0 * eta_right + 2.0 * eta_left + eta_down_right - eta_down_left) * (0.5 * self.one_over_dx * self.one_over_d2y))
+                        Psi2x = self.Bcoef_g * d2_here * (dd_by_dx * (2.0 * eta_by_dx_dx + eta_by_dy_dy) + dd_by_dy * eta_by_dx_dy) + (F_star - F_G_star_oldOldies.y) / self.dt * 0.5
+                        Psi1y = self.Bcoef_g * d3_here * ((eta_up_up - 2.0 * eta_up + 2.0 * eta_down - eta_down_down) * (0.5 * self.one_over_d3y) + (eta_up_right + eta_up_left - 2.0 * eta_up + 2.0 * eta_down - eta_down_right - eta_down_left) * (0.5 * self.one_over_dx * self.one_over_d2x))
+                        Psi2y = self.Bcoef_g * d2_here * (dd_by_dy * (2.0 * eta_by_dy_dy + eta_by_dx_dx) + dd_by_dx * eta_by_dx_dy) + (G_star - F_G_star_oldOldies.z) / self.dt * 0.5
 
-                if h_min.y <= h_cut and h_min.w<=h_cut:
-                    detadx = 0.0
-                elif h_min.y <= h_cut:
-                    detadx = 1.*(eta_here - eta_west) * self.one_over_dx
-                elif h_min.w <= h_cut :
-                    detadx = 1.*(eta_east - eta_here) * self.one_over_dx
+                    friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
+                    friction_ = FrictionCalc(in_state_here[1], in_state_here[2], h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here,self.differentiability)
 
-                overflow_dry = 0.0
-                if B_here > 0.0 :
-                    overflow_dry = -self.infiltrationRate  #hydraulic conductivity of coarse, unsaturated sand
+                    # Pressure stencil calculations
+                    P_left = self.ShipPressure[i-1,j].x
+                    P_right = self.ShipPressure[i+1,j].x
+                    P_down = self.ShipPressure[i,j-1].x
+                    P_up = self.ShipPressure[i,j+1].x
 
-                sx = -self.g * h_here * detadx - in_state_here[1] * friction_ + breaking_x + (Psi1x + Psi2x) + press_x
-                sy = -self.g * h_here * detady - in_state_here[2] * friction_ + breaking_y + (Psi1y + Psi2y) + press_y
+                    press_x = -0.5 * h_here * self.g_over_dx * (P_right - P_left)
+                    press_y = -0.5 * h_here * self.g_over_dy * (P_up - P_down)
 
-                source_term = ti.Vector([overflow_dry, sx, sy, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation],self.precision)
-                d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
+                    # Calculate scalar transport additions
+                    C_state_here = self.State[i ,j].w
 
-                # previous derivatives
-                oldies = self.oldGradients[i,j]
-                oldOldies = self.oldOldGradients[i,j]
-                newState = zro   # w , hu, hv ,hc
-                F_G_here = ti.Vector([0.0, F_star, G_star, 0.0],self.precision)
+                    C_state_left = self.State[i-1,j].w
+                    C_state_right = self.State[i+1,j].w
+                    C_state_up = self.State[i,j+1].w
+                    C_state_down = self.State[i,j-1].w
+                    C_state_up_left = self.State[i-1,j+1].w
+                    C_state_up_right = self.State[i+1,j+1].w
+                    C_state_down_left = self.State[i-1,j-1].w
+                    C_state_down_right = self.State[i+1,j-1].w
 
-                if self.timeScheme==0: # if timeScheme is Euler do:
-                    newState = in_state_here_UV + self.dt * d_by_dt
+                    Dxx = self.whiteWaterDispersion
+                    Dxy = self.whiteWaterDispersion
+                    Dyy = self.whiteWaterDispersion
 
-                elif pred_or_corrector==1:
-                    newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
+                    hc_by_dx_dx = Dxx * self.one_over_d2x * (C_state_right - 2.0 * in_state_here.a + C_state_left)
+                    hc_by_dy_dy = Dyy * self.one_over_d2y * (C_state_up - 2.0 * in_state_here.a + C_state_down)
+                    hc_by_dx_dy = 0.25 * Dxy * self.one_over_dxdy * (C_state_up_right - C_state_up_left - C_state_down_right + C_state_down_left)
 
-                elif pred_or_corrector==2:
-                    predicted = self.predictedGradients[i,j]
-                    newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
+                    c_dissipation = -self.whiteWaterDecayRate * C_state_here
 
-                if self.showBreaking ==True :
-                    # add breaking source
-                    newState.w = ti.max(newState.w, breaking_B) # use the B value from Kennedy et al as a foam intensity
-                elif self.showBreaking == 2 :
-                    contaminent_source = self.ContSource[i , j].x
-                    newState.w = ti.min(1.0, newState.w + contaminent_source)
+                    # calculate breaking dissipation
+                    breaking_x = 0.0
+                    breaking_y = 0.0
+                    breaking_B = 0.0
 
-                self.NewState[i,j] = newState
-                self.dU_by_dt[i,j] = d_by_dt
-                self.predictedF_G_star[i,j] = F_G_here
-                self.current_stateUVstar[i,j] = newState
+                    if self.useBreakingModel:
+                        breaking_B = self.Breaking[i,j].z #breaking front parameter, non-breaking [0 - 1] breaking
+                        nu_flux_here = self.DissipationFlux[i,j]
+                        nu_flux_right = self.DissipationFlux[i+1,j]
+                        nu_flux_left = self.DissipationFlux[i-1,j]
+                        nu_flux_up = self.DissipationFlux[i,j+1]
+                        nu_flux_down = self.DissipationFlux[i,j-1]
+
+                        dPdxx = 0.5 * (nu_flux_right.x - nu_flux_left.x) * self.one_over_dx
+                        dPdyx = 0.5 * (nu_flux_right.y - nu_flux_left.y) * self.one_over_dx
+                        dPdyy = 0.5 * (nu_flux_up.y - nu_flux_down.y) * self.one_over_dy
+
+                        dQdxx = 0.5 * (nu_flux_right.z - nu_flux_left.z) * self.one_over_dx
+                        dQdxy = 0.5 * (nu_flux_up.z - nu_flux_down.z) * self.one_over_dy
+                        dQdyy = 0.5 * (nu_flux_up.w - nu_flux_down.w) * self.one_over_dy
+
+                        if near_dry > 0.0:
+                            breaking_x = dPdxx + 0.5 * dPdyy + 0.5 * dQdxy
+                            breaking_y = dQdyy + 0.5 * dPdyx + 0.5 * dQdxx
+
+                    # fix slope near shoreline
+                    if (h_min.x <= h_cut and h_min.z<=h_cut):
+                        detady = 0.0
+                    elif h_min.x <= h_cut:
+                        detady = 1.*(eta_here - eta_south) * self.one_over_dy
+                    elif h_min.z <= h_cut :
+                        detady = 1.*(eta_north - eta_here) * self.one_over_dy
+
+                    if h_min.y <= h_cut and h_min.w<=h_cut:
+                        detadx = 0.0
+                    elif h_min.y <= h_cut:
+                        detadx = 1.*(eta_here - eta_west) * self.one_over_dx
+                    elif h_min.w <= h_cut :
+                        detadx = 1.*(eta_east - eta_here) * self.one_over_dx
+
+                    overflow_dry = 0.0
+                    if B_here > 0.0 :
+                        overflow_dry = -self.infiltrationRate  #hydraulic conductivity of coarse, unsaturated sand
+
+                    sx = -self.g * h_here * detadx - in_state_here[1] * friction_ + breaking_x + (Psi1x + Psi2x) + press_x
+                    sy = -self.g * h_here * detady - in_state_here[2] * friction_ + breaking_y + (Psi1y + Psi2y) + press_y
+
+                    source_term = ti.Vector([overflow_dry, sx, sy, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation],self.precision)
+                    d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
+
+                    # previous derivatives
+                    oldies = self.oldGradients[i,j]
+                    oldOldies = self.oldOldGradients[i,j]
+                    newState = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)   # w , hu, hv ,hc
+                    F_G_here = ti.Vector([0.0, F_star, G_star, 0.0],self.precision)
+
+                    if self.timeScheme==0: # if timeScheme is Euler do:
+                        newState = in_state_here_UV + self.dt * d_by_dt
+
+                    elif pred_or_corrector==1:
+                        newState = in_state_here_UV + self.dt/12.0 * (23.0*d_by_dt - 16.0*oldies + 5.0*oldOldies)
+
+                    elif pred_or_corrector==2:
+                        predicted = self.predictedGradients[i,j]
+                        newState = in_state_here_UV + self.dt/24.0 * (9.0*d_by_dt + 19.0*predicted - 5.0*oldies + oldOldies)
+
+                    if self.showBreaking ==True :
+                        # add breaking source
+                        newState.w = ti.max(newState.w, breaking_B) # use the B value from Kennedy et al as a foam intensity
+                    elif self.showBreaking == 2 :
+                        contaminent_source = self.ContSource[i , j].x
+                        newState.w = ti.min(1.0, newState.w + contaminent_source)
+
+                    self.NewState[i,j] = newState
+                    self.dU_by_dt[i,j] = d_by_dt
+                    self.predictedF_G_star[i,j] = F_G_here
+                    self.current_stateUVstar[i,j] = newState
 
 
 
@@ -2347,7 +2409,7 @@ class Solver:
     def Pass_Breaking(self,time:ti.f32):
         """
         Wave-breaking model step (used if useBreakingModel == True):
-          - Applies Kennedy et al. or similar wave breaking logic to compute local 
+          - Applies Kennedy et al. wave breaking logic to compute local 
             dissipation flux and update the Breaking field. 
           - Incorporates eddy viscosity effects from breaking.
 
@@ -2396,11 +2458,19 @@ class Solver:
                     h_here = eta_here - B_here
                     c_here = ti.sqrt(self.g * h_here)
                     h2 = h_here * h_here
-                    divide_by_h = 2.0 * h_here / (h2 + ti.max(h2, self.epsilon))
+                    divide_by_h = 2.0 * h_here / h2 + ti.max(h2, self.epsilon)
+                    if self.differentiability:
+                        c_here = ti.sqrt(self.g * h_here + 1e-6) # Derivative produce NaN
+                        denom =  h2 + ti.max(h2, self.epsilon) + 1e-6
+                        divide_by_h = 2.0 * h_here / denom
 
                     # Kennedy et al breaking model, default parameters
                     # Transition time
-                    T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
+                    # DIFF SOLV
+                    #T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
+                    rawT_star = self.T_star_coef*ti.sqrt(h_here/self.g +1e-6)
+                    T_star = ti.max(rawT_star,1e-6)
+
                     dzdt_I = self.dzdt_I_coef*c_here
                     dzdt_F = self.dzdt_F_coef*c_here
 
@@ -2430,7 +2500,9 @@ class Solver:
                     # Smagorinsky subgrid eddy viscosity
                     Smag_cm = 0.04
                     #nu_Smag = Smag_cm * self.dx * self.dy * ti.sqrt(2. * dPdx * dPdx + 2. * dQdy * dQdy + (dPdy + dQdx) * (dPdy + dQdx)) * divide_by_h  # temporary, needs to be corrected to strain rate, right now has extra dHdx terms
-                    nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx ) * divide_by_h  # 
+                     # DIFF SOLV
+                    #nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx ) * divide_by_h  # 
+                    nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx + 1e-6 ) * divide_by_h  # 
 
 
                     # sum eddy viscosities and calc fluxes
@@ -2507,9 +2579,17 @@ class Solver:
                 c_here = ti.sqrt(self.g * h_here)
                 h2 = h_here * h_here
                 divide_by_h = 2.0 * h_here / (h2 + ti.max(h2, self.epsilon))
+                if self.differentiability:
+                        c_here = ti.sqrt(self.g * h_here + 1e-6) # Derivative produce NaN
+                        denom =  h2 + ti.max(h2, self.epsilon) + 1e-6
+                        divide_by_h = 2.0 * h_here / denom
+
 
                 # Kennedy et al breaking model, default parameters
-                T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
+                #T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
+                rawT_star = self.T_star_coef*ti.sqrt(h_here/self.g +1e-6)
+                T_star = ti.max(rawT_star,1e-6)
+                
                 dzdt_I = self.dzdt_I_coef*c_here
                 dzdt_F = self.dzdt_F_coef*c_here
 
@@ -2534,6 +2614,7 @@ class Solver:
                     if t_here<=self.dt:
                         t_here = time
 
+                # Eddy viscosity
                 nu_breaking = ti.min(1.0 * self.dx * self.dy / self.dt, B_Breaking * self.delta_breaking * h_here * detadt)
 
                 # Smagorinsky subgrid eddy viscosity

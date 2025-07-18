@@ -297,6 +297,7 @@ def Reconstruct(west, here, east, TWO_THETAc):
     dx_grad_over_two = 0.25 * min_value
     return ti.Vector([here - dx_grad_over_two, here + dx_grad_over_two])
 
+
 @ti.func
 def CalcUV(h, hu, hv,hc,epsilon,dB_max):
    """
@@ -334,6 +335,8 @@ def CalcUV(h, hu, hv,hc,epsilon,dB_max):
     """
    epsilon_c = ti.max(epsilon, dB_max)
    divide_by_h = 2.0 * h / (h*h + ti.max(h*h, epsilon_c))
+   #denom = h*h + max(h*h,epsilon_c)
+   #divide_by_h = 2*h/ti.max(denom,epsilon_c)
    #this is important - the local depth used for the edges should not be less than the difference in water depth across the edge
    # divide_by_h = h / np.maximum(h2, epsilon)  #u = divide_by_h * hu #v = divide_by_h * hv #c = divide_by_h * hc
    return divide_by_h * hu , divide_by_h * hv , divide_by_h * hc
@@ -441,7 +444,7 @@ def ScalarAntiDissipation(uplus, uminus, aplus, aminus, epsilon):
 
 
 @ti.func
-def FrictionCalc(hu, hv, h, base_depth,delta,isManning, g, friction):
+def FrictionCalc(hu, hv, h, base_depth,delta,isManning, g, friction,differentiability):
     """
     Computes a bottom friction term for shallow-water or Boussinesq-type flows.
 
@@ -481,18 +484,21 @@ def FrictionCalc(hu, hv, h, base_depth,delta,isManning, g, friction):
     Returns:
         float: Computed friction term, capped at 0.5, that will be applied to momentum.
     """
+    flag=0.0
     h_scaled = h / base_depth
     h2 = h_scaled*h_scaled
     h4 = h2*h2
-    divide_by_h2 = 2.0 * h2 / (h4 + ti.max(h4, 1.e-6)) / base_depth / base_depth
+    divide_by_h2 = 2.0 * h2 / (h4 + ti.max(h4, 1.e-10)) / base_depth / base_depth
     divide_by_h = 1.0 / ti.max(h, delta)
-
+    if differentiability:
+        flag=1.0
+        divide_by_h = 2.0 * h / (h*h + ti.max(h*h, 1e-10))
     f = friction
     if isManning == 1:
         f = g * ti.pow(friction,2) * ti.pow(ti.abs(divide_by_h),1./3.)
-    f = ti.min(f,0.5)
-    f = f * ti.sqrt(hu*hu + hv*hv) * divide_by_h2
-    return f
+    f = ti.min(f,0.5)    
+    return f * ti.sqrt(hu*hu + hv*hv + flag*1e-10) * divide_by_h2
+
 
 if __name__ == "__main__":
     print('Module of functions used in Celeris')

@@ -4,7 +4,7 @@ from celeris.solver import Solver
 from celeris.runner import Evolve
 import time
 
-ti.init(arch = ti.gpu, advanced_optimization = True, kernel_profiler = False)
+ti.init(arch = ti.gpu)
 precision =ti.f32 # ti.f16 for half-precision or ti.f32 for single precision
 
 # 1) Set the topography data
@@ -25,9 +25,9 @@ solver = Solver(domain=d, boundary_conditions=bc)
 # run = None
 # time.sleep(1)
 # print("Warm start")
-run = Evolve(solver = solver, maxsteps= 10000, saveimg=True)
+run = Evolve(solver = solver, maxsteps= 10000, saveimg=False)
 
-# run.Evolve_Headless() # Faster , no visualization
+#run.Evolve_Headless() # Faster , no visualization
 
 # Showing -> 'h'    # cmap any on matplotlib Library e.g. 'BuGn', 'Blues'
 run.Evolve_Display(variable='h',cmapWater='Blues')
