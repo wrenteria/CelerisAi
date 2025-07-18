@@ -104,7 +104,7 @@ class Evolve:
                  outdir=None,
                  saveimg=False,
                  vmin=-1.5,
-                 vmax=1.5
+                 vmax=1.5,
                  ):
         self.solver = solver
         self.maxsteps=maxsteps
@@ -134,6 +134,7 @@ class Evolve:
           - Prints simulation parameters (model type, time step, etc.).
         """
         self.solver.fill_bottom_field()
+        self.solver.fill_bottom_friction()
         self.solver.InitStates()
         self.solver.tridiag_coeffs_X()
         self.solver.tridiag_coeffs_Y()
@@ -171,7 +172,7 @@ class Evolve:
         if self.solver.model=='SWE':
             self.solver.Pass3(pred_or_corrector=1)      # Predictor Step in 'SWE'
         else:
-            self.solver.Pass3Bous(pred_or_corrector=1)  # Predicto Step in 'BOUSS'
+            self.solver.Pass3Bous(pred_or_corrector=1)  # Predictor Step in 'BOUSS'
 
         self.solver.copy_states(src=self.solver.dU_by_dt,dst=self.solver.predictedGradients)
 
@@ -577,7 +578,7 @@ class Evolve:
         plotpath = './plots'
         if not os.path.exists(plotpath):
             os.makedirs(plotpath)
-        i = 0.0
+        i = 0
         use_ggui = None
         window = None
         canvas = None
