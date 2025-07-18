@@ -255,20 +255,6 @@ def sineWave(x,y,t,d,amplitude,period,theta,phase,g,wave_type):
     return ti.Vector([eta, hu , hv])
 
 @ti.func
-def smooth_min(a, b, eps=1e-6):
-    # 0.5*(a+b - sqrt((a-b)^2 + eps)) ≈ min(a,b)
-    return 0.5 * (a + b - ti.sqrt((a - b) * (a - b) + eps))
-
-@ti.func
-def smooth_max(a,b,eps=1e-6):
-    return 0.5*(a + b + ti.sqrt((a - b) * (a - b) + eps))
-
-@ti.func
-def smooth_abs(x, eps=1e-6):
-    # sqrt(x^2 + eps) ≈ |x|
-    return ti.sqrt(x * x + eps)
-
-@ti.func
 def Reconstruct(west, here, east, TWO_THETAc):
     """
     Performs a piecewise linear reconstruction of a variable using a generalized minmod limiter.
@@ -305,10 +291,8 @@ def Reconstruct(west, here, east, TWO_THETAc):
     min_value = 0.0
     if (z1>0.0) and (z2>0.0) and (z3>0.0):
         min_value = ti.min(ti.min(z1,z2),z3)
-        #min_value = smooth_min(smooth_min(z1,z2),z3)
     elif (z1<0.0) and (z2<0.0) and (z3<0.0):
         min_value = ti.max(ti.max(z1,z2),z3)
-        #min_value = smooth_max(smooth_max(z1,z2),z3)
 
     dx_grad_over_two = 0.25 * min_value
     return ti.Vector([here - dx_grad_over_two, here + dx_grad_over_two])
