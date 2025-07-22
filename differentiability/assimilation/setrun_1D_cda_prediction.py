@@ -28,7 +28,7 @@ hu_observed = np.load('./scratch/synth_u1d.npy')
 Ntot,Nx = eta_observed.shape
 
 ### CELERISAI Set up
-model = 'SWE' # model to be used in the CelerisAi solver.
+model = 'Bouss' # model to be used in the CelerisAi solver.
 precision =ti.f32
 ti.init(arch = ti.gpu)
 #ti.init(arch = ti.cpu,debug=True)
@@ -45,7 +45,7 @@ LimAssim = Nx//3
 # Define a scalar loss
 loss = ti.field(dtype=precision, shape=(),needs_grad=True) 
 # Define a learning rate
-l_r = 0.01
+l_r = 0.01 #0.01
 # Number of iterations
 NumIters = 1
 ##  ADAM OPTIMIZER
@@ -85,8 +85,16 @@ def Adam(lr: precision,W: ti.template()):
 def compute_loss(k: ti.i32):
     # Compute the loss function on Assimilation Area
     for i in range(LimAssim):
-        loss[None] += (eta_obs[k,i] - run.solver.State[i,0].x)**2
-        
+        loss[None] += (1/Nx)*(eta_obs[k,i] - run.solver.State[i,0].x)**2
+
+@ti.kernel
+def compute_Physics_loss(k: ti.i32):
+    # Compute the loss function on Assimilation Area
+    for i in range(1,LimAssim):
+        P_x = (run.solver.State[i+1,0].y - run.solver.State[i-1,0].y)/(2*run.solver.dx)
+        eta_t = (eta_obs[k+1,i] - eta_obs[k-1,i])/(2*run.solver.dt)
+        loss[None] += (eta_t + P_x)**2        
+
 def clearGradients():
     # Otherwise the gradient accumulates over the simulation
     run.solver.State.grad.fill(0.0)
@@ -137,6 +145,14 @@ def verbosity(k,data_container,index):
     print(itera)
     print(f"| max|∂L/∂D₀| = {max_:.3e} - mean |∂L/∂D₀| = {mean_:.3e}")
 
+def UpdateModel(lr):
+    Adam(lr,run.solver.State)
+    Adam(lr,run.solver.stateUVstar)
+    Adam(lr,run.solver.oldGradients)
+    Adam(lr,run.solver.oldOldGradients)
+    if model=='Bouss':
+        Adam(lr,run.solver.F_G_star_oldOldGradients) 
+        
 #############################################################################################    
 ## Assimilation / Simulation
 # Initialize data containers
@@ -152,12 +168,15 @@ for k in range(Ntot):
             # Assimilation / correction
             run.Evolve_Steps(k)
             compute_loss(k)
+            #compute_Physics_loss(k)
         verbosity(k,run.solver.State,0)
         verbosity(k,run.solver.State,1)
-        Adam(l_r,run.solver.State)
-        Adam(l_r,run.solver.stateUVstar)
-        Adam(l_r,run.solver.oldGradients)
-        Adam(l_r,run.solver.oldOldGradients) 
-        if model=='Bouss':
-              Adam(l_r,run.solver.F_G_star_oldOldGradients) 
+        UpdateModel(l_r)
+        # A physics loss to improve assimilation
+        # in Boussinesq
+        loss[None]=0.0
+        clearGradients()
+        with ti.ad.Tape(loss=loss ):
+            compute_Physics_loss(k)
+        UpdateModel(0.1)
 

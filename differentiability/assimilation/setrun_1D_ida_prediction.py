@@ -38,7 +38,7 @@ print(f'Parameters Observed: Nx:{Nx_obs}, Dx:{dx_obs}, Dt:{dt_obs}')
 print(f'Max x:{Max_x_obs} , Min x:{Min_x_obs}')
 
 ### CELERISAI Set up
-model = 'SWE' # model to be used in the CelerisAi solver
+model = 'Bouss' # model to be used in the CelerisAi solver
 precision =ti.f32
 ti.init(arch = ti.gpu)
 baty = Topodata(filename='Obs_topo1D.txt',path='./scratch/',datatype='xz')
@@ -106,6 +106,29 @@ def compute_loss(k: ti.i32):
     for i in range(LimAssim):
         loss[None] += (eta_obs[k,i] - run.solver.State[i,0].x)**2
             
+@ti.kernel
+def compute_Physics_loss(k: ti.i32):
+    # Compute the loss function on Assimilation Area
+    for i in range(1,LimAssim):
+        P_x = (run.solver.State[i+1,0].y - run.solver.State[i-1,0].y)/(2*run.solver.dx)
+        eta_t = (eta_obs[k+1,i] - eta_obs[k-1,i])/(2*run.solver.dt)
+        loss[None] += (eta_t + P_x)**2        
+
+# regularization weight
+lam_reg = 1e-1
+@ti.kernel
+def smoothness_loss():
+    # skip the first/last cell to avoid out‐of‐bounds
+    for i in range(1, LimAssim):
+        # second finite‐difference of State(eta) 
+        d2eta = run.solver.State[i+1, 0].x \
+            - 2.0 * run.solver.State[ i,   0].x \
+            +     run.solver.State[i-1, 0].x
+        d2P = run.solver.State[i+1, 0].y \
+            - 2.0 * run.solver.State[ i,   0].y \
+            +     run.solver.State[i-1, 0].y
+        loss[None] += lam_reg * (d2eta**2+d2P**2)
+                
 def clearGradients():
      # Otherwise the gradient accumulates over the simulation
     run.solver.State.grad.fill(0.0)
@@ -155,7 +178,15 @@ def verbosity(k,data_container,index):
     min_ = np.min(np.abs(grad_np[:,:,index]))
     print(itera)
     print(f"| max|∂L/∂D₀| = {max_:.3e} - mean |∂L/∂D₀| = {mean_:.3e} - min |∂L/∂D₀| = {min_:.3e}")
-        
+
+def UpdateModel(lr):
+    Adam(lr,run.solver.State)
+    Adam(lr,run.solver.stateUVstar)
+    Adam(lr,run.solver.oldGradients)
+    Adam(lr,run.solver.oldOldGradients)
+    if model=='Bouss':
+        Adam(lr,run.solver.F_G_star_oldOldGradients) 
+                
 #############################################################################################    
 ## Assimilation / Simulation
 # Initialize data containers
@@ -179,6 +210,14 @@ for k in range(Ntot-1):
         Adam(l_r,run.solver.oldOldGradients)
         if model=='Bouss':
             Adam(l_r,run.solver.F_G_star_oldOldGradients)
+        # A physics loss to improve assimilation
+        # in Boussinesq
+        loss[None]=0.0
+        clearGradients()
+        with ti.ad.Tape(loss=loss ):
+            compute_Physics_loss(k)
+            smoothness_loss()
+        UpdateModel(0.089)
         k_obs=k_obs+1
     else:
         run.Evolve_Steps(k) 
