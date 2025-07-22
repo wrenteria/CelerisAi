@@ -92,7 +92,7 @@ def compute_Physics_loss(k: ti.i32):
     # Compute the loss function on Assimilation Area
     for i in range(1,LimAssim):
         P_x = (run.solver.State[i+1,0].y - run.solver.State[i-1,0].y)/(2*run.solver.dx)
-        eta_t = (eta_obs[k+1,i] - eta_obs[k-1,i])/(2*run.solver.dt)
+        eta_t = (eta_obs[k+1,i] - eta_obs[k,i])/(run.solver.dt)
         loss[None] += (eta_t + P_x)**2        
 
 def clearGradients():
@@ -176,7 +176,7 @@ for k in range(Ntot):
         # in Boussinesq
         loss[None]=0.0
         clearGradients()
-        with ti.ad.Tape(loss=loss ):
+        with ti.ad.Tape(loss=loss):
             compute_Physics_loss(k)
-        UpdateModel(0.1)
+        UpdateModel(0.02)
 

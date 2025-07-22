@@ -77,6 +77,8 @@ eta_obs =ti.field( dtype=precision,shape=eta_observed.shape)
 eta_obs.from_numpy(eta_observed)
 hu_obs =ti.field( dtype=precision,shape=hu_observed.shape)
 hu_obs.from_numpy(hu_observed)
+# prior state
+foo = ti.Vector.field(4,precision,shape=(Nx,1,))
 
 @ti.kernel
 def GradientDescent(lr: ti.f32,W:ti.template()):
@@ -111,7 +113,7 @@ def compute_Physics_loss(k: ti.i32):
     # Compute the loss function on Assimilation Area
     for i in range(1,LimAssim):
         P_x = (run.solver.State[i+1,0].y - run.solver.State[i-1,0].y)/(2*run.solver.dx)
-        eta_t = (eta_obs[k+1,i] - eta_obs[k-1,i])/(2*run.solver.dt)
+        eta_t = (foo[i,0].x - run.solver.State[i,0].y)/(run.solver.dt)
         loss[None] += (eta_t + P_x)**2        
 
 # regularization weight
@@ -196,6 +198,7 @@ k_obs=0
 for k in range(Ntot-1):
     time = k*run.solver.dt
     print(f'Working at step:{k} Time: {time:.3f}')
+    run.solver.copy_states(run.solver.State,foo)
     if k==0 or k%(Substeps-1)==0:
         plot(k_obs)
         loss[None]=0.0
