@@ -115,7 +115,8 @@ class Solver:
                  delta_breaking= 2.0,
                  T_star_coef= 5.0,
                  dzdt_I_coef= 0.50,
-                 dzdt_F_coef= 0.15
+                 dzdt_F_coef= 0.15,
+                 subgrid_viscosity=False
                  ):
         """
         Initializes the Solver with domain and boundary-condition data and sets parameters 
@@ -151,6 +152,7 @@ class Solver:
             T_star_coef (float, optional): Timescale factor until breaking fully develops. Defaults to 5.0.
             dzdt_I_coef (float, optional): Start-breaking threshold. Defaults to 0.50.
             dzdt_F_coef (float, optional): End-breaking threshold. Defaults to 0.15.
+            subgrid_viscosity (bool, optional): Subgrid eddy viscosity. Defaults to False
         """
         self.domain = domain
         self.bc  = boundary_conditions
@@ -268,6 +270,7 @@ class Solver:
         self.T_star_coef = T_star_coef
         self.dzdt_F_coef = dzdt_F_coef
         self.dzdt_I_coef = dzdt_I_coef
+        self.sgev = subgrid_viscosity
         # DIFFERENTIABILITY
         self.differentiability = self.domain.differentiability
         self.flagDiff=0.0
@@ -2411,6 +2414,7 @@ class Solver:
         Wave-breaking model step (used if useBreakingModel == True):
           - Applies Kennedy et al. wave breaking logic to compute local 
             dissipation flux and update the Breaking field. 
+          - Add subgrid eddy viscosity.
           - Incorporates eddy viscosity effects from breaking.
 
         Args:
@@ -2425,17 +2429,14 @@ class Solver:
                     xflux_here = self.XFlux[i,j].x
                     xflux_west = self.XFlux[leftIdx,j].x
 
-                    #P_south = self.State[i,downIdx].y
                     P_here = self.State[i,j].y
-                    #P_north = self.State[i,upIdx].y
-
                     detadt = self.dU_by_dt[i,j].x
 
                     # Look the dominant direction of flow, and look at the three cells on that 3*3 cube
                     t_here = self.Breaking[i,j].x
                     t1 = 0.0
-                    t2 = 0.0
-                    t3 = 0.0
+                    #t2 = 0.0
+                    #t3 = 0.0
 
                     
                     if P_here > 0.0:
@@ -2449,7 +2450,7 @@ class Solver:
                     
 
                     #t_here = ti.max(t_here, ti.max(t1, ti.max(t2, t3)))
-                    t_here = t1
+                    t_here = ti.max(t_here,t1)
 
                     dPdx = (xflux_here - xflux_west) * self.one_over_dx
 
@@ -2467,10 +2468,12 @@ class Solver:
                     # Kennedy et al breaking model, default parameters
                     # Transition time
                     # DIFF SOLV
-                    #T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
-                    rawT_star = self.T_star_coef*ti.sqrt(h_here/self.g +1e-6)
-                    T_star = ti.max(rawT_star,1e-6)
-
+                    T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
+                    if self.differentiability:
+                        rawT_star = self.T_star_coef*ti.sqrt(h_here/self.g +1e-6)
+                        T_star = ti.max(rawT_star,1e-6)
+                        
+                    
                     dzdt_I = self.dzdt_I_coef*c_here
                     dzdt_F = self.dzdt_F_coef*c_here
 
@@ -2499,14 +2502,16 @@ class Solver:
 
                     # Smagorinsky subgrid eddy viscosity
                     Smag_cm = 0.04
-                    #nu_Smag = Smag_cm * self.dx * self.dy * ti.sqrt(2. * dPdx * dPdx + 2. * dQdy * dQdy + (dPdy + dQdx) * (dPdy + dQdx)) * divide_by_h  # temporary, needs to be corrected to strain rate, right now has extra dHdx terms
                      # DIFF SOLV
-                    #nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx ) * divide_by_h  # 
-                    nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx + 1e-6 ) * divide_by_h  # 
+                    nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx ) * divide_by_h  # 
+                    if self.differentiability:
+                        nu_Smag = Smag_cm * self.dx * 1.0 * ti.sqrt(2. * dPdx * dPdx + 1e-6 ) * divide_by_h  # 
 
 
                     # sum eddy viscosities and calc fluxes
-                    nu_total = nu_breaking + nu_Smag
+                    nu_total = nu_breaking
+                    if self.sgev == True:
+                        nu_total = nu_breaking + nu_Smag
 
                     nu_dPdx = nu_total * dPdx
                     
@@ -2586,9 +2591,12 @@ class Solver:
 
 
                 # Kennedy et al breaking model, default parameters
-                #T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
-                rawT_star = self.T_star_coef*ti.sqrt(h_here/self.g +1e-6)
-                T_star = ti.max(rawT_star,1e-6)
+                T_star = 0.0
+                T_star = self.T_star_coef*ti.sqrt(h_here/self.g)
+                if self.differentiability:
+                    rawT_star = self.T_star_coef*ti.sqrt(h_here/self.g +1e-6)
+                    T_star = ti.max(rawT_star,1e-6)
+                    
                 
                 dzdt_I = self.dzdt_I_coef*c_here
                 dzdt_F = self.dzdt_F_coef*c_here
@@ -2620,9 +2628,13 @@ class Solver:
                 # Smagorinsky subgrid eddy viscosity
                 Smag_cm = 0.04
                 nu_Smag = Smag_cm * self.dx * self.dy * ti.sqrt(2. * dPdx * dPdx + 2. * dQdy * dQdy + (dPdy + dQdx) * (dPdy + dQdx)) * divide_by_h  # temporary, needs to be corrected to strain rate, right now has extra dHdx terms
+                if self.differentiability==True:
+                    nu_Smag = Smag_cm * self.dx * self.dy * ti.sqrt(2. * dPdx * dPdx + 2. * dQdy * dQdy + (dPdy + dQdx) * (dPdy + dQdx) + 1e-6) * divide_by_h  # temporary, needs to be corrected to strain rate, right now has extra dHdx terms
 
                 # sum eddy viscosities and calc fluxes
-                nu_total = nu_breaking + nu_Smag
+                nu_total = nu_breaking
+                if self.sgev == True:
+                    nu_total = nu_breaking + nu_Smag
 
                 nu_dPdx = nu_total * dPdx
                 nu_dPdy = nu_total * dPdy
