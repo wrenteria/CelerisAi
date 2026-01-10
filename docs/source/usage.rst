@@ -26,6 +26,16 @@ Alternatively, you can install all required dependencies automatically using the
 
    $ pip install -r requirements.txt
 
+Downloading the Source Code
+-----------------------------
+
+Clone the repository from GitHub to download the source code:
+
+.. code-block:: console
+
+   $ git clone https://github.com/wrenteria/CelerisAi.git
+
+
 Editable Install (Recommended)
 ------------------------------
 
@@ -36,14 +46,6 @@ modifying ``sys.path``:
 
    $ pip install -e .
    
-Downloading the Source Code
------------------------------
-
-Clone the repository from GitHub to download the source code:
-
-.. code-block:: console
-
-   $ git clone https://github.com/wrenteria/CelerisAi.git
 
 Running the Examples
 --------------------
