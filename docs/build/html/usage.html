@@ -48,6 +48,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#downloading-the-source-code">Downloading the Source Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#editable-install-recommended">Editable Install (Recommended)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-the-examples">Running the Examples</a></li>
 </ul>
 </li>
@@ -82,7 +83,12 @@
 <h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
 <section id="installation">
 <span id="id1"></span><h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<p>The prerequisites for CelerisAi are standard Python libraries, with Taichi being the most important. You can install these libraries manually:</p>
+<p>The prerequisites for CelerisAi are standard Python libraries, with Taichi being the most important. We recommend installing in a virtual environment:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</pre></div>
+</div>
+<p>You can install these libraries manually:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span>imageio&gt;<span class="o">=</span><span class="m">2</span>.36.0<span class="w"> </span>matplotlib&gt;<span class="o">=</span><span class="m">3</span>.7.2<span class="w"> </span>numpy&gt;<span class="o">=</span><span class="m">1</span>.24.3<span class="w"> </span>scipy&gt;<span class="o">=</span><span class="m">1</span>.9.0<span class="w"> </span>taichi&gt;<span class="o">=</span><span class="m">1</span>.7.0
 </pre></div>
 </div>
@@ -98,12 +104,16 @@
 </pre></div>
 </div>
 </section>
+<section id="editable-install-recommended">
+<h2>Editable Install (Recommended)<a class="headerlink" href="#editable-install-recommended" title="Link to this heading"></a></h2>
+<p>Install the package in editable mode so you can run examples from any folder without
+modifying <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
 <section id="running-the-examples">
 <h2>Running the Examples<a class="headerlink" href="#running-the-examples" title="Link to this heading"></a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Make sure to execute these examples from within the CelerisAi directory.</p>
-</div>
 <p>After installing the dependencies and downloading the source, you can verify the installation by running the provided examples.</p>
 <p>For a 1D example, execute:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>setrun_1D.py

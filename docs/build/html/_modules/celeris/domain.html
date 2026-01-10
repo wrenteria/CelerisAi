@@ -483,7 +483,6 @@
 <span class="sd">        base_depth_ (float or None): Reference base depth of the domain. </span>
 <span class="sd">            If None, it is inferred from the topography.</span>
 <span class="sd">        Boundary_shift (int): Shift parameter used for boundary indexing or conditions.</span>
-<span class="sd">        pixels (ti.field): Taichi field for potential 2D visualization or debugging (shape = [Nx, Ny]).</span>
 <span class="sd">        g (float): Gravitational constant (9.80665).</span>
 <span class="sd">        configfile (dict or None): Loaded JSON dictionary if using Celeris format.</span>
 <span class="sd">        seaLevel (float): Reference sea level (set to 0.0 here).</span>
@@ -513,7 +512,8 @@
                  <span class="n">isManning</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                  <span class="n">friction</span> <span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
                  <span class="n">base_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">BoundaryShift</span><span class="o">=</span><span class="mi">4</span>
+                 <span class="n">BoundaryShift</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                 <span class="n">differentiability</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the Domain object with specified domain parameters and reads from </span>
@@ -542,6 +542,7 @@
 <span class="sd">                will be inferred from topography. Defaults to None.</span>
 <span class="sd">            BoundaryShift (int, optional): Shift value used for boundary conditions. </span>
 <span class="sd">                Defaults to 4.</span>
+<span class="sd">            differentiability (bool, optional): If True, enables differentiability. Defaults to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="n">precision</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x1</span> <span class="o">=</span> <span class="n">x1</span>
@@ -559,6 +560,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="mf">9.80665</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="o">=</span><span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Boundary_shift</span><span class="o">=</span><span class="n">BoundaryShift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">differentiability</span><span class="o">=</span><span class="n">differentiability</span>
+
         <span class="c1"># When topodata.datatype == &#39;celeris&#39;, read from config.json.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">topodata</span><span class="o">.</span><span class="n">datatype</span><span class="o">==</span><span class="s1">&#39;celeris&#39;</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topodata</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;config.json&#39;</span><span class="p">),</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">uf</span><span class="p">:</span>
@@ -656,6 +659,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a 3D NumPy array of shape (4, Nx, Ny) to store bottom elevation </span>
 <span class="sd">        (inverted sign), plus any other auxiliary fields (e.g., near-dry flags).</span>
+<span class="sd">        When differentiability is selected, the scalar field uses the gradient to </span>
+<span class="sd">        calculate the derivative.</span>
 
 <span class="sd">        Index mapping:</span>
 <span class="sd">            - [2, :, :] =&gt; Stores the bathymetry/topography (with a -1 factor).</span>
@@ -674,6 +679,8 @@
         <span class="n">nbottom</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">99.</span>
 
         <span class="n">bottom</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ny</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">differentiability</span><span class="p">:</span>
+            <span class="n">bottom</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ny</span><span class="p">,),</span><span class="n">needs_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">bottom</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">nbottom</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">bottom</span></div>
 
@@ -784,12 +791,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a Taichi Vector field of shape [Nx, Ny], each containing 4 components </span>
-<span class="sd">        (e.g., water depth, momentum in x, momentum in y, and an scalaritional parameter).</span>
+<span class="sd">        (e.g., water depth, momentum in x, momentum in y, and an scalar parameter).</span>
+<span class="sd">        When differentiability is selected, the vector field uses the gradient to </span>
+<span class="sd">        calculate the derivative.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ti.types.vector.field: A 4-component vector field in Taichi.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">foo</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ny</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">differentiability</span><span class="p">:</span>
+            <span class="n">foo</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ny</span><span class="p">,),</span><span class="n">needs_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">foo</span></div>
 
 
@@ -803,6 +814,8 @@
 <span class="sd">            ti.types.vector.field: A 1-component vector field in Taichi.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">foo</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ny</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">differentiability</span><span class="p">:</span>
+            <span class="n">foo</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ny</span><span class="p">,),</span><span class="n">needs_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">foo</span></div>
 </div>
 

@@ -93,7 +93,7 @@
 </section>
 <section id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h2>
-<p>CelerisAi is built upon Celeris Base <a class="reference internal" href="#tavakkollynett2020" id="id1"><span>[TavakkolLynett2020]</span></a>, which solves the extended Boussinesq equations derived by <a class="reference internal" href="#madsesorensen1992" id="id2"><span>[MadseSorensen1992]</span></a> to account for nonlinear and dispersive effects in nearshore wave transformation, and follows the architecture presented in the CelerisWebGPU version (<a class="reference external" href="https://plynett.github.io/">CelerisWebGPU</a>).</p>
+<p>CelerisAi <a class="reference internal" href="#renterialynett2025" id="id1"><span>[RenteriaLynett2025]</span></a> is built upon Celeris Base <a class="reference internal" href="#tavakkollynett2020" id="id2"><span>[TavakkolLynett2020]</span></a>, which solves the extended Boussinesq equations derived by <a class="reference internal" href="#madsesorensen1992" id="id3"><span>[MadseSorensen1992]</span></a> to account for nonlinear and dispersive effects in nearshore wave transformation, and follows the architecture presented in the CelerisWebGPU version (<a class="reference external" href="https://plynett.github.io/">CelerisWebGPU</a>).</p>
 </section>
 <section id="characteristics">
 <h2>Characteristics<a class="headerlink" href="#characteristics" title="Link to this heading"></a></h2>
@@ -110,31 +110,28 @@
 <section id="class-architecture-and-workflow">
 <h2>Class Architecture and Workflow<a class="headerlink" href="#class-architecture-and-workflow" title="Link to this heading"></a></h2>
 <p>The simulation setup can be performed directly within a Python script or through JSON files by specifying the domain geometry, initial conditions, and boundary conditions.</p>
-<figure class="align-center" id="id3">
-<a class="reference internal image-reference" href="_images/Celeris.svg"><img alt="_images/Celeris.svg" src="_images/Celeris.svg" style="width: 90%;" />
-</a>
+<figure class="align-center" id="id4">
+<a class="reference internal image-reference" href="_images/Celeris.svg"><img alt="_images/Celeris.svg" src="_images/Celeris.svg" style="width: 90%;" /></a>
 <figcaption>
-<p><span class="caption-text">CelerisAi classes and setup.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+<p><span class="caption-text">CelerisAi classes and setup.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>CelerisAi can solve the shallow water equations or the extended Boussinesq equations. In both cases, the scalars and vectors are the same, but the methods used to solve the numerical scheme are different.</p>
 <section id="workflow-to-solve-the-shallow-water-equations">
 <h3>Workflow to solve the Shallow water equations<a class="headerlink" href="#workflow-to-solve-the-shallow-water-equations" title="Link to this heading"></a></h3>
-<figure class="align-center" id="id4">
-<a class="reference internal image-reference" href="_images/Celeris_SWE.svg"><img alt="_images/Celeris_SWE.svg" src="_images/Celeris_SWE.svg" style="width: 80%;" />
-</a>
+<figure class="align-center" id="id5">
+<a class="reference internal image-reference" href="_images/Celeris_SWE.svg"><img alt="_images/Celeris_SWE.svg" src="_images/Celeris_SWE.svg" style="width: 80%;" /></a>
 <figcaption>
-<p><span class="caption-text">SWE workflow</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+<p><span class="caption-text">SWE workflow</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 <section id="workflow-to-solve-the-extended-boussinesq-equations">
 <h3>Workflow to solve the extended Boussinesq equations<a class="headerlink" href="#workflow-to-solve-the-extended-boussinesq-equations" title="Link to this heading"></a></h3>
-<figure class="align-center" id="id5">
-<a class="reference internal image-reference" href="_images/Celeris_Bouss.svg"><img alt="_images/Celeris_Bouss.svg" src="_images/Celeris_Bouss.svg" style="width: 80%;" />
-</a>
+<figure class="align-center" id="id6">
+<a class="reference internal image-reference" href="_images/Celeris_Bouss.svg"><img alt="_images/Celeris_Bouss.svg" src="_images/Celeris_Bouss.svg" style="width: 80%;" /></a>
 <figcaption>
-<p><span class="caption-text">Boussinesq workflow</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+<p><span class="caption-text">Boussinesq workflow</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -147,12 +144,16 @@
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
 <div role="list" class="citation-list">
+<div class="citation" id="renterialynett2025" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">RenteriaLynett2025</a><span class="fn-bracket">]</span></span>
+<p>Renteria, W., Lynett, P., Bonus, J., Mccann, M., &amp; Ebrahimi, B. (2025). CelerisAi: A Nearshore Wave Modeling Framework for Integrated AI Applications. <a class="reference external" href="https://doi.org/10.22541/essoar.174129311.11936719/v1">https://doi.org/10.22541/essoar.174129311.11936719/v1</a></p>
+</div>
 <div class="citation" id="tavakkollynett2020" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">TavakkolLynett2020</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">TavakkolLynett2020</a><span class="fn-bracket">]</span></span>
 <p>Tavakkol, S., &amp; Lynett, P. (2020). Celeris Base: An interactive and immersive Boussinesq-type nearshore wave simulation software. Computer Physics Communications, 248, 106966. <a class="reference external" href="https://doi.org/10.1016/j.cpc.2019.106966">https://doi.org/10.1016/j.cpc.2019.106966</a></p>
 </div>
 <div class="citation" id="madsesorensen1992" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">MadseSorensen1992</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">MadseSorensen1992</a><span class="fn-bracket">]</span></span>
 <p>Madsen, P. A., &amp; Sørensen, O. R. (1992). A new form of the Boussinesq equations with improved linear dispersion characteristics. Part 2. A slowly-varying bathymetry. Coastal Engineering, 18(3–4), 183–204. <a class="reference external" href="https://doi.org/10.1016/0378-3839(92)90019-Q">https://doi.org/10.1016/0378-3839(92)90019-Q</a></p>
 </div>
 </div>

@@ -391,6 +391,7 @@
     <span class="k">return</span> <span class="n">ti</span><span class="o">.</span><span class="n">Vector</span><span class="p">([</span><span class="n">here</span> <span class="o">-</span> <span class="n">dx_grad_over_two</span><span class="p">,</span> <span class="n">here</span> <span class="o">+</span> <span class="n">dx_grad_over_two</span><span class="p">])</span></div>
 
 
+
 <div class="viewcode-block" id="CalcUV">
 <a class="viewcode-back" href="../../celeris.html#celeris.utils.CalcUV">[docs]</a>
 <span class="nd">@ti</span><span class="o">.</span><span class="n">func</span>
@@ -430,6 +431,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
    <span class="n">epsilon_c</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">dB_max</span><span class="p">)</span>
    <span class="n">divide_by_h</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">h</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span><span class="o">*</span><span class="n">h</span> <span class="o">+</span> <span class="n">ti</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">h</span><span class="o">*</span><span class="n">h</span><span class="p">,</span> <span class="n">epsilon_c</span><span class="p">))</span>
+   <span class="c1">#denom = h*h + max(h*h,epsilon_c)</span>
+   <span class="c1">#divide_by_h = 2*h/ti.max(denom,epsilon_c)</span>
    <span class="c1">#this is important - the local depth used for the edges should not be less than the difference in water depth across the edge</span>
    <span class="c1"># divide_by_h = h / np.maximum(h2, epsilon)  #u = divide_by_h * hu #v = divide_by_h * hv #c = divide_by_h * hc</span>
    <span class="k">return</span> <span class="n">divide_by_h</span> <span class="o">*</span> <span class="n">hu</span> <span class="p">,</span> <span class="n">divide_by_h</span> <span class="o">*</span> <span class="n">hv</span> <span class="p">,</span> <span class="n">divide_by_h</span> <span class="o">*</span> <span class="n">hc</span></div>
@@ -549,7 +552,7 @@
 <div class="viewcode-block" id="FrictionCalc">
 <a class="viewcode-back" href="../../celeris.html#celeris.utils.FrictionCalc">[docs]</a>
 <span class="nd">@ti</span><span class="o">.</span><span class="n">func</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">FrictionCalc</span><span class="p">(</span><span class="n">hu</span><span class="p">,</span> <span class="n">hv</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">base_depth</span><span class="p">,</span><span class="n">delta</span><span class="p">,</span><span class="n">isManning</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">friction</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">FrictionCalc</span><span class="p">(</span><span class="n">hu</span><span class="p">,</span> <span class="n">hv</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">base_depth</span><span class="p">,</span><span class="n">delta</span><span class="p">,</span><span class="n">isManning</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">friction</span><span class="p">,</span><span class="n">differentiability</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes a bottom friction term for shallow-water or Boussinesq-type flows.</span>
 
@@ -589,18 +592,21 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        float: Computed friction term, capped at 0.5, that will be applied to momentum.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flag</span><span class="o">=</span><span class="mf">0.0</span>
     <span class="n">h_scaled</span> <span class="o">=</span> <span class="n">h</span> <span class="o">/</span> <span class="n">base_depth</span>
     <span class="n">h2</span> <span class="o">=</span> <span class="n">h_scaled</span><span class="o">*</span><span class="n">h_scaled</span>
     <span class="n">h4</span> <span class="o">=</span> <span class="n">h2</span><span class="o">*</span><span class="n">h2</span>
-    <span class="n">divide_by_h2</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">h2</span> <span class="o">/</span> <span class="p">(</span><span class="n">h4</span> <span class="o">+</span> <span class="n">ti</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">h4</span><span class="p">,</span> <span class="mf">1.e-6</span><span class="p">))</span> <span class="o">/</span> <span class="n">base_depth</span> <span class="o">/</span> <span class="n">base_depth</span>
+    <span class="n">divide_by_h2</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">h2</span> <span class="o">/</span> <span class="p">(</span><span class="n">h4</span> <span class="o">+</span> <span class="n">ti</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">h4</span><span class="p">,</span> <span class="mf">1.e-10</span><span class="p">))</span> <span class="o">/</span> <span class="n">base_depth</span> <span class="o">/</span> <span class="n">base_depth</span>
     <span class="n">divide_by_h</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">ti</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
-
+    <span class="k">if</span> <span class="n">differentiability</span><span class="p">:</span>
+        <span class="n">flag</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="n">divide_by_h</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">h</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span><span class="o">*</span><span class="n">h</span> <span class="o">+</span> <span class="n">ti</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">h</span><span class="o">*</span><span class="n">h</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">))</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">friction</span>
     <span class="k">if</span> <span class="n">isManning</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">ti</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">friction</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">ti</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">divide_by_h</span><span class="p">),</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">ti</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">hu</span><span class="o">*</span><span class="n">hu</span> <span class="o">+</span> <span class="n">hv</span><span class="o">*</span><span class="n">hv</span><span class="p">)</span> <span class="o">*</span> <span class="n">divide_by_h2</span>
-    <span class="k">return</span> <span class="n">f</span></div>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="mf">0.5</span><span class="p">)</span>    
+    <span class="k">return</span> <span class="n">f</span> <span class="o">*</span> <span class="n">ti</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">hu</span><span class="o">*</span><span class="n">hu</span> <span class="o">+</span> <span class="n">hv</span><span class="o">*</span><span class="n">hv</span> <span class="o">+</span> <span class="n">flag</span><span class="o">*</span><span class="mf">1e-10</span><span class="p">)</span> <span class="o">*</span> <span class="n">divide_by_h2</span></div>
+
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
