@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "celerisai"
+version = "0.1.0"
+description = "CelerisAi: Python-Taichi nearshore wave modeling framework"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [{ name = "Willington Renteria" }]
+dependencies = [
+    "imageio==2.36.0",
+    "matplotlib==3.7.2",
+    "numpy==1.24.3",
+    "scipy==1.9.0",
+    "taichi==1.7.0",
+]
+
+[tool.setuptools]
+packages = ["celeris"]
+
