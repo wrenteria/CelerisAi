@@ -1,4 +1,15 @@
 # CelerisAi
+
+<p align="center">
+  <img src="https://github.com/wrenteria/CelerisAi/blob/main/docs/source/images/CelerisAILogo.png" alt="CelerisAI Logo" width="400">
+</p>
+
+<p align="center">
+    <img src="https://img.shields.io/github/license/wrenteria/CelerisAi" alt="Github License">
+    <img src="https://img.shields.io/github/stars/wrenteria/CelerisAi" alt="Github stars">
+    <img src="https://img.shields.io/github/forks/wrenteria/CelerisAi" alt="Github forks">
+</p>
+
 CelerisAi is a Python-Taichi-based software designed for nearshore wave modeling. This solver offers high-performance simulations on various hardware platforms and seamlessly integrates with machine learning and artificial intelligence environments. The solver leverages the flexibility of Python for customization and interoperability, while Taichi's high-performance parallel programming capabilities ensure efficient computations.
 
 ## Key Features
