@@ -1,0 +1,2405 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modules &mdash; CelerisAi 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Celeris Modules" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            CelerisAi
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Celeris Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-celeris.domain">Domain module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.domain.Topodata"><code class="docutils literal notranslate"><span class="pre">Topodata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.domain.BoundaryConditions"><code class="docutils literal notranslate"><span class="pre">BoundaryConditions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.domain.Domain"><code class="docutils literal notranslate"><span class="pre">Domain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.domain.checjson"><code class="docutils literal notranslate"><span class="pre">checjson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.domain.ti2np"><code class="docutils literal notranslate"><span class="pre">ti2np()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-celeris.solver">Solver module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.solver.Solver"><code class="docutils literal notranslate"><span class="pre">Solver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.solver.SedClass"><code class="docutils literal notranslate"><span class="pre">SedClass</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-celeris.runner">Runner module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.runner.Evolve"><code class="docutils literal notranslate"><span class="pre">Evolve</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-celeris.utils">Utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.CalcUV"><code class="docutils literal notranslate"><span class="pre">CalcUV()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.CalcUV_Sed"><code class="docutils literal notranslate"><span class="pre">CalcUV_Sed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.ColorsfromMPL"><code class="docutils literal notranslate"><span class="pre">ColorsfromMPL()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.FrictionCalc"><code class="docutils literal notranslate"><span class="pre">FrictionCalc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.MinMod"><code class="docutils literal notranslate"><span class="pre">MinMod()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.NumericalFlux"><code class="docutils literal notranslate"><span class="pre">NumericalFlux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.Reconstruct"><code class="docutils literal notranslate"><span class="pre">Reconstruct()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.ScalarAntiDissipation"><code class="docutils literal notranslate"><span class="pre">ScalarAntiDissipation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.celeris_matplotlib"><code class="docutils literal notranslate"><span class="pre">celeris_matplotlib()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.celeris_waves"><code class="docutils literal notranslate"><span class="pre">celeris_waves()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.cosh"><code class="docutils literal notranslate"><span class="pre">cosh()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.utils.sineWave"><code class="docutils literal notranslate"><span class="pre">sineWave()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-celeris">Current Version</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#celeris.__version__"><code class="docutils literal notranslate"><span class="pre">__version__</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CelerisAi</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Celeris Modules</a></li>
+      <li class="breadcrumb-item active">Modules</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/celeris.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="modules">
+<h1>Modules<a class="headerlink" href="#modules" title="Link to this heading"></a></h1>
+<section id="module-celeris.domain">
+<span id="domain-module"></span><h2>Domain module<a class="headerlink" href="#module-celeris.domain" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="celeris.domain.Topodata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">Topodata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Topodata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Topodata" title="Link to this definition"></a></dt>
+<dd><p>Manages all topography/bathymetry data formats for CelerisAi.</p>
+<p>This class handles different input formats for bathymetric or topographic data,
+such as 2D (XYZ), 1D (XZ), and Celeris-native formats. It reads the corresponding
+files (or folders) and loads them into a NumPy array for further processing or
+analysis.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Topodata.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><a class="headerlink" href="#celeris.domain.Topodata.filename" title="Link to this definition"></a></dt>
+<dd><p>Name of the file containing topographic/bathymetric
+data. If <cite>path</cite> is provided, the file is assumed to be located there.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Topodata.datatype">
+<span class="sig-name descname"><span class="pre">datatype</span></span><a class="headerlink" href="#celeris.domain.Topodata.datatype" title="Link to this definition"></a></dt>
+<dd><p>Format of the data. Accepted values are:
+- “xyz”: 2D data in three columns (x, y, z)
+- “xz”: 1D data in two columns (x, z)
+- “celeris”: 2D data located in a folder with a file named “bathy.txt”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Topodata.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#celeris.domain.Topodata.path" title="Link to this definition"></a></dt>
+<dd><p>Directory path where the file is located. If not provided,
+<cite>filename</cite> should be a complete path or in the current working directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Bfrom</span> <span class="n">celeris</span><span class="o">.</span><span class="n">domain</span> <span class="kn">import</span><span class="w"> </span><span class="nn">Topodata</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">baty</span> <span class="o">=</span> <span class="n">Topodata</span><span class="p">(</span><span class="n">datatype</span><span class="o">=</span><span class="s1">&#39;celeris&#39;</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./examples/DuckFRF_NC&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Topodata.z">
+<span class="sig-name descname"><span class="pre">z</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Topodata.z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Topodata.z" title="Link to this definition"></a></dt>
+<dd><p>Loads the bathymetry/topography data based on the specified datatype.</p>
+<p>Depending on the <cite>datatype</cite>, this method reads the corresponding file(s) and
+returns the data as a NumPy array.</p>
+<ul class="simple">
+<li><p>For “xyz”: Expects a file with three columns (x, y, z).</p></li>
+<li><p>For “xz”: Expects a file with two columns (x, z).</p></li>
+<li><p>For “xyz” and “xz”, bathymetry must be positive.</p></li>
+<li><p>For “celeris”: Expects a folder containing a file named “bathy.txt”.
+The returned array values are multiplied by -1.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>A NumPy array if <cite>datatype</cite> is recognized and the file is successfully
+read.</p></li>
+<li><p>The string “No supported format” if <cite>datatype</cite> is not recognized.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray or str</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>OSError</strong> – If the file (or directory for “celeris”) cannot be found or read.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">BoundaryConditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">celeris</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ti.f32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">North</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">South</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">East</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">West</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">WaveType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./scratch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'waves.txt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BoundaryWidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sine_wave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions" title="Link to this definition"></a></dt>
+<dd><p>Manages boundary conditions for a rectangular domain in the CelerisAi model.</p>
+<p>The domain has four faces: north, south, east, and west. Each face can be configured
+with different boundary types (e.g., sponge layer, solid wall, incoming wave).
+Boundary conditions can be set in one of two ways:</p>
+<ol class="arabic simple">
+<li><p><strong>Celeris format</strong> (<cite>celeris=True</cite>): Reads from a <cite>config.json</cite> file.</p></li>
+<li><p><strong>Manual</strong> (<cite>celeris=False</cite>): Uses manually supplied values.</p></li>
+</ol>
+<p>If incoming waves (boundary type = 2) are defined, the wave type can be specified via
+<cite>WaveType</cite>. If <cite>WaveType</cite> is -1, the wave parameters are read from a file (e.g.,
+<cite>“waves.txt”</cite>). Otherwise, a sine wave is assumed and set by <cite>sine_wave</cite>.</p>
+<p>This class also includes utility methods for handling wave data input and conversion
+from NumPy arrays to Taichi tensors.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.precision">
+<span class="sig-name descname"><span class="pre">precision</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.precision" title="Link to this definition"></a></dt>
+<dd><p>The precision used by Taichi (e.g. <cite>ti.f32</cite>, <cite>ti.f64</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>taichi.types.primitive_types</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.North">
+<span class="sig-name descname"><span class="pre">North</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.North" title="Link to this definition"></a></dt>
+<dd><p>Boundary type for the north face. Valid types are:</p>
+<ul class="simple">
+<li><p>0: Solid wall</p></li>
+<li><p>1: Sponge layer</p></li>
+<li><p>2: Incoming wave</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.South">
+<span class="sig-name descname"><span class="pre">South</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.South" title="Link to this definition"></a></dt>
+<dd><p>Boundary type for the south face.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.East">
+<span class="sig-name descname"><span class="pre">East</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.East" title="Link to this definition"></a></dt>
+<dd><p>Boundary type for the east face.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.West">
+<span class="sig-name descname"><span class="pre">West</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.West" title="Link to this definition"></a></dt>
+<dd><p>Boundary type for the west face.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.WaveType">
+<span class="sig-name descname"><span class="pre">WaveType</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.WaveType" title="Link to this definition"></a></dt>
+<dd><p>Wave type indicator:</p>
+<ul class="simple">
+<li><p>-1: Wave parameters read from a file (<cite>waves.txt</cite>)</p></li>
+<li><p>Any other integer: Use <cite>sine_wave</cite> array for wave parameters</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.Amplitude">
+<span class="sig-name descname"><span class="pre">Amplitude</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.Amplitude" title="Link to this definition"></a></dt>
+<dd><p>Wave amplitude, used if not reading from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.path" title="Link to this definition"></a></dt>
+<dd><p>Path to the directory containing <cite>waves.txt</cite> and/or <cite>config.json</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.filename" title="Link to this definition"></a></dt>
+<dd><p>Name of the file that stores wave parameters (e.g. <cite>waves.txt</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.BoundaryWidth">
+<span class="sig-name descname"><span class="pre">BoundaryWidth</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.BoundaryWidth" title="Link to this definition"></a></dt>
+<dd><p>Width of the sponge or boundary zone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.sine_wave">
+<span class="sig-name descname"><span class="pre">sine_wave</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.sine_wave" title="Link to this definition"></a></dt>
+<dd><p>Parameters defining a sine wave if <cite>WaveType</cite> is not -1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.celeris">
+<span class="sig-name descname"><span class="pre">celeris</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.celeris" title="Link to this definition"></a></dt>
+<dd><p>If True, boundary conditions are read from <cite>config.json</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.configfile">
+<span class="sig-name descname"><span class="pre">configfile</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.configfile" title="Link to this definition"></a></dt>
+<dd><p>Loaded JSON configuration when <cite>celeris=True</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.data" title="Link to this definition"></a></dt>
+<dd><p>Placeholder array for wave data (size depends on <cite>N_data</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.N_data">
+<span class="sig-name descname"><span class="pre">N_data</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.N_data" title="Link to this definition"></a></dt>
+<dd><p>Number of wave entries to read from file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.W_data">
+<span class="sig-name descname"><span class="pre">W_data</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.W_data" title="Link to this definition"></a></dt>
+<dd><p>Unused placeholder (could store wave data in some contexts).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">celeris.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundaryConditions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bc</span> <span class="o">=</span> <span class="n">BoundaryConditions</span><span class="p">(</span><span class="n">celeris</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./examples/DuckFRF_NC&#39;</span><span class="p">,</span><span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.SineWave">
+<span class="sig-name descname"><span class="pre">SineWave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.SineWave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.SineWave" title="Link to this definition"></a></dt>
+<dd><p>Provides the sine wave parameters as a NumPy array of the specified precision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array of length 4 containing the sine wave parameters.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.Sponge">
+<span class="sig-name descname"><span class="pre">Sponge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.Sponge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.Sponge" title="Link to this definition"></a></dt>
+<dd><p>Returns the sponge (boundary) width to be used in the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>width</strong> (<em>int</em><em>, </em><em>optional</em>) – Overrides the class-level sponge width. Defaults to None.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The sponge width (either the class attribute or the passed-in argument).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.get_data" title="Link to this definition"></a></dt>
+<dd><p>Ensures wave data is loaded if reading from a file, then returns a Taichi field.</p>
+<p>If <cite>WaveType</cite> is -1, calls <cite>load_data()</cite> to populate <cite>self.data</cite> from the file.
+Converts the resulting NumPy array into a Taichi field and returns it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A Taichi field of shape <cite>(N_data, 4)</cite> containing wave parameters.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ti.field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.load_data">
+<span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.load_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.load_data" title="Link to this definition"></a></dt>
+<dd><p>Loads wave parameters from <cite>waves.txt</cite> if <cite>WaveType</cite> is -1.</p>
+<p>If a valid file is found, it reads the wave parameters:</p>
+<ul class="simple">
+<li><p>The first three lines are header-like info (only the ‘NumberOfWaves’ line is used).</p></li>
+<li><p>After skipping three lines, wave parameters are loaded. The shape of <cite>self.data</cite>
+is <cite>(N_data, 4)</cite>, where <cite>N_data</cite> is determined by reading the ‘NumberOfWaves’
+line in the file.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.tseries">
+<span class="sig-name descname"><span class="pre">tseries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.tseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.tseries" title="Link to this definition"></a></dt>
+<dd><p>Checks if a wave parameter file is specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if <cite>self.filename</cite> is not None, indicating that time series
+wave data can be read from a file. Otherwise, False.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="celeris.domain.Domain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">Domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ti.f32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topodata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">north_sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">south_sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">east_sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">west_sl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Courant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isManning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BoundaryShift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">differentiability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain" title="Link to this definition"></a></dt>
+<dd><p>Defines the numerical domain for wave propagation solver in CelerisAi.</p>
+<p>This class sets up the domain geometry (x1, x2, y1, y2) and resolution (Nx, Ny),
+handles bathymetric/topographic data (via an instance of a <cite>Topodata</cite> class),
+configures boundary sea levels on each face (north, south, east, west),
+and stores critical parameters such as Courant number (<cite>Courant</cite>), friction,
+and base depth. Two main branches are supported for configuration:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><strong>Celeris format</strong>: Reads from a <cite>config.json</cite> file (if <cite>topodata.datatype == “celeris”</cite>).</p></li>
+<li><p><strong>Manual</strong>: Uses provided arguments directly.</p></li>
+</ol>
+</div></blockquote>
+<p>The class also defines utility methods to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Create a meshgrid for the domain (<cite>grid</cite>).</p></li>
+<li><p>Load and interpolate topographic/bathymetric data (<cite>topofield</cite>, <cite>bottom</cite>).</p></li>
+<li><p>Compute maximum depth (<cite>maxdepth</cite>) and highest topography (<cite>maxtopo</cite>).</p></li>
+<li><p>Compute the time step (<cite>dt</cite>) based on Courant criteria.</p></li>
+<li><p>Provide reflection indices for solid boundary conditions (<cite>reflect_x</cite>, <cite>reflect_y</cite>).</p></li>
+<li><p>Create Taichi field templates for solver states (<cite>states</cite>, <cite>states_one</cite>).</p></li>
+</ul>
+</div></blockquote>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.precision">
+<span class="sig-name descname"><span class="pre">precision</span></span><a class="headerlink" href="#celeris.domain.Domain.precision" title="Link to this definition"></a></dt>
+<dd><p>Taichi precision (e.g., <cite>ti.f32</cite>, <cite>ti.f64</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.types.primitive_types</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.x1">
+<span class="sig-name descname"><span class="pre">x1</span></span><a class="headerlink" href="#celeris.domain.Domain.x1" title="Link to this definition"></a></dt>
+<dd><p>Minimum x-coordinate of the domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.x2">
+<span class="sig-name descname"><span class="pre">x2</span></span><a class="headerlink" href="#celeris.domain.Domain.x2" title="Link to this definition"></a></dt>
+<dd><p>Maximum x-coordinate of the domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.y1">
+<span class="sig-name descname"><span class="pre">y1</span></span><a class="headerlink" href="#celeris.domain.Domain.y1" title="Link to this definition"></a></dt>
+<dd><p>Minimum y-coordinate of the domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.y2">
+<span class="sig-name descname"><span class="pre">y2</span></span><a class="headerlink" href="#celeris.domain.Domain.y2" title="Link to this definition"></a></dt>
+<dd><p>Maximum y-coordinate of the domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.Nx">
+<span class="sig-name descname"><span class="pre">Nx</span></span><a class="headerlink" href="#celeris.domain.Domain.Nx" title="Link to this definition"></a></dt>
+<dd><p>Number of grid cells in the x-direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.Ny">
+<span class="sig-name descname"><span class="pre">Ny</span></span><a class="headerlink" href="#celeris.domain.Domain.Ny" title="Link to this definition"></a></dt>
+<dd><p>Number of grid cells in the y-direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.topodata">
+<span class="sig-name descname"><span class="pre">topodata</span></span><a class="headerlink" href="#celeris.domain.Domain.topodata" title="Link to this definition"></a></dt>
+<dd><p>Instance that handles bathymetry/topography data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#celeris.domain.Topodata" title="celeris.domain.Topodata">Topodata</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.north_sl">
+<span class="sig-name descname"><span class="pre">north_sl</span></span><a class="headerlink" href="#celeris.domain.Domain.north_sl" title="Link to this definition"></a></dt>
+<dd><p>Sea level at the north boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.south_sl">
+<span class="sig-name descname"><span class="pre">south_sl</span></span><a class="headerlink" href="#celeris.domain.Domain.south_sl" title="Link to this definition"></a></dt>
+<dd><p>Sea level at the south boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.east_sl">
+<span class="sig-name descname"><span class="pre">east_sl</span></span><a class="headerlink" href="#celeris.domain.Domain.east_sl" title="Link to this definition"></a></dt>
+<dd><p>Sea level at the east boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.west_sl">
+<span class="sig-name descname"><span class="pre">west_sl</span></span><a class="headerlink" href="#celeris.domain.Domain.west_sl" title="Link to this definition"></a></dt>
+<dd><p>Sea level at the west boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.Courant">
+<span class="sig-name descname"><span class="pre">Courant</span></span><a class="headerlink" href="#celeris.domain.Domain.Courant" title="Link to this definition"></a></dt>
+<dd><p>Courant number for numerical stability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.isManning">
+<span class="sig-name descname"><span class="pre">isManning</span></span><a class="headerlink" href="#celeris.domain.Domain.isManning" title="Link to this definition"></a></dt>
+<dd><p>Switch indicating whether Manning friction is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.friction">
+<span class="sig-name descname"><span class="pre">friction</span></span><a class="headerlink" href="#celeris.domain.Domain.friction" title="Link to this definition"></a></dt>
+<dd><p>Friction (e.g., Manning n) value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.base_depth_">
+<span class="sig-name descname"><span class="pre">base_depth_</span></span><a class="headerlink" href="#celeris.domain.Domain.base_depth_" title="Link to this definition"></a></dt>
+<dd><p>Reference base depth of the domain.
+If None, it is inferred from the topography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.Boundary_shift">
+<span class="sig-name descname"><span class="pre">Boundary_shift</span></span><a class="headerlink" href="#celeris.domain.Domain.Boundary_shift" title="Link to this definition"></a></dt>
+<dd><p>Shift parameter used for boundary indexing or conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.g">
+<span class="sig-name descname"><span class="pre">g</span></span><a class="headerlink" href="#celeris.domain.Domain.g" title="Link to this definition"></a></dt>
+<dd><p>Gravitational constant (9.80665).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.configfile">
+<span class="sig-name descname"><span class="pre">configfile</span></span><a class="headerlink" href="#celeris.domain.Domain.configfile" title="Link to this definition"></a></dt>
+<dd><p>Loaded JSON dictionary if using Celeris format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.Domain.seaLevel">
+<span class="sig-name descname"><span class="pre">seaLevel</span></span><a class="headerlink" href="#celeris.domain.Domain.seaLevel" title="Link to this definition"></a></dt>
+<dd><p>Reference sea level (set to 0.0 here).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">celeris.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">Domain</span><span class="p">,</span><span class="n">Topodata</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topo</span> <span class="o">=</span> <span class="n">Topodata</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;bathy.txt&#39;</span><span class="p">,</span> <span class="n">datatype</span><span class="o">=</span><span class="s1">&#39;xyz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">domain</span> <span class="o">=</span> <span class="n">Domain</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y2</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Nx</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Ny</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">topodata</span><span class="o">=</span><span class="n">topo</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xgrid</span><span class="p">,</span> <span class="n">ygrid</span><span class="p">,</span> <span class="n">bathy</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dt</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">dt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time step: </span><span class="si">{</span><span class="n">dt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.bottom">
+<span class="sig-name descname"><span class="pre">bottom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.bottom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.bottom" title="Link to this definition"></a></dt>
+<dd><p>Creates a 3D NumPy array of shape (4, Nx, Ny) to store bottom elevation
+(inverted sign), plus any other auxiliary fields (e.g., near-dry flags).
+When differentiability is selected, the scalar field uses the gradient to
+calculate the derivative.</p>
+<dl class="simple">
+<dt>Index mapping:</dt><dd><ul class="simple">
+<li><p>[2, :, :] =&gt; Stores the bathymetry/topography (with a -1 factor).</p></li>
+<li><p>[3, :, :] =&gt; A placeholder used for near-dry or similar state flags.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A Taichi field of shape [4, Nx, Ny] with the bottom information.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ti.field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.dt">
+<span class="sig-name descname"><span class="pre">dt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.dt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.dt" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Computes the time step based on the Courant criterion:</dt><dd><p>dt = Courant * dx / sqrt(g * maxdepth)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed time step.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.grid">
+<span class="sig-name descname"><span class="pre">grid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.grid" title="Link to this definition"></a></dt>
+<dd><p>Returns the meshgrid of domain coordinates and corresponding bathymetry/topography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>xx</strong> (numpy.ndarray): x-coordinates (shape: Nx x Ny if 2D; Nx if 1D).</p></li>
+<li><p><strong>yy</strong> (numpy.ndarray): y-coordinates (shape: Nx x Ny if 2D;
+or topography for 1D).</p></li>
+<li><p><strong>zz</strong> (numpy.ndarray): Bathymetry/topography data in 2D case;
+None or irrelevant in 1D case (depending on interpretation).</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.maxdepth">
+<span class="sig-name descname"><span class="pre">maxdepth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.maxdepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.maxdepth" title="Link to this definition"></a></dt>
+<dd><p>Computes the maximum depth in the domain. If <cite>base_depth_</cite> is specified,
+returns that. Otherwise:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>For 1D (‘xz’): returns the maximum of the interpolated topofield array.</p></li>
+<li><p>For 2D (‘xyz’, ‘celeris’): returns the maximum of topofield array values.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Maximum depth (<cite>base_depth_</cite> if set, else maximum from topofield).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.maxtopo">
+<span class="sig-name descname"><span class="pre">maxtopo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.maxtopo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.maxtopo" title="Link to this definition"></a></dt>
+<dd><p>Computes the highest topographic elevation in the domain.
+For 1D (‘xz’), returns the minimum of the array (assuming negative values
+represent depth). For 2D, returns the minimum of the topofield array
+for a similar reason.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The highest elevation (or least negative) in the domain.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.reflect_x">
+<span class="sig-name descname"><span class="pre">reflect_x</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.reflect_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.reflect_x" title="Link to this definition"></a></dt>
+<dd><p>Computes an x-reflection index for enforcing solid boundary conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The x-reflection index (2*(Nx-3)).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.reflect_y">
+<span class="sig-name descname"><span class="pre">reflect_y</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.reflect_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.reflect_y" title="Link to this definition"></a></dt>
+<dd><p>Computes a y-reflection index for enforcing solid boundary conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The y-reflection index (2*(Ny-3)).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.states">
+<span class="sig-name descname"><span class="pre">states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.states" title="Link to this definition"></a></dt>
+<dd><p>Creates a Taichi Vector field of shape [Nx, Ny], each containing 4 components
+(e.g., water depth, momentum in x, momentum in y, and an scalar parameter).
+When differentiability is selected, the vector field uses the gradient to
+calculate the derivative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 4-component vector field in Taichi.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ti.types.vector.field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.states_one">
+<span class="sig-name descname"><span class="pre">states_one</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.states_one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.states_one" title="Link to this definition"></a></dt>
+<dd><p>Creates a Taichi Vector field of shape [Nx, Ny], each containing 1 component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 1-component vector field in Taichi.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ti.types.vector.field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.Domain.topofield">
+<span class="sig-name descname"><span class="pre">topofield</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#Domain.topofield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.Domain.topofield" title="Link to this definition"></a></dt>
+<dd><p>Loads and/or interpolates topographic/bathymetric data into a NumPy meshgrid
+and returns it in a format suitable for use in the solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>x_out</strong> (numpy.ndarray): Mesh of x-coordinates for the domain.</p></li>
+<li><p><strong>y_out</strong> (numpy.ndarray): Mesh of y-coordinates for the domain
+(or 1D array if <cite>datatype=’xz’</cite>).</p></li>
+<li><p><strong>z_out</strong> (numpy.ndarray): Corresponding bathymetry/topography values.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <cite>topodata.datatype</cite> is not one of ‘celeris’, ‘xyz’, or ‘xz’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.domain.checjson">
+<span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">checjson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#checjson"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.checjson" title="Link to this definition"></a></dt>
+<dd><p>Checks if a key exists in a JSON config file (i.e., CelerisWebGPU configuration file).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key to check in the JSON config file.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – The JSON-loaded dictionary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1 if the key is found in the JSON dictionary, 0 otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.domain.ti2np">
+<span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">ti2np</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ti_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#ti2np"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.ti2np" title="Link to this definition"></a></dt>
+<dd><p>Converts a Taichi precision type to a NumPy dtype.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>precision</strong> (<em>ti.types.primitive_types</em>) – Taichi precision type (e.g., ti.f32, ti.f64).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Corresponding NumPy dtype (e.g., np.float32, np.float64).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.dtype</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-celeris.solver">
+<span id="solver-module"></span><h2>Solver module<a class="headerlink" href="#module-celeris.solver" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="celeris.solver.Solver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.solver.</span></span><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_conditions=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipation_threshold=0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeScheme=2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_or_corrector=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_window=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsteps=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bcoef=0.06666666666666667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model='SWE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useBreakingModel=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whiteWaterDecayRate=0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whiteWaterDispersion=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useSedTransModel=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sediment=&lt;celeris.solver.SedClass</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infiltrationRate=0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clearCon=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showBreaking=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_breaking=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_star_coef=5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzdt_I_coef=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzdt_F_coef=0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subgrid_viscosity=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver" title="Link to this definition"></a></dt>
+<dd><p>Main numerical solver class for the CelerisAi model.</p>
+<dl class="simple">
+<dt>This class manages the entire simulation process, including:</dt><dd><ul class="simple">
+<li><p>Initializing solution states and bottom fields from the <cite>Domain</cite> class.</p></li>
+<li><p>Controlling boundary conditions from the <cite>BoundaryConditions</cite> class.</p></li>
+<li><p>Executing the time-stepping scheme (Euler, Adams-Bashforth variants) and
+1D/2D flow updates (SWE or Boussinesq).</p></li>
+<li><p>Incorporating breaking models, sediment transport, and the
+kernels for reconstruction (Pass1), flux computations (Pass2),
+and final updates (Pass3).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.domain">
+<span class="sig-name descname"><span class="pre">domain</span></span><a class="headerlink" href="#celeris.solver.Solver.domain" title="Link to this definition"></a></dt>
+<dd><p>Instance of the Domain class containing grid info and topography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#celeris.domain.Domain" title="celeris.domain.Domain">Domain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.bc">
+<span class="sig-name descname"><span class="pre">bc</span></span><a class="headerlink" href="#celeris.solver.Solver.bc" title="Link to this definition"></a></dt>
+<dd><p>Instance managing boundary condition types and wave settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#celeris.domain.BoundaryConditions" title="celeris.domain.BoundaryConditions">BoundaryConditions</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.dissipation_threshold">
+<span class="sig-name descname"><span class="pre">dissipation_threshold</span></span><a class="headerlink" href="#celeris.solver.Solver.dissipation_threshold" title="Link to this definition"></a></dt>
+<dd><p>Used for visualization (mark cells above certain foam/dissipation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.theta">
+<span class="sig-name descname"><span class="pre">theta</span></span><a class="headerlink" href="#celeris.solver.Solver.theta" title="Link to this definition"></a></dt>
+<dd><p>Midmod limiter parameter (1.0 more dissipative, 2.0 less dissipative).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.timeScheme">
+<span class="sig-name descname"><span class="pre">timeScheme</span></span><a class="headerlink" href="#celeris.solver.Solver.timeScheme" title="Link to this definition"></a></dt>
+<dd><p>Time integration scheme:
+- 0 =&gt; Euler
+- 1 =&gt; 3rd-order  predictor
+- 2 =&gt; 4th-order  predictor/corrector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.pred_or_corrector">
+<span class="sig-name descname"><span class="pre">pred_or_corrector</span></span><a class="headerlink" href="#celeris.solver.Solver.pred_or_corrector" title="Link to this definition"></a></dt>
+<dd><p>Indicates stage in solver loop (1 =&gt; predictor, 2 =&gt; corrector).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Bcoef">
+<span class="sig-name descname"><span class="pre">Bcoef</span></span><a class="headerlink" href="#celeris.solver.Solver.Bcoef" title="Link to this definition"></a></dt>
+<dd><p>Dispersion parameter for Boussinesq model; default 1/15.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#celeris.solver.Solver.model" title="Link to this definition"></a></dt>
+<dd><p>Type of model, ‘SWE’ or ‘Bouss’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.useBreakingModel">
+<span class="sig-name descname"><span class="pre">useBreakingModel</span></span><a class="headerlink" href="#celeris.solver.Solver.useBreakingModel" title="Link to this definition"></a></dt>
+<dd><p>True if wave-breaking model is included.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.whiteWaterDecayRate">
+<span class="sig-name descname"><span class="pre">whiteWaterDecayRate</span></span><a class="headerlink" href="#celeris.solver.Solver.whiteWaterDecayRate" title="Link to this definition"></a></dt>
+<dd><p>Turbulence decay rate for foam (visualization).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.whiteWaterDispersion">
+<span class="sig-name descname"><span class="pre">whiteWaterDispersion</span></span><a class="headerlink" href="#celeris.solver.Solver.whiteWaterDispersion" title="Link to this definition"></a></dt>
+<dd><p>Turbulence dispersion factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.useSedTransModel">
+<span class="sig-name descname"><span class="pre">useSedTransModel</span></span><a class="headerlink" href="#celeris.solver.Solver.useSedTransModel" title="Link to this definition"></a></dt>
+<dd><p>True if sediment transport is included.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.sediment">
+<span class="sig-name descname"><span class="pre">sediment</span></span><a class="headerlink" href="#celeris.solver.Solver.sediment" title="Link to this definition"></a></dt>
+<dd><p>Default or custom sediment parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.infiltrationRate">
+<span class="sig-name descname"><span class="pre">infiltrationRate</span></span><a class="headerlink" href="#celeris.solver.Solver.infiltrationRate" title="Link to this definition"></a></dt>
+<dd><p>For modeling infiltration on dry beaches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.clearCon">
+<span class="sig-name descname"><span class="pre">clearCon</span></span><a class="headerlink" href="#celeris.solver.Solver.clearCon" title="Link to this definition"></a></dt>
+<dd><p>If 1, concentration channel is cleared for visualization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.showBreaking">
+<span class="sig-name descname"><span class="pre">showBreaking</span></span><a class="headerlink" href="#celeris.solver.Solver.showBreaking" title="Link to this definition"></a></dt>
+<dd><p>If &gt; 0, shows wave breaking foam areas.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.delta_breaking">
+<span class="sig-name descname"><span class="pre">delta_breaking</span></span><a class="headerlink" href="#celeris.solver.Solver.delta_breaking" title="Link to this definition"></a></dt>
+<dd><p>Eddy viscosity coefficient in breaking zones.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.T_star_coef">
+<span class="sig-name descname"><span class="pre">T_star_coef</span></span><a class="headerlink" href="#celeris.solver.Solver.T_star_coef" title="Link to this definition"></a></dt>
+<dd><p>Timescale factor for fully developed breaking.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.dzdt_I_coef">
+<span class="sig-name descname"><span class="pre">dzdt_I_coef</span></span><a class="headerlink" href="#celeris.solver.Solver.dzdt_I_coef" title="Link to this definition"></a></dt>
+<dd><p>Start-breaking parameter threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.solver.Solver.dzdt_F_coef">
+<span class="sig-name descname"><span class="pre">dzdt_F_coef</span></span><a class="headerlink" href="#celeris.solver.Solver.dzdt_F_coef" title="Link to this definition"></a></dt>
+<dd><p>End-breaking parameter threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The class initializes a large set of Taichi vector fields (state vectors, flux arrays,
+intermediate arrays for Boussinesq tridiagonal solves, sediment transport arrays, etc.)
+to manage the numerical solution.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">dom</span><span class="p">,</span> <span class="n">boundary_conditions</span><span class="o">=</span><span class="n">bc</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;SWE&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.BoundSineWaves">
+<span class="sig-name descname"><span class="pre">BoundSineWaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NumWaves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Waves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grav</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.BoundSineWaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.BoundSineWaves" title="Link to this definition"></a></dt>
+<dd><p>Computes boundary conditions for incoming sine waves at a domain boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>NumWaves</strong> (<em>int</em>) – Number of wave components in <cite>Waves</cite>.</p></li>
+<li><p><strong>Waves</strong> (<em>ti.field</em>) – Wave parameter array [numWaves, 4].</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate at boundary cell.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate at boundary cell.</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – Current time.</p></li>
+<li><p><strong>d_here</strong> (<em>float</em>) – Local water depth if positive; 0 if dry.</p></li>
+<li><p><strong>grav</strong> (<em>float</em>) – Gravity constant.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[eta, hu, hv] aggregated from all wave components.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.types.vector(3, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.BoundaryPass">
+<span class="sig-name descname"><span class="pre">BoundaryPass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txState</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.BoundaryPass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.BoundaryPass" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Updates boundary cells with the appropriate boundary conditions:</dt><dd><ul class="simple">
+<li><p>Sponge layers (type=1)</p></li>
+<li><p>Solid walls (type=0)</p></li>
+<li><p>Incoming waves (type=2) including sine wave or solitary wave</p></li>
+</ul>
+</dd>
+</dl>
+<p>This kernel is also responsible for handling near-dry logic and simple
+wetting/drying checks at the domain edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>float</em>) – Current time.</p></li>
+<li><p><strong>txState</strong> (<em>ti.field</em>) – A Taichi 2D vector field for the state to be updated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.InitStates">
+<span class="sig-name descname"><span class="pre">InitStates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.InitStates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.InitStates" title="Link to this definition"></a></dt>
+<dd><p>Initializes the solver states (State, stateUVstar) to zeros at the start
+of the simulation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass1">
+<span class="sig-name descname"><span class="pre">Pass1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass1" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Reconstruction step (Pass1):</dt><dd><ul class="simple">
+<li><p>Builds left/right (or N/E/S/W) interface values of eta, momentum, and
+scalar concentration using a generalized minmod limiter.</p></li>
+<li><p>Applies near-dry checks to skip processing cells that are effectively dry.</p></li>
+<li><p>Computes velocity components and partial Froude-limiter logic.</p></li>
+</ul>
+</dd>
+</dl>
+<p>For 1D (ny=1), a simpler logic is used. For 2D, reconstruction is in both
+x- and y-directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>step</strong> (<em>int</em>) – Counter to compute statistics.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass1_SedTrans">
+<span class="sig-name descname"><span class="pre">Pass1_SedTrans</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass1_SedTrans"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass1_SedTrans" title="Link to this definition"></a></dt>
+<dd><p>Reconstruction step (Pass1) for sediment transport scalar. Uses the same
+generalized minmod approach to reconstruct sediment concentration at edges.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass2">
+<span class="sig-name descname"><span class="pre">Pass2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass2" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Flux computation step (Pass2):</dt><dd><ul class="simple">
+<li><p>Computes fluxes at each cell edge in x and y directions using the function
+numerical flux.</p></li>
+<li><p>If sediment transport is enabled, calculates sediment fluxes similarly.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass3">
+<span class="sig-name descname"><span class="pre">Pass3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_or_corrector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass3" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Main time-update step (Pass3) for the SWE model:</dt><dd><ul class="simple">
+<li><p>Updates eta, hu, hv, c for each cell based on fluxes and source terms
+(bed slope, friction, infiltration, etc.).</p></li>
+<li><p>Uses an explicit time scheme (Euler,  predictor,  predictor/corrector).</p></li>
+<li><p>Optionally includes a foam/breaking parameter if showBreaking&gt;0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pred_or_corrector</strong> (<em>int</em>) – Stage in predictor-corrector scheme (1 =&gt; predictor, 2 =&gt; corrector).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass3Bous">
+<span class="sig-name descname"><span class="pre">Pass3Bous</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_or_corrector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass3Bous"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass3Bous" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Time-update step (Pass3) for the Boussinesq model:</dt><dd><ul class="simple">
+<li><p>Updates wave height, hu, hv, concentration.</p></li>
+<li><p>Incorporates dispersion terms, bed slope, friction, infiltration,
+and wave breaking if enabled.</p></li>
+<li><p>Uses a predictor-corrector approach for higher-order accuracy.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pred_or_corrector</strong> (<em>int</em>) – Stage in predictor-corrector scheme (1 =&gt; predictor, 2 =&gt; corrector).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass3_SedTrans">
+<span class="sig-name descname"><span class="pre">Pass3_SedTrans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_or_corrector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass3_SedTrans"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass3_SedTrans" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Time-update step (Pass3) for sediment transport scalar:</dt><dd><ul class="simple">
+<li><p>Uses fluxes (XFlux_Sed, YFlux_Sed) plus simple diffusion.</p></li>
+<li><p>Adds erosion/deposition terms based on local shear velocity or critical Shields.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pred_or_corrector</strong> (<em>int</em>) – Stage in predictor-corrector scheme (1 =&gt; predictor, 2 =&gt; corrector).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Pass_Breaking">
+<span class="sig-name descname"><span class="pre">Pass_Breaking</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Pass_Breaking"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Pass_Breaking" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Wave-breaking model step (used if useBreakingModel == True):</dt><dd><ul class="simple">
+<li><p>Applies Kennedy et al. wave breaking logic to compute local
+dissipation flux and update the Breaking field.</p></li>
+<li><p>Add subgrid eddy viscosity.</p></li>
+<li><p>Incorporates eddy viscosity effects from breaking.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Current simulation time.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.Run_Tridiag_solver">
+<span class="sig-name descname"><span class="pre">Run_Tridiag_solver</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.Run_Tridiag_solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.Run_Tridiag_solver" title="Link to this definition"></a></dt>
+<dd><p>Executes the parallel cyclic reduction (PCR) solver to handle the dispersion
+terms in the Boussinesq model. If model is ‘SWE’, no action is taken.</p>
+<p>For 1D (ny=1), only the x-direction solver is applied.
+For 2D, runs PCR in x, then y directions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.SolitaryWave">
+<span class="sig-name descname"><span class="pre">SolitaryWave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_here</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.SolitaryWave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.SolitaryWave" title="Link to this definition"></a></dt>
+<dd><p>Computes boundary conditions for a solitary wave type (WaveType=3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> (<em>float</em>) – Initial x-position of the wave crest.</p></li>
+<li><p><strong>y0</strong> (<em>float</em>) – Initial y-position of the wave crest.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Wave propagation angle in radians.</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate at boundary cell.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate at boundary cell.</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – Current simulation time.</p></li>
+<li><p><strong>d_here</strong> (<em>float</em>) – Local water depth, if any.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(eta, hu, hv) for a solitary wave boundary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of (float, float, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.TriDiag_PCRx">
+<span class="sig-name descname"><span class="pre">TriDiag_PCRx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.TriDiag_PCRx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.TriDiag_PCRx" title="Link to this definition"></a></dt>
+<dd><p>Parallel Cyclic Reduction step in x-direction for tridiagonal system
+(Boussinesq dispersion). This kernel performs the p-th level of reduction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>int</em>) – Current level in PCR (log2 scale).</p></li>
+<li><p><strong>s</strong> (<em>int</em>) – Step size (2^p).</p></li>
+<li><p><strong>current_buffer</strong> (<em>ti.field</em>) – Current coefficients at p-1 level.</p></li>
+<li><p><strong>next_buffer</strong> (<em>ti.field</em>) – Next coefficients to be filled for p-th level.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.TriDiag_PCRy">
+<span class="sig-name descname"><span class="pre">TriDiag_PCRy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.TriDiag_PCRy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.TriDiag_PCRy" title="Link to this definition"></a></dt>
+<dd><p>Parallel Cyclic Reduction step in y-direction for tridiagonal system
+(Boussinesq dispersion).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>int</em>) – Current level in PCR (log2 scale).</p></li>
+<li><p><strong>s</strong> (<em>int</em>) – Step size (2^p).</p></li>
+<li><p><strong>current_buffer</strong> (<em>ti.field</em>) – Current coefficients at p-1 level.</p></li>
+<li><p><strong>next_buffer</strong> (<em>ti.field</em>) – Next coefficients for p-th level.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.copy_states">
+<span class="sig-name descname"><span class="pre">copy_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DummyTemplate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.copy_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.copy_states" title="Link to this definition"></a></dt>
+<dd><p>Copies state data from one Taichi field to another, ensuring shapes match.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> (<em>ti.field</em>) – Source Taichi field.</p></li>
+<li><p><strong>dst</strong> (<em>ti.field</em>) – Destination Taichi field.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If shapes of src and dst do not match.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.fill_bottom_field">
+<span class="sig-name descname"><span class="pre">fill_bottom_field</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.fill_bottom_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.fill_bottom_field" title="Link to this definition"></a></dt>
+<dd><p>Fills the bottom vector field array with computed spatial derivatives (indices 0,1)
+and near-dry/auxiliary flags at index 3.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.fill_bottom_friction">
+<span class="sig-name descname"><span class="pre">fill_bottom_friction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.fill_bottom_friction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.fill_bottom_friction" title="Link to this definition"></a></dt>
+<dd><p>Fills the bottom friction vector field  array with the frictions parameters
+given.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.tridiag_coeffs_X">
+<span class="sig-name descname"><span class="pre">tridiag_coeffs_X</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.tridiag_coeffs_X"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.tridiag_coeffs_X" title="Link to this definition"></a></dt>
+<dd><p>Fills tridiagonal coefficient arrays in x-direction (coefMatx) for the
+Boussinesq model. These coefficients are used later in the parallel cyclic
+reduction solver (PCR) to handle dispersion terms.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.tridiag_coeffs_Y">
+<span class="sig-name descname"><span class="pre">tridiag_coeffs_Y</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.tridiag_coeffs_Y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.tridiag_coeffs_Y" title="Link to this definition"></a></dt>
+<dd><p>Fills tridiagonal coefficient arrays in y-direction (coefMaty) for the
+Boussinesq model. These coefficients are used later in the parallel cyclic
+reduction solver (PCR) to handle dispersion terms.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="celeris.solver.SedClass">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.solver.</span></span><span class="sig-name descname"><span class="pre">SedClass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d50</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.004</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CriticalShields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.045</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhorat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.65</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#SedClass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.SedClass" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-celeris.runner">
+<span id="runner-module"></span><h2>Runner module<a class="headerlink" href="#module-celeris.runner" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="celeris.runner.Evolve">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.runner.</span></span><span class="sig-name descname"><span class="pre">Evolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_conditions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveimg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve" title="Link to this definition"></a></dt>
+<dd><p>Controls and runs the main simulation loop of CelerisAi in various modes (headless,
+1D, 2D with visualization, etc.).</p>
+<p>This class ties together the <cite>Domain</cite>, <cite>BoundaryConditions</cite>, and <cite>Solver</cite> classes, and
+manages the time-stepping workflow. It includes methods for:</p>
+<ol class="arabic simple">
+<li><p><strong>Initialization</strong> (<cite>Evolve_0</cite>):</p>
+<ul class="simple">
+<li><p>Fills the bottom field with bathymetry/topography data.</p></li>
+<li><p>Initializes solver states (water height, velocity, etc.).</p></li>
+<li><p>Computes tridiagonal coefficients if using a Boussinesq model.</p></li>
+</ul>
+</li>
+<li><p><strong>Main Time-Stepping</strong> (<cite>Evolve_Steps</cite>):</p>
+<ul class="simple">
+<li><p>Runs reconstruction (Pass1) and flux computations (Pass2).</p></li>
+<li><p>Handles wave breaking if enabled.</p></li>
+<li><p>Integrates the solution one or more steps forward in time (Pass3, Pass3Bous, Pass3_SedTrans).</p></li>
+<li><p>Updates boundary conditions.</p></li>
+<li><p>Optionally solves tridiagonal systems for Boussinesq dispersion.</p></li>
+<li><p>Copies or shifts data between fields for multi-stage time integrators.</p></li>
+</ul>
+</li>
+<li><p><strong>Headless Execution</strong> (<cite>Evolve_Headless</cite>):</p>
+<ul class="simple">
+<li><p>Executes the simulation loop without rendering or displaying results,
+minimizing overhead and focusing on performance.</p></li>
+<li><p>Periodically logs timing information and can save the simulation states (e.g. <cite>State</cite> arrays).</p></li>
+</ul>
+</li>
+<li><p><strong>1D Visualization</strong> (<cite>Evolve_1D_Display</cite>):</p>
+<ul class="simple">
+<li><p>Specialized loop for 1D simulations, displaying free surface (eta)
+and bathymetry in a window using either taichi-gui or legacy GUI fallback.</p></li>
+</ul>
+</li>
+<li><p><strong>2D Visualization</strong> (<cite>Evolve_Display</cite>):</p>
+<ul class="simple">
+<li><p>Interactive loop for 2D simulations.</p></li>
+<li><p>Renders wave height (h), free surface elevation (eta), or vorticity (vor)
+in real-time.</p></li>
+<li><p>Allows saving images and assembling them into a GIF.</p></li>
+</ul>
+</li>
+<li><p><strong>Rendering and Color Mapping</strong> (Kernels like <cite>paint</cite>, <cite>paint_new</cite>, <cite>painting_h</cite>, <cite>painting_eta</cite>, <cite>painting_vor</cite>, etc.):</p>
+<ul class="simple">
+<li><p>Populates 2D Taichi fields (<cite>self.image</cite>, <cite>self.solver.pixel</cite>, etc.) based on
+solver results, for real-time visualization.</p></li>
+<li><p>Supports multiple coloring strategies (e.g. realistic wave colors, topography shading, sediment rendering).</p></li>
+</ul>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>domain</strong> (<a class="reference internal" href="#celeris.domain.Domain" title="celeris.domain.Domain"><em>Domain</em></a>) – The domain class containing spatial parameters.</p></li>
+<li><p><strong>boundary_conditions</strong> (<a class="reference internal" href="#celeris.domain.BoundaryConditions" title="celeris.domain.BoundaryConditions"><em>BoundaryConditions</em></a>) – Class managing boundary setup (walls, waves, etc.).</p></li>
+<li><p><strong>solver</strong> (<a class="reference internal" href="#celeris.solver.Solver" title="celeris.solver.Solver"><em>Solver</em></a>) – The main numerical solver class controlling the fluid model, time scheme, etc.</p></li>
+<li><p><strong>maxsteps</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of time steps to simulate. Defaults to 1000.</p></li>
+<li><p><strong>outdir</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory path for saving states, frames, etc. Defaults to None.</p></li>
+<li><p><strong>saveimg</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, saves image frames at intervals (for creating GIFs or offline processing).
+Defaults to False.</p></li>
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum value for visualization color scaling (e.g. wave elevation). Defaults to -1.5.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum value for visualization color scaling. Defaults to 1.5.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.solver">
+<span class="sig-name descname"><span class="pre">solver</span></span><a class="headerlink" href="#celeris.runner.Evolve.solver" title="Link to this definition"></a></dt>
+<dd><p>The numerical solver controlling fluid/morphodynamics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#celeris.solver.Solver" title="celeris.solver.Solver">Solver</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.maxsteps">
+<span class="sig-name descname"><span class="pre">maxsteps</span></span><a class="headerlink" href="#celeris.runner.Evolve.maxsteps" title="Link to this definition"></a></dt>
+<dd><p>Number of time steps for the simulation run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.dt">
+<span class="sig-name descname"><span class="pre">dt</span></span><a class="headerlink" href="#celeris.runner.Evolve.dt" title="Link to this definition"></a></dt>
+<dd><p>Time step size imported from the solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.timeScheme">
+<span class="sig-name descname"><span class="pre">timeScheme</span></span><a class="headerlink" href="#celeris.runner.Evolve.timeScheme" title="Link to this definition"></a></dt>
+<dd><p>Time integration scheme (Euler, predictor, predictor-corrector).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.saveimg">
+<span class="sig-name descname"><span class="pre">saveimg</span></span><a class="headerlink" href="#celeris.runner.Evolve.saveimg" title="Link to this definition"></a></dt>
+<dd><p>Flag indicating whether to save frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.vmin">
+<span class="sig-name descname"><span class="pre">vmin</span></span><a class="headerlink" href="#celeris.runner.Evolve.vmin" title="Link to this definition"></a></dt>
+<dd><p>Minimum scale for color mapping wave or vorticity values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.vmax">
+<span class="sig-name descname"><span class="pre">vmax</span></span><a class="headerlink" href="#celeris.runner.Evolve.vmax" title="Link to this definition"></a></dt>
+<dd><p>Maximum scale for color mapping wave or vorticity values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.outdir">
+<span class="sig-name descname"><span class="pre">outdir</span></span><a class="headerlink" href="#celeris.runner.Evolve.outdir" title="Link to this definition"></a></dt>
+<dd><p>Directory for saving outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#celeris.runner.Evolve.image" title="Link to this definition"></a></dt>
+<dd><p>2D field to hold RGB color information for visualization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.Vector.field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.ocean">
+<span class="sig-name descname"><span class="pre">ocean</span></span><a class="headerlink" href="#celeris.runner.Evolve.ocean" title="Link to this definition"></a></dt>
+<dd><p>1D array of color samples (RGB) for water visualization or general colormap usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.Vector.field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.colormap_ocean">
+<span class="sig-name descname"><span class="pre">colormap_ocean</span></span><a class="headerlink" href="#celeris.runner.Evolve.colormap_ocean" title="Link to this definition"></a></dt>
+<dd><p>A string identifier for the colormap used for water.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">bottom1D,</span> <span class="pre">indexbottom1D,</span> <span class="pre">eta1D</span></span></dt>
+<dd><p>Fields used in 1D visualization of bottom topography and water surface.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">x_scale,</span> <span class="pre">y_scale</span></span></dt>
+<dd><p>Scaling factors for 1D plots in the GUI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Typical Usage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">evolve</span> <span class="o">=</span> <span class="n">Evolve</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">dom</span><span class="p">,</span> <span class="n">boundary_conditions</span><span class="o">=</span><span class="n">bc</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;results&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evolve</span><span class="o">.</span><span class="n">Evolve_Display</span><span class="p">(</span><span class="n">vmin</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s1">&#39;eta&#39;</span><span class="p">,</span> <span class="n">cmapWater</span><span class="o">=</span><span class="s1">&#39;Blues_r&#39;</span><span class="p">,</span> <span class="n">showSediment</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>The class attempts to use Taichi’s GGUI if available for improved performance
+and better UI control. If GGUI is not available, it falls back to legacy Taichi GUI.</p></li>
+<li><p>Various coloring kernels (<cite>painting_h</cite>, <cite>painting_eta</cite>, etc.) can be customized
+to match user-defined styles or to highlight specific flow features.</p></li>
+</ul>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.Evolve_0">
+<span class="sig-name descname"><span class="pre">Evolve_0</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.Evolve_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.Evolve_0" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>One-time initialization steps:</dt><dd><ul class="simple">
+<li><p>Fills bottom field (bathymetry/topo).</p></li>
+<li><p>Initializes solver states (fluid variables).</p></li>
+<li><p>Computes tridiagonal coefficients if the model is Boussinesq.</p></li>
+<li><p>Prints simulation parameters (model type, time step, etc.).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.Evolve_1D_Display">
+<span class="sig-name descname"><span class="pre">Evolve_1D_Display</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.Evolve_1D_Display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.Evolve_1D_Display" title="Link to this definition"></a></dt>
+<dd><p>Interactive loop for a 1D simulation of CelerisAi.</p>
+<ul class="simple">
+<li><p>Initializes bottom, runs the main solver steps, and displays the results
+in a small taichi-gui or GGUI window.</p></li>
+<li><p>Plots the free surface (eta) and bottom profile in each iteration.</p></li>
+<li><p>Optionally saves frames and can compile them into a GIF if desired.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.Evolve_Display">
+<span class="sig-name descname"><span class="pre">Evolve_Display</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmapWater</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Blues_r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showSediment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.Evolve_Display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.Evolve_Display" title="Link to this definition"></a></dt>
+<dd><p>Interactive loop for a 2D simulation of CelerisAi with real-time visualization.</p>
+<ul class="simple">
+<li><p>Calls <cite>Evolve_0()</cite> once to initialize solver fields.</p></li>
+<li><p>Creates a window (either GGUI or legacy GUI).</p></li>
+<li><p>Uses a custom colormap from <cite>celeris_matplotlib()</cite> if <cite>showSediment</cite> is True
+and the solver has sediment transport enabled.</p></li>
+<li><dl class="simple">
+<dt>Allows switching between different visualization variables:</dt><dd><ul>
+<li><p><cite>h</cite>: Water depth</p></li>
+<li><p><cite>eta</cite>: Free surface elevation</p></li>
+<li><p><cite>vor</cite>: Vorticity</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Saves frames if <cite>saveimg</cite> is True, can compile them into a GIF, and optionally
+saves solver states to <cite>.npy</cite>.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum colormap value for rendering. Defaults to None (class-level vmin).</p></li>
+<li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum colormap value for rendering. Defaults to None (class-level vmax).</p></li>
+<li><p><strong>variable</strong> (<em>str</em><em>, </em><em>optional</em>) – Which variable to render (<cite>h</cite>, <cite>eta</cite>, or <cite>vor</cite>). Defaults to ‘h’.</p></li>
+<li><p><strong>cmapWater</strong> (<em>str</em><em>, </em><em>optional</em>) – Matplotlib colormap name for water. Defaults to ‘Blues_r’.</p></li>
+<li><p><strong>showSediment</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, merges in a sediment colormap when sediment transport is active.
+Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.Evolve_Headless">
+<span class="sig-name descname"><span class="pre">Evolve_Headless</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.Evolve_Headless"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.Evolve_Headless" title="Link to this definition"></a></dt>
+<dd><p>Runs CelerisAi without any visualization, printing timing info periodically
+and optionally saving states to disk.</p>
+<dl class="simple">
+<dt>Steps:</dt><dd><ol class="arabic simple">
+<li><p>Calls Evolve_0() to initialize fields and solver state.</p></li>
+<li><p>Loops over <cite>maxsteps</cite>, calling Evolve_Steps() each iteration.</p></li>
+<li><p>Logs simulation time and performance metrics every 100 steps.</p></li>
+<li><p>If an output directory is specified, saves solver state arrays to .npy files.</p></li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.Evolve_Steps">
+<span class="sig-name descname"><span class="pre">Evolve_Steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.Evolve_Steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.Evolve_Steps" title="Link to this definition"></a></dt>
+<dd><p>Advances the solution by one time step (or one sub-step) according to the selected time scheme.</p>
+<dl class="simple">
+<dt>Internally calls:</dt><dd><ul class="simple">
+<li><p>Pass1 (and Pass1_SedTrans if sediment is enabled)</p></li>
+<li><p>Pass2</p></li>
+<li><p>Optional wave breaking model</p></li>
+<li><p>Pass3 or Pass3Bous for predictor step</p></li>
+<li><p>BoundaryPass to enforce boundary conditions</p></li>
+<li><p>Run_Tridiag_solver for Boussinesq models</p></li>
+<li><p>(If 4th-order  predictor-corrector) a second cycle of Pass1, Pass2, Pass3 or Pass3Bous</p></li>
+<li><p>Copies or shifts old/predicted states for multi-stage time integrators</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.InitColors">
+<span class="sig-name descname"><span class="pre">InitColors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="pre">ti.f32</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">ndim</span></span><span class="o"><span class="pre">=</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">)</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.InitColors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.InitColors" title="Link to this definition"></a></dt>
+<dd><p>Copies an external NumPy array of shape (N, 3) (RGB colors) into the
+internal taichi field <cite>self.ocean</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>arr</strong> (<em>np.ndarray</em>) – (N, 3) array of float16 color data (e.g., from a Matplotlib colormap).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.bottom_paint">
+<span class="sig-name descname"><span class="pre">bottom_paint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.bottom_paint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.bottom_paint" title="Link to this definition"></a></dt>
+<dd><p>Fills <cite>bottom1D</cite> with scaled bottom data for 1D visualization.
+Also populates <cite>indexbottom1D</cite> so that line plotting can connect them in order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.brk_color">
+<span class="sig-name descname"><span class="pre">brk_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.brk_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.brk_color" title="Link to this definition"></a></dt>
+<dd><p>Interpolates between two values (y0, y1) based on x in [x0, x1].</p>
+<dl class="simple">
+<dt>Used to smoothly vary color or other scalar values between two extremes:</dt><dd><p>(x0 -&gt; y0) to (x1 -&gt; y1).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.eta_paint">
+<span class="sig-name descname"><span class="pre">eta_paint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.eta_paint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.eta_paint" title="Link to this definition"></a></dt>
+<dd><p>Fills <cite>eta1D</cite> with scaled free-surface data for 1D visualization.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.paint">
+<span class="sig-name descname"><span class="pre">paint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.paint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.paint" title="Link to this definition"></a></dt>
+<dd><p>General paint kernel that merges bottom topography and free-surface height.</p>
+<ul class="simple">
+<li><p>Assigns color based on bottom topography if there’s no water.</p></li>
+<li><p>Interpolates water color if flow depth &gt; 0.0001.</p></li>
+<li><p>If sediment transport is enabled, merges sediment concentration into final color.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.paint_new">
+<span class="sig-name descname"><span class="pre">paint_new</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.paint_new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.paint_new" title="Link to this definition"></a></dt>
+<dd><p>A simple rendering kernel mixing bottom topography and wave height.
+Uses a linear interpolation (brk_color) to assign colors to each cell
+based on water depth or topography.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.painting_eta">
+<span class="sig-name descname"><span class="pre">painting_eta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.painting_eta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.painting_eta" title="Link to this definition"></a></dt>
+<dd><p>Kernel for visualizing free surface elevation (eta).</p>
+<ul class="simple">
+<li><p>Normalizes eta to [vmin, vmax] for color lookup.</p></li>
+<li><p>Distinguishes water areas from wet sand and land similar to <cite>painting_h</cite>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.painting_h">
+<span class="sig-name descname"><span class="pre">painting_h</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.painting_h"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.painting_h" title="Link to this definition"></a></dt>
+<dd><p>Kernel for visualizing water depth (h) in a “realistic wave” style.</p>
+<ul class="simple">
+<li><p>Normalizes water depth to [0, base_depth].</p></li>
+<li><p>Chooses colors from the <cite>ocean</cite> array based on the normalized depth (linear interpolation).</p></li>
+<li><p>Make a difference between the water areas (flow &gt; 0.25) from shallow/wet sand and land.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.painting_vor">
+<span class="sig-name descname"><span class="pre">painting_vor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.painting_vor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.painting_vor" title="Link to this definition"></a></dt>
+<dd><p>Kernel for visualizing vorticity (vor).</p>
+<ul class="simple">
+<li><p>Approximates vorticity by differences in velocity between adjacent cells.</p></li>
+<li><p>Normalizes the result into [vmin, vmax] for color lookups in <cite>ocean</cite>.</p></li>
+<li><p>Distinguishes water vs. land similar to <cite>painting_h</cite>/<cite>painting_eta</cite>.</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-celeris.utils">
+<span id="utils-module"></span><h2>Utils module<a class="headerlink" href="#module-celeris.utils" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.CalcUV">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">CalcUV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dB_max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#CalcUV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.CalcUV" title="Link to this definition"></a></dt>
+<dd><p>Computes velocity and scalar concentration at cell edges given water height and momentum.</p>
+<p>This function takes the water depth (h), x-momentum (hu), y-momentum (hv), and
+a scalar quantity (hc) at the cell edges (usually indexed [N, E, S, W]) and
+returns the velocity components (u, v) and scalar concentration (c) at those edges.
+It applies a limiting factor to avoid division by a near-zero depth.</p>
+<dl class="simple">
+<dt>The key step involves computing:</dt><dd><p>divide_by_h = 2.0 * h / (h * h + ti.max(h * h, epsilon_c))</p>
+</dd>
+</dl>
+<p>where:</p>
+<ul class="simple">
+<li><p><cite>epsilon_c = max(epsilon, dB_max)</cite></p></li>
+<li><p><cite>epsilon</cite> is a small threshold to prevent division by zero,</p></li>
+<li><p><cite>dB_max</cite> represents the maximum bed-elevation difference across edges,
+ensuring the local depth used for velocity calculation is not less than
+the difference in water depth across an edge.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h</strong> (<em>ti.types.vector</em>) – Water depth at edges, shaped [N, E, S, W].</p></li>
+<li><p><strong>hu</strong> (<em>ti.types.vector</em>) – Momentum in the x-direction at edges.</p></li>
+<li><p><strong>hv</strong> (<em>ti.types.vector</em>) – Momentum in the y-direction at edges.</p></li>
+<li><p><strong>hc</strong> (<em>ti.types.vector</em>) – Scalar quantity (e.g. concentration) at edges.</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Small threshold to avoid division by zero in near-dry cells.</p></li>
+<li><p><strong>dB_max</strong> (<em>ti.types.vector</em><em> or </em><em>float</em>) – Maximum bed-elevation difference used to limit depth.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>(u, v, c) where each is a vector shaped [N, E, S, W].</dt><dd><ul class="simple">
+<li><p><strong>u</strong>: x-velocity at edges.</p></li>
+<li><p><strong>v</strong>: y-velocity at edges.</p></li>
+<li><p><strong>c</strong>: Scalar concentration at edges.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of ti.types.vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.CalcUV_Sed">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">CalcUV_Sed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hc1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hc2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hc3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hc4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dB_max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#CalcUV_Sed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.CalcUV_Sed" title="Link to this definition"></a></dt>
+<dd><p>Computes sediment scalar concentrations at cell edges given the water height.</p>
+<p>This function calculates four sediment-related quantities (e.g., scalar concentrations
+or sediment fractions) at the edges of a cell. It applies a limiting factor based on
+water depth (<cite>h</cite>) to avoid division by a near-zero depth and to account for
+significant bed-elevation differences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h</strong> (<em>float</em>) – Water depth at the cell edge.</p></li>
+<li><p><strong>hc1</strong> (<em>float</em>) – Sediment/scalar quantity #1 at the edge.</p></li>
+<li><p><strong>hc2</strong> (<em>float</em>) – Sediment/scalar quantity #2 at the edge.</p></li>
+<li><p><strong>hc3</strong> (<em>float</em>) – Sediment/scalar quantity #3 at the edge.</p></li>
+<li><p><strong>hc4</strong> (<em>float</em>) – Sediment/scalar quantity #4 at the edge.</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Small threshold to avoid division by zero.</p></li>
+<li><p><strong>dB_max</strong> (<em>float</em>) – Maximum bed-elevation difference, used in limiting depth.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 4-component vector containing the scaled sediment/scalar values
+<cite>[c1, c2, c3, c4]</cite> after applying the depth-limiting factor.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.Vector([float, float, float, float])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.ColorsfromMPL">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">ColorsfromMPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Blues'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#ColorsfromMPL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.ColorsfromMPL" title="Link to this definition"></a></dt>
+<dd><p>Extracts a small set of color values from a Matplotlib colormap.</p>
+<p>This function accesses any Matplotlib colormap by name, samples 16 color
+entries from it, and returns them as a NumPy array of type float16.
+Users can choose any of the built-in Matplotlib colormaps (e.g.,
+“viridis”, “jet”, “inferno”, “Blues”, etc.).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cmap</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the Matplotlib colormap to sample.
+Defaults to “Blues”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A (16, 4) array of RGBA color values (float16).</dt><dd><p>The array index corresponds to a discrete point along the
+specified colormap.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.FrictionCalc">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">FrictionCalc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isManning</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">differentiability</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#FrictionCalc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.FrictionCalc" title="Link to this definition"></a></dt>
+<dd><p>Computes a bottom friction term for shallow-water or Boussinesq-type flows.</p>
+<p>This function calculates a friction coefficient based on either a constant friction
+parameter (<cite>friction</cite>) or Manning’s formula (if <cite>isManning == 1</cite>), and then applies it
+to the momentum components. The water depth <cite>h</cite> is scaled by the <cite>base_depth</cite> for
+numerical stability and to avoid singularities near dry cells.</p>
+<p>The steps are:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Scale the water depth (<cite>h_scaled = h / base_depth</cite>) and compute powers
+(<cite>h2 = h_scaled^2</cite>, <cite>h4 = h2^2</cite>).</p></li>
+<li><p>Compute a term <cite>divide_by_h2</cite> which further scales friction based on squared depth.</p></li>
+<li><p>Ensure the local depth <cite>h</cite> is not below a small threshold <cite>delta</cite> to prevent
+division by zero.</p></li>
+<li><p>If <cite>isManning == 1</cite>, convert the <cite>friction</cite> input into Mannings n and compute:</p>
+<blockquote>
+<div><p>f = g * (friction^2) * (1 / h^(1/3))</p>
+</div></blockquote>
+<p>otherwise, keep a constant friction value.</p>
+</li>
+<li><p>Clamp the friction factor to a maximum of 0.5 as a safety measure.</p></li>
+<li><p>Multiply by the flow speed (computed from <cite>hu</cite>, <cite>hv</cite>) and the scaling factor
+<cite>divide_by_h2</cite>.</p></li>
+</ol>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hu</strong> (<em>float</em>) – Momentum in the x-direction.</p></li>
+<li><p><strong>hv</strong> (<em>float</em>) – Momentum in the y-direction.</p></li>
+<li><p><strong>h</strong> (<em>float</em>) – Local water depth.</p></li>
+<li><p><strong>base_depth</strong> (<em>float</em>) – Reference (base) depth for scaling.</p></li>
+<li><p><strong>delta</strong> (<em>float</em>) – Minimum threshold for water depth to avoid division by zero.</p></li>
+<li><p><strong>isManning</strong> (<em>int</em>) – If 1, uses Mannings n formulation; otherwise uses a constant friction.</p></li>
+<li><p><strong>g</strong> (<em>float</em>) – Gravitational acceleration.</p></li>
+<li><p><strong>friction</strong> (<em>float</em>) – Either a constant friction coefficient or Mannings n value
+depending on <cite>isManning</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Computed friction term, capped at 0.5, that will be applied to momentum.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.MinMod">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">MinMod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#MinMod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.MinMod" title="Link to this definition"></a></dt>
+<dd><p>Computes a simple minmod function of three values.</p>
+<p>The minmod function returns:</p>
+<ul class="simple">
+<li><p>The minimum among (a, b, c) if all three are positive.</p></li>
+<li><p>The maximum among (a, b, c) if all three are negative.</p></li>
+<li><p>Zero otherwise.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>float</em>) – First value.</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Second value.</p></li>
+<li><p><strong>c</strong> (<em>float</em>) – Third value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The minmod result based on the sign of the inputs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.NumericalFlux">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">NumericalFlux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aplus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aminus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fplus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fminus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Udifference</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#NumericalFlux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.NumericalFlux" title="Link to this definition"></a></dt>
+<dd><p>Computes a wave-speed-based numerical flux between two adjacent cells.</p>
+<p>This function calculates the flux across a cell interface using the wave speeds
+<cite>aplus</cite> (maximum positive speed) and <cite>aminus</cite> (maximum negative speed) along with
+flux values from the “plus” and “minus” sides (<cite>Fplus</cite>, <cite>Fminus</cite>) and the state
+difference (<cite>Udifference</cite>). If the wave speeds cancel each other out
+(<cite>aplus - aminus == 0.0</cite>), the flux is set to zero.</p>
+<p>The formula implemented is:</p>
+<blockquote>
+<div><p>flux = (aplus * Fminus - aminus * Fplus + (aplus * aminus) * Udifference) / (aplus - aminus)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aplus</strong> (<em>float</em>) – Maximum positive wave speed at the cell interface.</p></li>
+<li><p><strong>aminus</strong> (<em>float</em>) – Maximum negative wave speed at the cell interface.</p></li>
+<li><p><strong>Fplus</strong> (<em>float</em>) – Flux contribution from the “plus” (right) side.</p></li>
+<li><p><strong>Fminus</strong> (<em>float</em>) – Flux contribution from the “minus” (left) side.</p></li>
+<li><p><strong>Udifference</strong> (<em>float</em>) – Difference in the conserved variable across the interface
+(e.g., U_right - U_left).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed numerical flux. Returns 0.0 if <cite>(aplus - aminus) == 0.0</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.Reconstruct">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">Reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">west</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">east</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TWO_THETAc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#Reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.Reconstruct" title="Link to this definition"></a></dt>
+<dd><p>Performs a piecewise linear reconstruction of a variable using a generalized minmod limiter.</p>
+<p>This function takes three consecutive cell-centered values (<cite>west</cite>, <cite>here</cite>, and <cite>east</cite>)
+along with a limiter parameter (<cite>TWO_THETAc</cite>) and returns two reconstructed interface
+values at the current cell interfaces (left/right or west/east edges).</p>
+<p>The reconstruction logic:</p>
+<ul class="simple">
+<li><p>Computes slopes (z1, z2, z3) that scale differences between neighboring cells.</p></li>
+<li><p>Finds the minimum among those slopes (when all have the same sign) or zero otherwise.</p></li>
+<li><p>Applies a factor of 0.25 to that minimum slope to limit the reconstruction (i.e.,
+controlling oscillations).</p></li>
+<li><p>Returns the reconstructed values at the left (west) and right (east) edges of
+the current cell.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>west</strong> (<em>float</em>) – Value of the variable at the cell immediately to the left (j-1).</p></li>
+<li><p><strong>here</strong> (<em>float</em>) – Value of the variable at the current cell (j).</p></li>
+<li><p><strong>east</strong> (<em>float</em>) – Value of the variable at the cell immediately to the right (j+1).</p></li>
+<li><p><strong>TWO_THETAc</strong> (<em>float</em>) – Limiter parameter, typically 2 * theta, where theta is in range [1, 2]
+for generalized minmod-type limiters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 2-component vector representing the reconstructed value at:
+- [0]: The left (west) interface of the current cell.
+- [1]: The right (east) interface of the current cell.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.types.vector(2, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.ScalarAntiDissipation">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">ScalarAntiDissipation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uplus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uminus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aplus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aminus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#ScalarAntiDissipation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.ScalarAntiDissipation" title="Link to this definition"></a></dt>
+<dd><p>Computes an anti-dissipation factor based on local wave speeds and state magnitudes.</p>
+<p>This function calculates a dimensionless ratio <cite>R</cite> that adjusts numerical dissipation
+in a flux-based scheme. The ratio depends on the maximum wave speed (<cite>aplus</cite> or <cite>aminus</cite>)
+and the magnitudes of the state variables <cite>uplus</cite> and <cite>uminus</cite>. If both wave speeds are
+non-zero, a local “Froude-like” number is formed by dividing the larger magnitude of
+<cite>uplus</cite> or <cite>uminus</cite> by the respective wave speed. This number is then augmented by a
+small threshold <cite>epsilon</cite> to yield a final ratio between 0 and 1. If either wave speed
+is zero, the ratio is set to <cite>epsilon</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>uplus</strong> (<em>float</em>) – The “plus” state or velocity component.</p></li>
+<li><p><strong>uminus</strong> (<em>float</em>) – The “minus” state or velocity component.</p></li>
+<li><p><strong>aplus</strong> (<em>float</em>) – Positive wave speed at the cell interface.</p></li>
+<li><p><strong>aminus</strong> (<em>float</em>) – Negative wave speed at the cell interface.</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Small threshold to prevent division by zero or extreme values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Anti-dissipation ratio <cite>R</cite>. A value near 1 indicates lower numerical dissipation,
+while a value near 0 increases dissipation. Defaults to 0 if neither condition applies.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.celeris_matplotlib">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">celeris_matplotlib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seismic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'terrain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sediment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SedTrans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#celeris_matplotlib"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.celeris_matplotlib" title="Link to this definition"></a></dt>
+<dd><p>Creates a customized matplotlib color map for visualizing water, land/topography,
+and optionally sediment transport.</p>
+<p>This function merges three main color segments:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><strong>Water</strong>: Ranges from 0 to 0.75 or 0 to 0.5 (depending on sediment usage).</p></li>
+<li><p><strong>Sediment</strong> (optional): Placed between the water and land segments if <cite>SedTrans</cite> is True.</p></li>
+<li><dl class="simple">
+<dt><strong>Land/Topography</strong>: Assigned to the higher range of the color bar (e.g., 0.75 - 1 or 0.75 - 1</dt><dd><p>when <cite>SedTrans</cite> is False, and 0.75 - 1 when <cite>SedTrans</cite> is True).</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>water</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the colormap to use for water (default “seismic”).</p></li>
+<li><p><strong>land</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the colormap to use for land/topo (default “terrain”).</p></li>
+<li><p><strong>sediment</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the colormap to use for sediment. If “default”,
+a hard-coded set of color stops (skyblue, tan, peru, saddlebrown) is used.
+Otherwise, a user-specified colormap is merged (default “default”).</p></li>
+<li><p><strong>SedTrans</strong> (<em>bool</em><em>, </em><em>optional</em>) – Indicates whether sediment transport is active.
+If True, the colormap includes an additional segment for sediment;
+if False, only water and land segments are used (default False).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A single merged colormap with the
+specified segments for water, (optionally) sediment, and land.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.colors.LinearSegmentedColormap</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cmap_no_sed</span> <span class="o">=</span> <span class="n">celeris_matplotlib</span><span class="p">(</span><span class="n">SedTrans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmap_sed</span> <span class="o">=</span> <span class="n">celeris_matplotlib</span><span class="p">(</span><span class="n">water</span><span class="o">=</span><span class="s2">&quot;Blues&quot;</span><span class="p">,</span> <span class="n">sediment</span><span class="o">=</span><span class="s2">&quot;Reds&quot;</span><span class="p">,</span> <span class="n">SedTrans</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.celeris_waves">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">celeris_waves</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#celeris_waves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.celeris_waves" title="Link to this definition"></a></dt>
+<dd><p>Creates a custom color map (colormap) designed to represent realistic sea water gradients.</p>
+<p>This function defines a series of color stops spanning blues, greens, and yellows,
+which can be used to visualize water-related data (e.g., wave heights or velocities).
+The color map transitions from light blues (representing shallower or clearer water)
+through darker blues/greens, and finally into yellowish tones that can highlight
+areas of foam or breaking waves.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A color map object suitable for
+use with matplotlib plotting functions or other visualization frameworks.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.colors.LinearSegmentedColormap</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.cosh">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">cosh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#cosh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.cosh" title="Link to this definition"></a></dt>
+<dd><p>Returns the hyperbolic cosine of <cite>x</cite>.</p>
+<dl class="simple">
+<dt>The hyperbolic cosine is defined as:</dt><dd><p>cosh(x) = (e^x + e^(-x)) / 2</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>float</em>) – The input value.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value of the hyperbolic cosine of <cite>x</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="celeris.utils.sineWave">
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">sineWave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#sineWave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.sineWave" title="Link to this definition"></a></dt>
+<dd><p>Computes a sine wave (and related momentum terms) at a given point (x, y) and time t.</p>
+<p>This function uses a dispersion relation and hyperbolic tangent of wave depth
+to approximate wave number (k) and phase speed (c). It then calculates free-surface
+elevation (eta) and horizontal momentum components(hu, hv) based on wave parameters. An optional
+decay term is applied for certain wave types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate where the wave is evaluated.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate where the wave is evaluated.</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – Current time in the simulation.</p></li>
+<li><p><strong>d</strong> (<em>float</em>) – Local water depth.</p></li>
+<li><p><strong>amplitude</strong> (<em>float</em>) – Wave amplitude.</p></li>
+<li><p><strong>period</strong> (<em>float</em>) – Wave period.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Wave propagation angle in radians.</p></li>
+<li><p><strong>phase</strong> (<em>float</em>) – Additional phase offset.</p></li>
+<li><p><strong>g</strong> (<em>float</em>) – Gravitational acceleration.</p></li>
+<li><p><strong>wave_type</strong> (<em>int</em>) – Wave type indicator. If <cite>wave_type == 2</cite>, a decay multiplier
+is applied to the wave for demonstration/limiting purposes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A 3-component vector:</dt><dd><ul class="simple">
+<li><p><strong>eta</strong>: Free-surface elevation (wave height) above still water level.</p></li>
+<li><p><strong>hu</strong>: Momentum in the x-direction (wave speed * wave height).</p></li>
+<li><p><strong>hv</strong>: Momentum in the y-direction (wave speed * wave height).</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ti.Vector([float, float, float])</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>The calculation for wave number <cite>k</cite> uses a simplified relationship assuming
+linear wave theory with a hyperbolic tangent term for finite depth.</p></li>
+<li><p>The term <cite>ti.min(1.0, t / period)</cite> is used to gradually ramp up the wave
+from zero at t=0 (avoid sudden wave onset).</p></li>
+<li><p>If <cite>wave_type == 2</cite>, an additional decay factor is applied as <cite>t</cite> approaches
+<cite>num_waves * period</cite> (here <cite>num_waves</cite> is hard-coded to 4 in the example). For a transient pulse</p></li>
+<li><p>The returned <cite>hu</cite> and <cite>hv</cite> are computed as a fraction of <cite>g * eta / (c * k) * tanh(k * d)</cite>,
+scaled by the direction cosines <cite>(cos(theta), sin(theta))</cite>.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-celeris">
+<span id="current-version"></span><h2>Current Version<a class="headerlink" href="#module-celeris" title="Link to this heading"></a></h2>
+<p>CelerisAi is a Python-Taichi-based software designed for nearshore wave modeling. This solver offers high-performance simulations on various hardware platforms and seamlessly integrates with machine learning and artificial intelligence environments. The solver leverages the flexibility of Python for customization and interoperability, while Taichi’s high-performance parallel programming capabilities ensure efficient computations.</p>
+<p>This package contains modules for running domain-specific simulations, solving
+problems, and providing general utilities:</p>
+<ul class="simple">
+<li><p><strong>domain.py</strong>: Contains classes and functions defining the problem domain.</p></li>
+<li><p><strong>runner.py</strong>: Manages the execution flow, including initialization and orchestration.</p></li>
+<li><p><strong>solver.py</strong>: Implements the core solver logic for the defined domain and mathematical models.</p></li>
+<li><p><strong>utils.py</strong>: A collection of helper utilities used across the package.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">celeris</span><span class="w"> </span><span class="kn">import</span> <span class="n">domain</span><span class="p">,</span> <span class="n">runner</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">domain_obj</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">Domain</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solver_obj</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">Solver</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">domain_obj</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">runner_obj</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">Evolve</span><span class="p">(</span><span class="n">solver</span> <span class="o">=</span> <span class="n">solver_obj</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">runner_obj</span><span class="o">.</span><span class="n">Evolve_Headless</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.__version__">
+<span class="sig-prename descclassname"><span class="pre">celeris.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><a class="headerlink" href="#celeris.__version__" title="Link to this definition"></a></dt>
+<dd><p>The current version of the CelerisAi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="Celeris Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lynett Wave Research Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
