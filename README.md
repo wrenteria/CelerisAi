@@ -43,11 +43,20 @@ The full user guide, API references, and examples live in the Sphinx docs under 
 ## Examples
 After installing, run one of the sample simulations:
 
+### 1D simulation with CelerisAI
+Minimal 1D setup script for running CelerisAI.
+
+[1D profile](./setrun_1D.py)
+
+![1Dprofile](docs/source/images/Celeris1D.gif)
 ```bash
 python setrun_1D.py
 ```
 
 ### Using CelerisWEBGPU configuration
+
+Run a CelerisAI example using the SAME configuration layout as [CelerisWEBGPU](https://plynett.github.io/).
+
 [Balboa beach](./setrun_web.py)
 
 ![Balboa](docs/source/images/BalboaBeach.gif)
