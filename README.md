@@ -38,7 +38,7 @@ pip install -e .
 ```
 
 ## Documentation
-The full user guide, API references, and examples live in the Sphinx docs under `docs/`. Once GitHub Pages is enabled, add the hosted documentation URL here.
+The full user guide, API references, and examples live in the Sphinx docs under `docs/`. Hosted documentation is available at [CelerisAi’s documentation](https://wrenteria.github.io/CelerisAi/).
 
 ## Examples
 After installing, run one of the sample simulations:
