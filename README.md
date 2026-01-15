@@ -50,7 +50,7 @@ python setrun_1D.py
 ### Using CelerisWEBGPU configuration
 [Balboa beach](./setrun_web.py)
 
-![Balboa](docs/source/images/Balboa.gif)
+![Balboa](docs/source/images/BalboaBeach.gif)
 ```bash
 python setrun_web.py
 ```
