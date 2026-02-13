@@ -73,6 +73,13 @@ You can change this with `plot_interval`:
 run = Evolve(solver=solver, maxsteps=10000, saveimg=True, plot_interval=25)
 ```
 
+## Tutorial Notebooks
+
+Jupyter tutorials that mirror the main run scripts are available in `notebooks/`:
+
+- [`notebooks/setrun_1D_tutorial.ipynb`](notebooks/setrun_1D_tutorial.ipynb): step-by-step 1D setup from `setrun_1D.py`.
+- [`notebooks/setrun_web_tutorial.ipynb`](notebooks/setrun_web_tutorial.ipynb): CelerisWebGPU-style 2D case setup from `setrun_web.py`.
+
 ## Dependencies
 ### Core requirements
 Installed automatically by `pip install -e .`:
