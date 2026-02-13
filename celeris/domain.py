@@ -304,16 +304,17 @@ class BoundaryConditions:
         Loads wave parameters from `waves.txt` if `WaveType` is -1.
 
         Behavior:
-        - If no boundary is configured as incoming-wave (`*_boundary_type != 2`),
-          file loading is skipped and a benign zero-wave placeholder is used.
-        - If an incoming-wave boundary is active, a valid wave file is required.
-          Missing files raise a `FileNotFoundError` with guidance.
-        - If a valid file is found, it reads the wave parameters:
+            - If no boundary is configured as incoming-wave (`*_boundary_type != 2`),
+              file loading is skipped and a benign zero-wave placeholder is used.
+            - If an incoming-wave boundary is active, a valid wave file is required.
+              Missing files raise a `FileNotFoundError` with guidance.
+            - If a valid file is found, it reads the wave parameters.
 
-        - The first three lines are header-like info (only the 'NumberOfWaves' line is used).
-        - After skipping three lines, wave parameters are loaded. The shape of `self.data`
-          is `(N_data, 4)`, where `N_data` is determined by reading the 'NumberOfWaves' 
-          line in the file.
+        File format:
+            - The first three lines are header-like info (only the 'NumberOfWaves' line is used).
+            - After skipping three lines, wave parameters are loaded. The shape of `self.data`
+              is `(N_data, 4)`, where `N_data` is determined by reading the 'NumberOfWaves'
+              line in the file.
         """
         if self.WaveType==-1:
             if not self.has_incoming_wave_boundary():

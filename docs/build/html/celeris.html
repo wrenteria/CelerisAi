@@ -443,7 +443,8 @@ from NumPy arrays to Taichi tensors.</p>
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.get_data">
 <span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.get_data" title="Link to this definition"></a></dt>
 <dd><p>Ensures wave data is loaded if reading from a file, then returns a Taichi field.</p>
-<p>If <cite>WaveType</cite> is -1, calls <cite>load_data()</cite> to populate <cite>self.data</cite> from the file.
+<p>If <cite>WaveType</cite> is -1, calls <cite>load_data()</cite> to populate <cite>self.data</cite> either from file
+or from a zero-wave placeholder (when no incoming-wave boundaries are active).
 Converts the resulting NumPy array into a Taichi field and returns it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -456,16 +457,32 @@ Converts the resulting NumPy array into a Taichi field and returns it.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.has_incoming_wave_boundary">
+<span class="sig-name descname"><span class="pre">has_incoming_wave_boundary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.has_incoming_wave_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.has_incoming_wave_boundary" title="Link to this definition"></a></dt>
+<dd><p>Returns True when at least one boundary is configured as incoming wave (type=2).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.load_data">
 <span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.load_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.load_data" title="Link to this definition"></a></dt>
 <dd><p>Loads wave parameters from <cite>waves.txt</cite> if <cite>WaveType</cite> is -1.</p>
-<p>If a valid file is found, it reads the wave parameters:</p>
-<ul class="simple">
+<dl class="simple">
+<dt>Behavior:</dt><dd><ul class="simple">
+<li><p>If no boundary is configured as incoming-wave (<cite>*_boundary_type != 2</cite>),
+file loading is skipped and a benign zero-wave placeholder is used.</p></li>
+<li><p>If an incoming-wave boundary is active, a valid wave file is required.
+Missing files raise a <cite>FileNotFoundError</cite> with guidance.</p></li>
+<li><p>If a valid file is found, it reads the wave parameters.</p></li>
+</ul>
+</dd>
+<dt>File format:</dt><dd><ul class="simple">
 <li><p>The first three lines are header-like info (only the ‘NumberOfWaves’ line is used).</p></li>
 <li><p>After skipping three lines, wave parameters are loaded. The shape of <cite>self.data</cite>
 is <cite>(N_data, 4)</cite>, where <cite>N_data</cite> is determined by reading the ‘NumberOfWaves’
 line in the file.</p></li>
 </ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1509,7 +1526,7 @@ reduction solver (PCR) to handle dispersion terms.</p>
 <span id="runner-module"></span><h2>Runner module<a class="headerlink" href="#module-celeris.runner" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="celeris.runner.Evolve">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.runner.</span></span><span class="sig-name descname"><span class="pre">Evolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_conditions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveimg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.runner.</span></span><span class="sig-name descname"><span class="pre">Evolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_conditions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveimg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_1d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_1d_overlays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">one_d_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">one_d_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve" title="Link to this definition"></a></dt>
 <dd><p>Controls and runs the main simulation loop of CelerisAi in various modes (headless,
 1D, 2D with visualization, etc.).</p>
 <p>This class ties together the <cite>Domain</cite>, <cite>BoundaryConditions</cite>, and <cite>Solver</cite> classes, and
@@ -1573,6 +1590,15 @@ solver results, for real-time visualization.</p></li>
 Defaults to False.</p></li>
 <li><p><strong>vmin</strong> (<em>float</em><em>, </em><em>optional</em>) – Minimum value for visualization color scaling (e.g. wave elevation). Defaults to -1.5.</p></li>
 <li><p><strong>vmax</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum value for visualization color scaling. Defaults to 1.5.</p></li>
+<li><p><strong>plot_interval</strong> (<em>int</em><em>, </em><em>optional</em>) – Progress/log/frame cadence in steps. Defaults to 100.</p></li>
+<li><p><strong>y_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – 1D vertical scaling mode. <cite>‘auto’</cite> recomputes limits from current fields;
+<cite>‘fixed’</cite> uses <cite>y_limits</cite>. Defaults to <cite>‘auto’</cite>.</p></li>
+<li><p><strong>y_limits</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Fixed <cite>(y_min, y_max)</cite> for 1D plotting when <cite>y_mode=’fixed’</cite>.</p></li>
+<li><p><strong>y_margin</strong> (<em>float</em><em>, </em><em>optional</em>) – Relative vertical padding used in auto mode. Defaults to 0.1.</p></li>
+<li><p><strong>fill_1d</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, 1D display renders filled land/water background. Defaults to True.</p></li>
+<li><p><strong>show_1d_overlays</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, overlays eta/bottom markers/lines in 1D view. Defaults to True.</p></li>
+<li><p><strong>one_d_width</strong> (<em>int</em><em>, </em><em>optional</em>) – Width of 1D display window. Defaults to 1000.</p></li>
+<li><p><strong>one_d_height</strong> (<em>int</em><em>, </em><em>optional</em>) – Height of 1D display window. Defaults to 200.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1704,9 +1730,20 @@ Defaults to False.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.x_scale">
+<span class="sig-name descname"><span class="pre">x_scale</span></span><a class="headerlink" href="#celeris.runner.Evolve.x_scale" title="Link to this definition"></a></dt>
+<dd><p>Horizontal normalization for 1D plot coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">x_scale,</span> <span class="pre">y_scale</span></span></dt>
-<dd><p>Scaling factors for 1D plots in the GUI.</p>
+<span class="sig-name descname"><span class="pre">plot_y_min,</span> <span class="pre">plot_y_max</span></span></dt>
+<dd><p>Current vertical plotting limits for 1D view.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
@@ -1747,10 +1784,14 @@ to match user-defined styles or to highlight specific flow features.</p></li>
 <span class="sig-name descname"><span class="pre">Evolve_1D_Display</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.Evolve_1D_Display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.Evolve_1D_Display" title="Link to this definition"></a></dt>
 <dd><p>Interactive loop for a 1D simulation of CelerisAi.</p>
 <ul class="simple">
-<li><p>Initializes bottom, runs the main solver steps, and displays the results
-in a small taichi-gui or GGUI window.</p></li>
-<li><p>Plots the free surface (eta) and bottom profile in each iteration.</p></li>
-<li><p>Optionally saves frames and can compile them into a GIF if desired.</p></li>
+<li><p>Initializes fields via <cite>Evolve_0()</cite>.</p></li>
+<li><p>Updates 1D vertical scale (auto or fixed) and maps bottom/eta to window coordinates.</p></li>
+<li><p>Optionally renders a filled background:
+- brown below bottom (land)
+- steel-blue between bottom and eta (water)</p></li>
+<li><p>Optionally overlays eta points and bottom profile line/points.</p></li>
+<li><p>Saves frames at <cite>plot_interval</cite> when <cite>saveimg=True</cite>, and can compile them into a GIF.</p></li>
+<li><p>Stops when <cite>i &gt;= maxsteps</cite>.</p></li>
 </ul>
 </dd></dl>
 
@@ -1772,7 +1813,7 @@ and the solver has sediment transport enabled.</p></li>
 </dd>
 </dl>
 </li>
-<li><p>Saves frames if <cite>saveimg</cite> is True, can compile them into a GIF, and optionally
+<li><p>Saves frames if <cite>saveimg</cite> is True (at <cite>plot_interval</cite> cadence), can compile them into a GIF, and optionally
 saves solver states to <cite>.npy</cite>.</p></li>
 </ul>
 <dl class="field-list simple">
@@ -1798,7 +1839,7 @@ and optionally saving states to disk.</p>
 <dt>Steps:</dt><dd><ol class="arabic simple">
 <li><p>Calls Evolve_0() to initialize fields and solver state.</p></li>
 <li><p>Loops over <cite>maxsteps</cite>, calling Evolve_Steps() each iteration.</p></li>
-<li><p>Logs simulation time and performance metrics every 100 steps.</p></li>
+<li><p>Logs simulation time and performance metrics every <cite>plot_interval</cite> steps.</p></li>
 <li><p>If an output directory is specified, saves solver state arrays to .npy files.</p></li>
 </ol>
 </dd>
@@ -1839,7 +1880,7 @@ internal taichi field <cite>self.ocean</cite>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="celeris.runner.Evolve.bottom_paint">
 <span class="sig-name descname"><span class="pre">bottom_paint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.bottom_paint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.bottom_paint" title="Link to this definition"></a></dt>
-<dd><p>Fills <cite>bottom1D</cite> with scaled bottom data for 1D visualization.
+<dd><p>Fills <cite>bottom1D</cite> with x-normalized and y-normalized bottom values for 1D visualization.
 Also populates <cite>indexbottom1D</cite> so that line plotting can connect them in order.</p>
 </dd></dl>
 
@@ -1856,7 +1897,7 @@ Also populates <cite>indexbottom1D</cite> so that line plotting can connect them
 <dl class="py method">
 <dt class="sig sig-object py" id="celeris.runner.Evolve.eta_paint">
 <span class="sig-name descname"><span class="pre">eta_paint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.eta_paint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.eta_paint" title="Link to this definition"></a></dt>
-<dd><p>Fills <cite>eta1D</cite> with scaled free-surface data for 1D visualization.</p>
+<dd><p>Fills <cite>eta1D</cite> with x-normalized and y-normalized free-surface values.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1868,6 +1909,19 @@ Also populates <cite>indexbottom1D</cite> so that line plotting can connect them
 <li><p>Interpolates water color if flow depth &gt; 0.0001.</p></li>
 <li><p>If sediment transport is enabled, merges sediment concentration into final color.</p></li>
 </ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.paint_1d_fill">
+<span class="sig-name descname"><span class="pre">paint_1d_fill</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.paint_1d_fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.paint_1d_fill" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Fills a 2D image for 1D display:</dt><dd><ul class="simple">
+<li><p>land: below bathymetry</p></li>
+<li><p>water: between bathymetry and free surface</p></li>
+<li><p>air: above free surface</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1907,6 +1961,16 @@ based on water depth or topography.</p>
 <li><p>Approximates vorticity by differences in velocity between adjacent cells.</p></li>
 <li><p>Normalizes the result into [vmin, vmax] for color lookups in <cite>ocean</cite>.</p></li>
 <li><p>Distinguishes water vs. land similar to <cite>painting_h</cite>/<cite>painting_eta</cite>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.update_1d_plot_scale">
+<span class="sig-name descname"><span class="pre">update_1d_plot_scale</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.update_1d_plot_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.update_1d_plot_scale" title="Link to this definition"></a></dt>
+<dd><p>Updates vertical plotting limits for 1D display.</p>
+<ul class="simple">
+<li><p>auto: derive limits from current bottom and free-surface fields.</p></li>
+<li><p>fixed: use explicit y_limits.</p></li>
 </ul>
 </dd></dl>
 

@@ -66,3 +66,15 @@ For a 2D example based on the configuration files created by CelerisWebGPU, exec
 
 For more details on configuring CelerisWebGPU, please refer to its application at
 `CelerisWebGPU <https://plynett.github.io/>`_.
+
+Output cadence (logs and saved frames)
+--------------------------------------
+
+In ``Evolve``, progress logging and frame export cadence are controlled by
+``plot_interval`` (default: ``100`` steps).
+
+.. code-block:: python
+
+   run = Evolve(solver=solver, maxsteps=10000, saveimg=True, plot_interval=25)
+
+If ``saveimg=True``, images are saved at this same interval.

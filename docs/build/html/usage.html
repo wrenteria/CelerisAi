@@ -50,6 +50,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#downloading-the-source-code">Downloading the Source Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#editable-install-recommended">Editable Install (Recommended)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-the-examples">Running the Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-cadence-logs-and-saved-frames">Output cadence (logs and saved frames)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Celeris Modules</a></li>
@@ -125,6 +126,15 @@ modifying <code class="docutils literal notranslate"><span class="pre">sys.path<
 </div>
 <p>For more details on configuring CelerisWebGPU, please refer to its application at
 <a class="reference external" href="https://plynett.github.io/">CelerisWebGPU</a>.</p>
+</section>
+<section id="output-cadence-logs-and-saved-frames">
+<h2>Output cadence (logs and saved frames)<a class="headerlink" href="#output-cadence-logs-and-saved-frames" title="Link to this heading"></a></h2>
+<p>In <code class="docutils literal notranslate"><span class="pre">Evolve</span></code>, progress logging and frame export cadence are controlled by
+<code class="docutils literal notranslate"><span class="pre">plot_interval</span></code> (default: <code class="docutils literal notranslate"><span class="pre">100</span></code> steps).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="o">=</span> <span class="n">Evolve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">maxsteps</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">saveimg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_interval</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">saveimg=True</span></code>, images are saved at this same interval.</p>
 </section>
 </section>
 
