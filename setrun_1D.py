@@ -114,7 +114,7 @@ solver = Solver(
 # 4) Run / Evolve
 # -----------------------------------------------------------------------------
 # maxsteps: number of time steps to run
-run = Evolve(solver=solver, maxsteps=10000)
+run = Evolve(solver=solver, maxsteps=6000,saveimg=True)
 
 # Display mode (1D visualization)
 run.Evolve_1D_Display()

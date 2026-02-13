@@ -72,7 +72,7 @@ solver.model ='Bouss'
 
 # 5) Execution
 # saveimg=True , will save plots at ./plots directory
-run = Evolve(solver = solver, maxsteps= 10000, saveimg=True)
+run = Evolve(solver = solver, maxsteps= 6000, saveimg=True)
 
 # Visualization:
 # variable options depend on what the solver exposes; common ones are:

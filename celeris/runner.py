@@ -120,7 +120,7 @@ class Evolve:
                  y_limits=None,
                  y_margin=0.1,
                  fill_1d=True,
-                 show_1d_overlays=True,
+                 show_1d_overlays=False,
                  one_d_width=1000,
                  one_d_height=200,
                  ):
