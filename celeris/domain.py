@@ -260,6 +260,12 @@ class BoundaryConditions:
 
 
 
+    def has_incoming_wave_boundary(self):
+        """
+        Returns True when at least one boundary is configured as incoming wave (type=2).
+        """
+        return (self.West == 2) or (self.East == 2) or (self.South == 2) or (self.North == 2)
+
     def Sponge(self,width=None):
         """
         Returns the sponge (boundary) width to be used in the model.
@@ -305,6 +311,20 @@ class BoundaryConditions:
           line in the file.
         """
         if self.WaveType==-1:
+            if not self.has_incoming_wave_boundary():
+                # No incoming-wave boundaries are active; keep a benign placeholder.
+                self.N_data = 1
+                self.data = np.zeros((1, 4), ti2np(self.precision))
+                return
+
+            if (self.filename is None) or (not os.path.isfile(self.filename)):
+                raise FileNotFoundError(
+                    "Wave input file is required because an incoming-wave boundary (type=2) is active. "
+                    f"Expected file: '{self.filename}'. "
+                    "Set `WaveType != -1` to use analytic/sine/solitary forcing, "
+                    "or provide a valid `path`/`filename` for the wave time series."
+                )
+
             with open(self.filename,'r') as wavefile:
                 for line in wavefile:
                     if 'NumberOfWaves' in line:
