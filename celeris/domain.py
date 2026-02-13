@@ -303,7 +303,12 @@ class BoundaryConditions:
         """
         Loads wave parameters from `waves.txt` if `WaveType` is -1.
 
-        If a valid file is found, it reads the wave parameters:
+        Behavior:
+        - If no boundary is configured as incoming-wave (`*_boundary_type != 2`),
+          file loading is skipped and a benign zero-wave placeholder is used.
+        - If an incoming-wave boundary is active, a valid wave file is required.
+          Missing files raise a `FileNotFoundError` with guidance.
+        - If a valid file is found, it reads the wave parameters:
 
         - The first three lines are header-like info (only the 'NumberOfWaves' line is used).
         - After skipping three lines, wave parameters are loaded. The shape of `self.data`
@@ -343,7 +348,8 @@ class BoundaryConditions:
         """
         Ensures wave data is loaded if reading from a file, then returns a Taichi field.
 
-        If `WaveType` is -1, calls `load_data()` to populate `self.data` from the file.
+        If `WaveType` is -1, calls `load_data()` to populate `self.data` either from file
+        or from a zero-wave placeholder (when no incoming-wave boundaries are active).
         Converts the resulting NumPy array into a Taichi field and returns it.
 
         Returns:

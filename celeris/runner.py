@@ -69,6 +69,15 @@ class Evolve:
             Defaults to False.
         vmin (float, optional): Minimum value for visualization color scaling (e.g. wave elevation). Defaults to -1.5.
         vmax (float, optional): Maximum value for visualization color scaling. Defaults to 1.5.
+        plot_interval (int, optional): Progress/log/frame cadence in steps. Defaults to 100.
+        y_mode (str, optional): 1D vertical scaling mode. `'auto'` recomputes limits from current fields;
+            `'fixed'` uses `y_limits`. Defaults to `'auto'`.
+        y_limits (tuple, optional): Fixed `(y_min, y_max)` for 1D plotting when `y_mode='fixed'`.
+        y_margin (float, optional): Relative vertical padding used in auto mode. Defaults to 0.1.
+        fill_1d (bool, optional): If True, 1D display renders filled land/water background. Defaults to True.
+        show_1d_overlays (bool, optional): If True, overlays eta/bottom markers/lines in 1D view. Defaults to True.
+        one_d_width (int, optional): Width of 1D display window. Defaults to 1000.
+        one_d_height (int, optional): Height of 1D display window. Defaults to 200.
 
     Attributes:
         solver (Solver): The numerical solver controlling fluid/morphodynamics.
@@ -83,7 +92,8 @@ class Evolve:
         ocean (ti.Vector.field): 1D array of color samples (RGB) for water visualization or general colormap usage.
         colormap_ocean (str): A string identifier for the colormap used for water.
         bottom1D, indexbottom1D, eta1D: Fields used in 1D visualization of bottom topography and water surface.
-        x_scale, y_scale (float): Scaling factors for 1D plots in the GUI.
+        x_scale (float): Horizontal normalization for 1D plot coordinates.
+        plot_y_min, plot_y_max (float): Current vertical plotting limits for 1D view.
 
     Typical Usage:
     
@@ -106,6 +116,13 @@ class Evolve:
                  vmin=-1.5,
                  vmax=1.5,
                  plot_interval=100,
+                 y_mode='auto',
+                 y_limits=None,
+                 y_margin=0.1,
+                 fill_1d=True,
+                 show_1d_overlays=True,
+                 one_d_width=1000,
+                 one_d_height=200,
                  ):
         self.solver = solver
         self.maxsteps=maxsteps
@@ -116,16 +133,25 @@ class Evolve:
         self.vmax = vmax
         self.outdir = outdir
         self.plot_interval = max(1, int(plot_interval))
+        self.y_mode = y_mode
+        self.y_limits = y_limits
+        self.y_margin = max(0.0, float(y_margin))
+        self.fill_1d = bool(fill_1d)
+        self.show_1d_overlays = bool(show_1d_overlays)
+        self.one_d_width = max(64, int(one_d_width))
+        self.one_d_height = max(64, int(one_d_height))
         # To visualization
         self.image = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx,self.solver.ny))
+        self.image1D = ti.Vector.field(3, dtype=ti.f32, shape=(self.one_d_width, self.one_d_height))
         self.ocean = ti.Vector.field(3, dtype=ti.f16, shape=16)
         self.colormap_ocean = 'Blues_r'
         # To visualize 1D
         self.bottom1D = ti.Vector.field(2, dtype=ti.f32, shape = self.solver.nx)
         self.indexbottom1D = ti.field(dtype=ti.i32, shape = 2*self.solver.nx)
         self.eta1D = ti.Vector.field(2, dtype=ti.f32, shape = self.solver.nx)
-        self.x_scale = self.solver.nx * self.solver.dx
-        self.y_scale = 2 * self.solver.base_depth
+        self.x_scale = max(self.solver.dx, (self.solver.nx - 1) * self.solver.dx)
+        self.plot_y_min = -float(self.solver.base_depth)
+        self.plot_y_max = float(self.solver.base_depth)
 
     def Evolve_0(self):
         """
@@ -443,12 +469,13 @@ class Evolve:
     @ti.kernel
     def bottom_paint(self):
         """
-        Fills `bottom1D` with scaled bottom data for 1D visualization.
+        Fills `bottom1D` with x-normalized and y-normalized bottom values for 1D visualization.
         Also populates `indexbottom1D` so that line plotting can connect them in order.
         """
         for i in self.bottom1D:
             self.bottom1D[i].x = i*self.solver.dx/self.x_scale
-            self.bottom1D[i].y = 0.5+self.solver.Bottom[2,i,0]/self.y_scale
+            y_span = ti.max(1e-6, self.plot_y_max - self.plot_y_min)
+            self.bottom1D[i].y = (self.solver.Bottom[2,i,0] - self.plot_y_min) / y_span
 
         for i in range(2*self.solver.nx-2):
             self.indexbottom1D[i] = (i + 1) // 2
@@ -457,20 +484,87 @@ class Evolve:
     @ti.kernel
     def eta_paint(self):
         """
-        Fills `eta1D` with scaled free-surface data for 1D visualization.
+        Fills `eta1D` with x-normalized and y-normalized free-surface values.
         """
         for i in self.eta1D:
             self.eta1D[i].x = i*self.solver.dx/self.x_scale
-            self.eta1D[i].y = 0.5+self.solver.State[i,0][0]/20
+            y_span = ti.max(1e-6, self.plot_y_max - self.plot_y_min)
+            self.eta1D[i].y = (self.solver.State[i,0][0] - self.plot_y_min) / y_span
+
+    @ti.kernel
+    def paint_1d_fill(self):
+        """
+        Fills a 2D image for 1D display:
+          - land: below bathymetry
+          - water: between bathymetry and free surface
+          - air: above free surface
+        """
+        nxm1 = ti.max(1, self.solver.nx - 1)
+        y_span = ti.max(1e-6, self.plot_y_max - self.plot_y_min)
+
+        for ix, iy in self.image1D:
+            x_norm = ti.cast(ix, ti.f32) / ti.cast(self.one_d_width - 1, ti.f32)
+            xf = x_norm * ti.cast(nxm1, ti.f32)
+            i0 = ti.cast(ti.floor(xf), ti.i32)
+            i1 = ti.min(i0 + 1, self.solver.nx - 1)
+            alpha = xf - ti.cast(i0, ti.f32)
+
+            b0 = self.solver.Bottom[2, i0, 0]
+            b1 = self.solver.Bottom[2, i1, 0]
+            e0 = self.solver.State[i0, 0][0]
+            e1 = self.solver.State[i1, 0][0]
+            bottom = b0 * (1.0 - alpha) + b1 * alpha
+            eta = e0 * (1.0 - alpha) + e1 * alpha
+
+            y_norm = ti.cast(iy, ti.f32) / ti.cast(self.one_d_height - 1, ti.f32)
+            y_val = self.plot_y_min + y_norm * y_span
+
+            if y_val <= bottom:
+                self.image1D[ix, iy] = ti.Vector([0.55, 0.38, 0.22])  # land (brown)
+            elif (eta > bottom) and (y_val <= eta):
+                self.image1D[ix, iy] = ti.Vector([0.27, 0.51, 0.71])  # water (steel blue)
+            else:
+                self.image1D[ix, iy] = ti.Vector([0.96, 0.98, 1.00])  # air/background
+
+    def update_1d_plot_scale(self):
+        """
+        Updates vertical plotting limits for 1D display.
+
+        - auto: derive limits from current bottom and free-surface fields.
+        - fixed: use explicit y_limits.
+        """
+        if self.y_mode == 'fixed' and self.y_limits is not None:
+            y_min, y_max = float(self.y_limits[0]), float(self.y_limits[1])
+        else:
+            bottom = self.solver.Bottom.to_numpy()[2, :, 0]
+            eta = self.solver.State.to_numpy()[:, 0, 0]
+            y_min = float(min(bottom.min(), eta.min()))
+            y_max = float(max(bottom.max(), eta.max()))
+            span = y_max - y_min
+            margin = max(1e-3, self.y_margin * (span if span > 0 else max(1.0, abs(y_max), abs(y_min))))
+            y_min -= margin
+            y_max += margin
+
+        if y_max - y_min < 1e-6:
+            c = 0.5 * (y_min + y_max)
+            y_min = c - 0.5
+            y_max = c + 0.5
+
+        self.plot_y_min = y_min
+        self.plot_y_max = y_max
     
     def Evolve_1D_Display(self):
         """
         Interactive loop for a 1D simulation of CelerisAi.
 
-        - Initializes bottom, runs the main solver steps, and displays the results 
-          in a small taichi-gui or GGUI window.
-        - Plots the free surface (eta) and bottom profile in each iteration.
-        - Optionally saves frames and can compile them into a GIF if desired.
+        - Initializes fields via `Evolve_0()`.
+        - Updates 1D vertical scale (auto or fixed) and maps bottom/eta to window coordinates.
+        - Optionally renders a filled background:
+          - brown below bottom (land)
+          - steel-blue between bottom and eta (water)
+        - Optionally overlays eta points and bottom profile line/points.
+        - Saves frames at `plot_interval` when `saveimg=True`, and can compile them into a GIF.
+        - Stops when `i >= maxsteps`.
         """
         plotpath = './plots'
         if not os.path.exists(plotpath):
@@ -480,7 +574,7 @@ class Evolve:
         window = None
         canvas = None
         try:
-            window = ti.ui.Window("CelerisAi(1D)", (1000,200))
+            window = ti.ui.Window("CelerisAi(1D)", (self.one_d_width, self.one_d_height))
             canvas = window.get_canvas()
             canvas.set_background_color(color=(1,1,1))
             use_ggui = True
@@ -490,7 +584,7 @@ class Evolve:
             use_ggui = False
             use_fast_gui = False # Need ti.Vector.field equiv to self.solver.pixel to use fast_gui
             window = ti.GUI(  # noqa: F405
-                'CelerisAi(1D)', (1000, 200), fast_gui=use_fast_gui
+                'CelerisAi(1D)', (self.one_d_width, self.one_d_height), fast_gui=use_fast_gui
                 ) # fast_gui - display directly on frame buffer if not drawing shapes or text
             canvas = None
             print("Legacy GUI initialized.")
@@ -498,17 +592,28 @@ class Evolve:
             print("GGUI initialized without issues.")
 
         self.Evolve_0()
+        self.update_1d_plot_scale()
         self.bottom_paint() # To plot the bottom line
         start_time = time.time() - 0.00001
 
         while window.running:
+            if self.y_mode == 'auto':
+                self.update_1d_plot_scale()
+                self.bottom_paint()
             self.eta_paint()
             if use_ggui:
-                canvas.circles(self.eta1D,radius=0.005,color = (0., 150/255., 255./255))
-                canvas.lines(self.bottom1D,width=0.01,indices=self.indexbottom1D,color = (128/255., 0.0, 0.))
+                if self.fill_1d:
+                    self.paint_1d_fill()
+                    canvas.set_image(self.image1D)
+                if self.show_1d_overlays:
+                    canvas.circles(self.eta1D,radius=0.0035,color = (0., 150/255., 255./255))
+                    canvas.lines(self.bottom1D,width=0.006,indices=self.indexbottom1D,color = (128/255., 0.0, 0.))
             else:
-                canvas.circles(self.eta1D,radius=0.005,color = (0., 150/255., 255./255))
-                canvas.circles(self.bottom1D,radius=0.0075,color = (255/255., 87/255., 51./250))
+                if self.fill_1d:
+                    window.set_image(self.image1D)
+                if self.show_1d_overlays:
+                    window.circles(self.eta1D.to_numpy(),radius=2,color = 0x0096FF)
+                    window.circles(self.bottom1D.to_numpy(),radius=2,color = 0xFF5733)
             
             self.Evolve_Steps(i)
 
@@ -533,7 +638,7 @@ class Evolve:
            
             window.show()
             
-            if i > self.maxsteps:
+            if i >= self.maxsteps:
                 if frame_paths: # Check if there are frames to create a GIF
                     gif_filename = f"video.gif"
                     gif_path = os.path.join(base_frame_dir, gif_filename)
@@ -561,7 +666,7 @@ class Evolve:
             * `h`: Water depth
             * `eta`: Free surface elevation
             * `vor`: Vorticity
-        - Saves frames if `saveimg` is True, can compile them into a GIF, and optionally 
+        - Saves frames if `saveimg` is True (at `plot_interval` cadence), can compile them into a GIF, and optionally 
           saves solver states to `.npy`.
 
         Args:
@@ -688,7 +793,7 @@ class Evolve:
                 # Improve the performance.The visualization is done only every 5 timesteps
                 window.show()
             
-            if i > self.maxsteps:
+            if i >= self.maxsteps:
                 if frame_paths: # Check if there are frames to create a GIF
                     gif_filename = f"video.gif"
                     gif_path = os.path.join(base_frame_dir, gif_filename)
