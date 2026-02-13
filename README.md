@@ -64,6 +64,15 @@ Run a CelerisAI example using the SAME configuration layout as [CelerisWEBGPU](h
 python setrun_web.py
 ```
 
+### Control image/log output interval
+
+`Evolve` prints progress and saves frames (when `saveimg=True`) every 100 steps by default.
+You can change this with `plot_interval`:
+
+```python
+run = Evolve(solver=solver, maxsteps=10000, saveimg=True, plot_interval=25)
+```
+
 ## Dependencies
 ### Core requirements
 Installed automatically by `pip install -e .`:
