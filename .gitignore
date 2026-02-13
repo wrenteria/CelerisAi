@@ -3,3 +3,7 @@
 **./plots/*.png
 differentiability/assimilation/plots/*.png
 *.pyc
+
+# Python cache
+__pycache__/
+*.pyc
