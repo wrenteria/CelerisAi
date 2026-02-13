@@ -105,6 +105,7 @@ class Evolve:
                  saveimg=False,
                  vmin=-1.5,
                  vmax=1.5,
+                 plot_interval=100,
                  ):
         self.solver = solver
         self.maxsteps=maxsteps
@@ -114,6 +115,7 @@ class Evolve:
         self.vmin = vmin
         self.vmax = vmax
         self.outdir = outdir
+        self.plot_interval = max(1, int(plot_interval))
         # To visualization
         self.image = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx,self.solver.ny))
         self.ocean = ti.Vector.field(3, dtype=ti.f16, shape=16)
@@ -254,7 +256,7 @@ class Evolve:
         Steps:
           1. Calls Evolve_0() to initialize fields and solver state.
           2. Loops over `maxsteps`, calling Evolve_Steps() each iteration.
-          3. Logs simulation time and performance metrics every 100 steps.
+          3. Logs simulation time and performance metrics every `plot_interval` steps.
           4. If an output directory is specified, saves solver state arrays to .npy files.
         """
         self.Evolve_0()
@@ -265,7 +267,7 @@ class Evolve:
             if i==1:
                 start_time = time.time() - 0.00001  # reset the "start" time as there is overhead before loop starts, and add small shift to prevent float divide by zero
 
-            if i==1 or (i%100)==0:
+            if i==1 or (i % self.plot_interval) == 0:
                 compTime = time.time() - start_time
                 print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
                 if self.solver.outdir:
@@ -510,7 +512,7 @@ class Evolve:
             
             self.Evolve_Steps(i)
 
-            if i==1 or (i%100)==0:
+            if i==1 or (i % self.plot_interval) == 0:
                 compTime = time.time() - start_time
                 print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
                 
@@ -638,7 +640,7 @@ class Evolve:
             if i==1:
                 start_time = time.time() - 0.00001  # reset the "start" time as there is overhead before loop starts, and add small shift to prevent float divide by zero
 
-            if i==1 or (i%100)==0:
+            if i==1 or (i % self.plot_interval) == 0:
                 compTime = time.time() - start_time
                 print('Current Simulation time: {:2.2f}s at step: {}-- Ratio:{:2.2f}--CompTime:{:2.2f}'.format(self.dt*i,i,(self.dt*i)/compTime,compTime))
                 frame = int(i)
