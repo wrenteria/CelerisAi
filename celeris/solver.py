@@ -116,7 +116,8 @@ class Solver:
                  T_star_coef= 5.0,
                  dzdt_I_coef= 0.50,
                  dzdt_F_coef= 0.15,
-                 subgrid_viscosity=False
+                 subgrid_viscosity=False,
+                 algochanges=1
                  ):
         """
         Initializes the Solver with domain and boundary-condition data and sets parameters 
@@ -153,6 +154,8 @@ class Solver:
             dzdt_I_coef (float, optional): Start-breaking threshold. Defaults to 0.50.
             dzdt_F_coef (float, optional): End-breaking threshold. Defaults to 0.15.
             subgrid_viscosity (bool, optional): Subgrid eddy viscosity. Defaults to False
+            algochanges (int, optional): Toggle for algorithm changes used by some
+                boundary-processing logic. Defaults to 1.
         """
         self.domain = domain
         self.bc  = boundary_conditions
@@ -271,6 +274,7 @@ class Solver:
         self.dzdt_F_coef = dzdt_F_coef
         self.dzdt_I_coef = dzdt_I_coef
         self.sgev = subgrid_viscosity
+        self.algochanges = algochanges
         # DIFFERENTIABILITY
         self.differentiability = self.domain.differentiability
         self.flagDiff=0.0
@@ -372,6 +376,11 @@ class Solver:
             else:
                 self.useSedTransModel = useSedTransModel
 
+            if checjson('algochanges',self.bc.configfile)==1:
+                self.algochanges = int(float(self.bc.configfile['algochanges']))
+            else:
+                self.algochanges = algochanges
+
             if checjson('NLSW_or_Bous',self.bc.configfile)==1:
                 # end breaking parameter
                 modelo = int(float(self.bc.configfile['NLSW_or_Bous']))
@@ -466,18 +475,21 @@ class Solver:
                             self.Bottom[3,i,j] = -99.0
 
     @ti.func
-    def BoundSineWaves(self,NumWaves,Waves,x,y,t,d_here,grav):
+    def BoundSineWaves(self,NumWaves,Waves,x,y,t,d_here,grav,current_boundary):
         """
         Computes boundary conditions for incoming sine waves at a domain boundary.
 
         Args:
             NumWaves (int): Number of wave components in `Waves`.
             Waves (ti.field): Wave parameter array [numWaves, 4].
-            x (float): x-coordinate at boundary cell.
-            y (float): y-coordinate at boundary cell.
+            x (float): Boundary-relative x-coordinate at the boundary cell.
+            y (float): Boundary-relative y-coordinate at the boundary cell.
             t (float): Current time.
             d_here (float): Local water depth if positive; 0 if dry.
             grav (float): Gravity constant.
+            current_boundary (int): Boundary identifier used to orient the
+                incoming-wave phase shift. The convention is west=1, south=2,
+                east=3, north=4.
 
         Returns:
             ti.types.vector(3, float): [eta, hu, hv] aggregated from all wave components.
@@ -489,7 +501,19 @@ class Solver:
         grav= self.precision(grav)
         if d_here>0.0001:
             for w in range(NumWaves):
-                result += sineWave(x,y,t,d_here,self.precision(Waves[w,0]),self.precision(Waves[w,1]),self.precision(Waves[w,2]),self.precision(Waves[w,3]),grav,self.bc.WaveType)
+                result += sineWave(
+                    x,
+                    y,
+                    t,
+                    d_here,
+                    self.precision(Waves[w,0]),
+                    self.precision(Waves[w,1]),
+                    self.precision(Waves[w,2]),
+                    self.precision(Waves[w,3]),
+                    grav,
+                    current_boundary,
+                    self.bc.WaveType
+                )
         return result
 
 
@@ -576,13 +600,13 @@ class Solver:
                     if self.bc.WaveType<=2:
                         B_here = -self.base_depth
                         d_here = ti.max( 0, - B_here)
-                        x = i * self.dx
+                        x = (i - 1) * self.dx
                         y = 0.0
-                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
+                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g,1)
                         BCState = ti.Vector([bcwave[0] + self.wSL, bcwave[1], 0.0 ,0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
-                        d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
+                        d_here = max( 0 , self.wSL -self.Bottom[2,i,j])
                         x0 = -10.0 * self.base_depth
                         y0 = 0.0
                         theta = 0.0
@@ -594,13 +618,13 @@ class Solver:
                     if self.bc.WaveType<=2:
                         B_here = -self.base_depth
                         d_here = ti.max( 0, - B_here)
-                        x = i * self.dx
+                        x = (i - (self.nx - 2)) * self.dx
                         y = 0.0
-                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
+                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g,3)
                         BCState =  ti.Vector([bcwave[0] + self.eSL, bcwave[1], 0.0, 0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
-                        d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
+                        d_here = max( 0 , self.eSL -self.Bottom[2,i,j])
                         x0 = self.nx*self.dx + 10.0 * self.base_depth
                         y0 = 0.0
                         theta = -3.1415
@@ -683,23 +707,35 @@ class Solver:
                 BCState = txState[i,j]
                 BCState_Sed = self.State_Sed[i,j].x
                 BCState_Sed = ti.max(BCState_Sed,0.0)
+                state_sum = ti.Vector([0.0, 0.0, 0.0, 0.0], self.precision)
+                weight_sum = self.precision(0.0)
                 ### SPONGE LAYERS
                 if (self.bcWest ==1 and i <= 2 + self.bc.BoundaryWidth):
+                    s = ti.cast(self.bc.BoundaryWidth + 2 - i, self.precision) / ti.cast(self.bc.BoundaryWidth, self.precision)
                     gamma = ti.pow(0.5 * (0.5 + 0.5 * ti.cos(self.pi * (self.precision(self.bc.BoundaryWidth - i) + 2.0) / float(self.bc.BoundaryWidth - 1))), 0.005)
-                    BCState = txState[ i, j] * self.precision(gamma)
+                    state_sum += txState[i, j] * self.precision(gamma) * s
+                    weight_sum += s
                     BCState_Sed = 0.0
                 if (self.bcEast ==1 and i >= self.nx - (self.bc.BoundaryWidth) - 1 ):
+                    s = ti.cast(i - (self.nx - self.bc.BoundaryWidth - 1), self.precision) / ti.cast(self.bc.BoundaryWidth, self.precision)
                     gamma = ti.pow(0.5 * (0.5 + 0.5 * ti.cos(self.pi * self.precision(self.bc.BoundaryWidth - self.BoundaryNx - i) / float(self.bc.BoundaryWidth - 1))), 0.005)
-                    BCState = txState[ i, j] * self.precision(gamma)
+                    state_sum += txState[i, j] * self.precision(gamma) * s
+                    weight_sum += s
                     BCState_Sed = 0.0
                 if (self.bcSouth ==1 and j<= 2 + self.bc.BoundaryWidth):
+                    s = ti.cast(self.bc.BoundaryWidth + 2 - j, self.precision) / ti.cast(self.bc.BoundaryWidth, self.precision)
                     gamma = ti.pow(0.5 * (0.5 + 0.5 * ti.cos(self.pi * self.precision(self.bc.BoundaryWidth - j + 2.0) / float(self.bc.BoundaryWidth - 1))), 0.005)
-                    BCState = txState[ i, j] * self.precision(gamma)
+                    state_sum += txState[i, j] * self.precision(gamma) * s
+                    weight_sum += s
                     BCState_Sed = 0.0
                 if (self.bcNorth ==1 and j >= self.ny - self.bc.BoundaryWidth-1):
+                    s = ti.cast(j - (self.ny - self.bc.BoundaryWidth - 1), self.precision) / ti.cast(self.bc.BoundaryWidth, self.precision)
                     gamma = ti.pow(0.5 * (0.5 + 0.5 * ti.cos(self.pi * self.precision(self.bc.BoundaryWidth - (self.BoundaryNy - j)) / (self.bc.BoundaryWidth-1))), 0.005)
-                    BCState = txState[ i, j]* self.precision(gamma)
+                    state_sum += txState[i, j] * self.precision(gamma) * s
+                    weight_sum += s
                     BCState_Sed = 0.0
+                if weight_sum > 0.0:
+                    BCState = state_sum / weight_sum
                 ### SOLID WALLS
                 if self.bcWest <=1:
                     if i <= 1:
@@ -741,14 +777,40 @@ class Solver:
                     elif j==self.ny-3:
                         BCState[2] = 0.0
                         BCState_Sed = 0.0
+                # Resolve corner cells with a true double reflection instead of
+                # letting the last processed wall overwrite the first one.
+                if i <= 1 and j <= 1 and self.bcWest <= 1 and self.bcSouth <= 1:
+                    BCState[0] = txState[self.BCShift - i, self.BCShift - j][0]
+                    BCState[1] = -txState[self.BCShift - i, self.BCShift - j][1]
+                    BCState[2] = -txState[self.BCShift - i, self.BCShift - j][2]
+                    BCState[3] = txState[self.BCShift - i, self.BCShift - j][3]
+                    BCState_Sed = 0.0
+                if i <= 1 and j >= self.ny - 2 and self.bcWest <= 1 and self.bcNorth <= 1:
+                    BCState[0] = txState[self.BCShift - i, self.R_y - j][0]
+                    BCState[1] = -txState[self.BCShift - i, self.R_y - j][1]
+                    BCState[2] = -txState[self.BCShift - i, self.R_y - j][2]
+                    BCState[3] = txState[self.BCShift - i, self.R_y - j][3]
+                    BCState_Sed = 0.0
+                if i >= self.nx - 2 and j <= 1 and self.bcEast <= 1 and self.bcSouth <= 1:
+                    BCState[0] = txState[self.R_x - i, self.BCShift - j][0]
+                    BCState[1] = -txState[self.R_x - i, self.BCShift - j][1]
+                    BCState[2] = -txState[self.R_x - i, self.BCShift - j][2]
+                    BCState[3] = txState[self.R_x - i, self.BCShift - j][3]
+                    BCState_Sed = 0.0
+                if i >= self.nx - 2 and j >= self.ny - 2 and self.bcEast <= 1 and self.bcNorth <= 1:
+                    BCState[0] = txState[self.R_x - i, self.R_y - j][0]
+                    BCState[1] = -txState[self.R_x - i, self.R_y - j][1]
+                    BCState[2] = -txState[self.R_x - i, self.R_y - j][2]
+                    BCState[3] = txState[self.R_x - i, self.R_y - j][3]
+                    BCState_Sed = 0.0
                 ### INCOMING WALLS
                 if self.bcWest ==2 and i<=2:
                     if self.bc.WaveType<=2:
                         B_here = -self.base_depth
                         d_here = ti.max( 0, - B_here)
-                        x = i * self.dx
-                        y = j * self.dy
-                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
+                        x = (i - 1) * self.dx
+                        y = (j - 1) * self.dy
+                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g,1)
                         BCState = ti.Vector([bcwave[0] + self.wSL,bcwave[1],bcwave[2],0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
@@ -764,9 +826,9 @@ class Solver:
                     if self.bc.WaveType<=2:
                         B_here = -self.base_depth
                         d_here = ti.max( 0, - B_here)
-                        x = i * self.dx
-                        y = j * self.dy
-                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
+                        x = (i - (self.nx - 2)) * self.dx
+                        y = (j - 1) * self.dy
+                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g,3)
                         BCState =  ti.Vector([bcwave[0] + self.eSL,bcwave[1],bcwave[2],0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
@@ -782,13 +844,13 @@ class Solver:
                     if self.bc.WaveType<=2:
                         B_here = -self.base_depth
                         d_here = ti.max( 0, - B_here)
-                        x = i * self.dx
-                        y = j * self.dy
-                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
+                        x = (i - 1) * self.dx
+                        y = (j - 1) * self.dy
+                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g,2)
                         BCState = ti.Vector([bcwave[0] + self.sSL,bcwave[1],bcwave[2],0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
-                        d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
+                        d_here = max( 0 , self.sSL -self.Bottom[2,i,j])
                         x0 = 0.0
                         y0 = -10.0 * self.base_depth
                         theta = 3.1415 / 2.0
@@ -800,10 +862,10 @@ class Solver:
                     if self.bc.WaveType<=2:
                         B_here = -self.base_depth
                         d_here = ti.max( 0, - B_here)
-                        x = i * self.dx
-                        y = j * self.dy
-                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g)
-                        BCState = ti.Vector([bcwave[0] + self.nSL,bcwave[1],bcwave[1],0.0],self.precision)
+                        x = (i - 1) * self.dx
+                        y = (j - (self.ny - 2)) * self.dy
+                        bcwave = self.BoundSineWaves(self.Nwaves,self.WaveData,x,y,time,d_here,self.boundary_g,4)
+                        BCState = ti.Vector([bcwave[0] + self.nSL,bcwave[1],bcwave[2],0.0],self.precision)
                         BCState_Sed = 0.0
                     elif self.bc.WaveType==3:
                         d_here = max( 0 , self.nSL -self.Bottom[2,i,j])
@@ -873,11 +935,18 @@ class Solver:
                 h_min[2] = ti.min(h_here,h_south)
                 h_min[3] = ti.min(h_here,h_west)
 
-                #wetdry = ti.min(h_here, ti.min(h_south, ti.min(h_north, ti.min(h_west, h_east))))
-                #nearshore = ti.min(B_here, ti.min(B_south, ti.min(B_north, ti.min(B_west, B_east))))
+                wetdry = ti.min(h_here, ti.min(h_south, ti.min(h_north, ti.min(h_west, h_east))))
+                nearshore = ti.min(B_here, ti.min(B_south, ti.min(B_north, ti.min(B_west, B_east))))
+
+                boundary_boolean = -1
+                if (i >= self.nx - 2 and self.bcEast != 0) or \
+                   (j >= self.ny - 3 and self.bcNorth != 0) or \
+                   (i <= 1 and self.bcWest != 0) or \
+                   (j <= 3 and self.bcSouth != 0):
+                    boundary_boolean = 1
 
                 # Remove islands
-                if dry_here==1:
+                if dry_here==1 and boundary_boolean < 0:
                     if sum_dry==0:
                         if (B_here<=0.0):
                             BCState = ti.Vector([ti.max(BCState.x , B_here),0.0,0.0,0.0],self.precision)
@@ -885,8 +954,13 @@ class Solver:
                         else:
                             BCState = ti.Vector([B_here,0.0,0.0,0.0],self.precision)
                             BCState_Sed = 0.0
-                    elif sum_dry==1:
-                        wet_eta = (float(dry_west)*eta_west + float(dry_east)*eta_east + float(dry_south)*eta_south + float(dry_north)*eta_north)/float(sum_dry)
+                    elif sum_dry==1 and (self.algochanges == 0 or nearshore <= self.delta):
+                        wet_eta = (
+                            ti.cast(dry_west, self.precision) * eta_west +
+                            ti.cast(dry_east, self.precision) * eta_east +
+                            ti.cast(dry_south, self.precision) * eta_south +
+                            ti.cast(dry_north, self.precision) * eta_north
+                        ) / ti.cast(sum_dry, self.precision)
                         BCState = ti.Vector([wet_eta,0.0,0.0,0.0],self.precision)
                         BCState_Sed = 0.0
                 # Check for negative depths
