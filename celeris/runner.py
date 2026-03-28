@@ -147,6 +147,7 @@ class Evolve:
         self.overlay = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx, self.solver.ny))
         self.realistic_palette = ti.Vector.field(3, dtype=ti.f32, shape=4)
         self.realistic_light_dir = ti.Vector.field(3, dtype=ti.f32, shape=())
+        self.realistic_foam_modulation = ti.field(dtype=ti.f32, shape=())
         self.colormap_ocean = 'Blues_r'
         # To visualize 1D
         self.bottom1D = ti.Vector.field(2, dtype=ti.f32, shape = self.solver.nx)
@@ -155,6 +156,7 @@ class Evolve:
         self.x_scale = max(self.solver.dx, (self.solver.nx - 1) * self.solver.dx)
         self.plot_y_min = -float(self.solver.base_depth)
         self.plot_y_max = float(self.solver.base_depth)
+        self.realistic_foam_modulation[None] = 0.0
 
     def Evolve_0(self):
         """
@@ -360,6 +362,19 @@ class Evolve:
     def InitRealisticLightDir(self, x: ti.f32, y: ti.f32, z: ti.f32):
         self.realistic_light_dir[None] = ti.Vector([x, y, z], dt=ti.f32)
 
+    @ti.kernel
+    def SetRealisticFoamModulation(self, modulation_strength: ti.f32):
+        """
+        Controls the procedural whitewater modulation used by
+        `painting_h_realistic`.
+
+        Args:
+            modulation_strength (float): `0.0` disables the procedural texture and
+                uses the transported foam field directly. `1.0` applies the full
+                procedural modulation. Intermediate values blend between both.
+        """
+        self.realistic_foam_modulation[None] = ti.max(0.0, ti.min(1.0, modulation_strength))
+
     @ti.func
     def _clamp01(self, x):
         return ti.min(1.0, ti.max(0.0, x))
@@ -394,7 +409,8 @@ class Evolve:
             length = ti.max(1.0, (self.solver.ny - 1) * self.solver.dy)
             x_world = i * self.solver.dx
             y_world = j * self.solver.dy
-            chop_amp = 0.02 * ti.min(h, 0.5 * self.solver.base_depth) / ti.max(self.solver.base_depth, 1.0)
+            # chop coherent sinusuidal patterns. amp =0.006
+            chop_amp = 0.006 * ti.min(h, 0.5 * self.solver.base_depth) / ti.max(self.solver.base_depth, 1.0)
             d_eta_dx = 0.5 * (eta_right - eta_left) * self.solver.one_over_dx + chop_amp * ti.sin(
                 0.11 * x_world + 0.07 * y_world + 0.035 * step
             )
@@ -452,19 +468,27 @@ class Evolve:
             shoreline_blend = self._clamp01(1.0 - h / 1.5)
             color_wave = self._mix3(color_wave, sand_rgb, shoreline_blend)
 
-            foam = ti.max(2.2 * (ti.abs(d_eta_dx) + ti.abs(d_eta_dy)) - 0.18, 0.0)
-            if self.solver.useBreakingModel:
-                foam = ti.max(
-                    foam,
-                    ti.min(1.0, 0.9 * self.solver.Breaking[i, j].z + 0.15 * self.solver.Breaking[i, j].y)
-                )
-            foam = ti.min(1.0, foam)
+            foam = ti.min(1.0, ti.max(self.solver.State[i, j].w, 0.0))
+            foam_phase = 0.025 * step
+            # Sinusoid frequencies
+            foam_tex_coarse = 0.5 + 0.5 * ti.sin(0.041 * x_world + 0.052 * y_world + foam_phase)
+            foam_tex_fine = 0.5 + 0.5 * ti.sin(0.097 * x_world - 0.083 * y_world - 1.7 * foam_phase)
+            foam_tex_cross = 0.5 + 0.5 * ti.cos(0.058 * x_world + 0.071 * y_world + 0.6 * foam_phase)
+            
+            foam_texture = 0.45 * foam_tex_coarse + 0.35 * foam_tex_fine + 0.20 * foam_tex_cross
+            foam_texture = ti.min(1.0, ti.max(0.0, foam_texture))
+            foam_gain = self._mix3(
+                ti.Vector([1.0, 1.0, 1.0], dt=ti.f32),
+                ti.Vector([0.75 + 0.35 * foam_texture, 0.75 + 0.35 * foam_texture, 0.75 + 0.35 * foam_texture], dt=ti.f32),
+                self.realistic_foam_modulation[None]
+            )
+            foam_visible = ti.min(1.0, foam * foam_gain.x)
 
             water_color = ti.min(
                 ti.Vector([1.0, 1.0, 1.0], dt=ti.f32),
                 color_wave * light_effects + ti.Vector([0.22 * fresnel, 0.22 * fresnel, 0.22 * fresnel], dt=ti.f32)
             )
-            water_color = self._mix3(water_color, ti.Vector([1.0, 1.0, 1.0], dt=ti.f32), 0.85 * foam)
+            water_color = self._mix3(water_color, ti.Vector([1.0, 1.0, 1.0], dt=ti.f32), 0.85 * foam_visible)
 
             background = self.overlay[i, j]
             if h > water_threshold:

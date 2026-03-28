@@ -148,7 +148,8 @@ class Solver:
             useSedTransModel (bool, optional): Enables sediment transport if True. Defaults to False.
             sediment (object, optional): Sediment parameter object. Defaults to None.
             infiltrationRate (float, optional): Dry-beach infiltration rate. Defaults to 0.001.
-            clearCon (int, optional): Clears concentration channel if == 1. Defaults to 1.
+            clearCon (int, optional): Clears the tracer / foam concentration channel
+                after each Pass3 update when == 1. Defaults to 1.
             showBreaking (int, optional): If > 0, show wave breaking areas as foam. Defaults to 0.
             vort_friction_factor (float, optional): Coefficient for vorticity-based
                 momentum mixing/dissipation. Defaults to 0.0.
@@ -1672,6 +1673,7 @@ class Solver:
             (bed slope, friction, infiltration, etc.).
           - Uses an explicit time scheme (Euler,  predictor,  predictor/corrector).
           - Optionally includes a foam/breaking parameter if showBreaking>0.
+          - Can reset the tracer / foam channel when `clearConc == 1`.
 
         Args:
             pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
@@ -1790,6 +1792,8 @@ class Solver:
                     elif self.showBreaking == 2 :
                         contaminent_source = self.ContSource[i , j].x
                         newState.a = ti.min(1.0, newState.a + contaminent_source)
+                    if self.clearConc == 1:
+                        newState.a = 0.0
 
                     F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0],self.precision)
 
@@ -1979,6 +1983,8 @@ class Solver:
                     elif self.showBreaking == 2 :
                         contaminent_source = self.ContSource[i , j].x
                         newState.a = ti.min(1.0, newState.a + contaminent_source)
+                    if self.clearConc == 1:
+                        newState.a = 0.0
 
                     F_G_vec = ti.Vector([0.0, 0.0, 0.0, 1.0],self.precision)
 
@@ -2100,6 +2106,7 @@ class Solver:
           - Incorporates dispersion terms, bed slope, friction, infiltration, 
             and wave breaking if enabled.
           - Uses a predictor-corrector approach for higher-order accuracy.
+          - Can reset the tracer / foam channel when `clearConc == 1`.
 
         Args:
             pred_or_corrector (int): Stage in predictor-corrector scheme (1 => predictor, 2 => corrector).
@@ -2317,6 +2324,8 @@ class Solver:
                     elif self.showBreaking == 2 :
                         contaminent_source = self.ContSource[i , j].x
                         newState.w = ti.min(1.0, newState.w + contaminent_source)
+                    if self.clearConc == 1:
+                        newState.w = 0.0
 
                     self.NewState[i,j] = newState
                     self.dU_by_dt[i,j] = d_by_dt
@@ -2618,6 +2627,8 @@ class Solver:
                     elif self.showBreaking == 2 :
                         contaminent_source = self.ContSource[i , j].x
                         newState.w = ti.min(1.0, newState.w + contaminent_source)
+                    if self.clearConc == 1:
+                        newState.w = 0.0
 
                     self.NewState[i,j] = newState
                     self.dU_by_dt[i,j] = d_by_dt
