@@ -112,6 +112,7 @@ class Solver:
                  infiltrationRate = 0.001,
                  clearCon = 1,
                  showBreaking=0,
+                 vort_friction_factor=0.0,
                  delta_breaking= 2.0,
                  T_star_coef= 5.0,
                  dzdt_I_coef= 0.50,
@@ -149,6 +150,8 @@ class Solver:
             infiltrationRate (float, optional): Dry-beach infiltration rate. Defaults to 0.001.
             clearCon (int, optional): Clears concentration channel if == 1. Defaults to 1.
             showBreaking (int, optional): If > 0, show wave breaking areas as foam. Defaults to 0.
+            vort_friction_factor (float, optional): Coefficient for vorticity-based
+                momentum mixing/dissipation. Defaults to 0.0.
             delta_breaking (float, optional): Eddy viscosity coefficient for breaking. Defaults to 2.0.
             T_star_coef (float, optional): Timescale factor until breaking fully develops. Defaults to 5.0.
             dzdt_I_coef (float, optional): Start-breaking threshold. Defaults to 0.50.
@@ -226,6 +229,7 @@ class Solver:
         self.BCShift = self.domain.Boundary_shift
         self.BoundaryNy =self.domain.Ny - 1
         self.BoundaryNx =self.domain.Nx - 1
+        self.bc.validate_periodic_dimensions(self.domain.Nx, self.domain.Ny)
         self.dx  = self.domain.dx
         self.dy  = self.domain.dy
         self.nSL  = self.domain.north_sl
@@ -243,6 +247,7 @@ class Solver:
         self.whiteWaterDecayRate = whiteWaterDecayRate
         self.whiteWaterDispersion = whiteWaterDispersion
         self.delta_breaking = delta_breaking
+        self.vort_friction_factor = vort_friction_factor
         self.theta    = theta
         self.delta = ti.min(0.005, self.base_depth / 5000.0)
         self.epsilon  = ti.pow(self.delta,2)
@@ -292,6 +297,11 @@ class Solver:
                 self.whiteWaterDispersion = float(self.bc.configfile['whiteWaterDispersion'])
             else:
                 self.whiteWaterDispersion = whiteWaterDispersion
+
+            if checjson('vort_friction_factor',self.bc.configfile)==1:
+                self.vort_friction_factor = float(self.bc.configfile['vort_friction_factor'])
+            else:
+                self.vort_friction_factor = vort_friction_factor
 
             if checjson('dissipation_threshold',self.bc.configfile)==1:
                 self.dissipation_threshold = float(self.bc.configfile['dissipation_threshold'])
@@ -565,6 +575,29 @@ class Solver:
                 BCState = txState[i,j]
                 BCState_Sed = self.State_Sed[i,j].x
                 BCState_Sed = ti.max(BCState_Sed,0.0)
+                periodic_overlap = 2
+                periodic_boundary_cell = 0
+                ### PERIODIC BOUNDARIES
+                if self.bcWest == 3:
+                    if i <= periodic_overlap - 1:
+                        east_idx = self.nx - 2 * periodic_overlap + i - 1
+                        BCState = txState[east_idx, j]
+                        BCState_Sed = self.State_Sed[east_idx, j].x
+                        periodic_boundary_cell = 1
+                    elif i == periodic_overlap:
+                        east_idx = self.nx - 2 * periodic_overlap + i - 1
+                        BCState[1] = 0.5 * (BCState[1] + txState[east_idx, j][1])
+                        periodic_boundary_cell = 1
+                if self.bcEast == 3:
+                    if i >= self.nx - periodic_overlap:
+                        west_idx = 2 * periodic_overlap - ((self.nx - 1) - i)
+                        BCState = txState[west_idx, j]
+                        BCState_Sed = self.State_Sed[west_idx, j].x
+                        periodic_boundary_cell = 1
+                    elif i == self.nx - periodic_overlap - 1:
+                        west_idx = 2 * periodic_overlap - ((self.nx - 1) - i)
+                        BCState[1] = 0.5 * (BCState[1] + txState[west_idx, j][1])
+                        periodic_boundary_cell = 1
                 ### SPONGE LAYERS
                 if (self.bcWest ==1 and i <= 2 + self.bc.BoundaryWidth):
                     gamma = ti.pow(0.5 * (0.5 + 0.5 * ti.cos(self.pi * (self.precision(self.bc.BoundaryWidth - i) + 2.0) / float(self.bc.BoundaryWidth - 1))), 0.005)
@@ -697,7 +730,8 @@ class Solver:
                     else:
                         BCState = ti.Vector([B_here, 0.0, 0.0, 0.0],self.precision)
 
-                BCState_Sed = 0.0
+                if periodic_boundary_cell == 0:
+                    BCState_Sed = 0.0
 
                 txState[i,j] = BCState
                 self.NewState_Sed[i,j].x = BCState_Sed
@@ -709,6 +743,49 @@ class Solver:
                 BCState_Sed = ti.max(BCState_Sed,0.0)
                 state_sum = ti.Vector([0.0, 0.0, 0.0, 0.0], self.precision)
                 weight_sum = self.precision(0.0)
+                periodic_overlap = 2
+                periodic_boundary_cell = 0
+                ### PERIODIC BOUNDARIES
+                if self.bcWest == 3:
+                    if i <= periodic_overlap - 1:
+                        east_idx = self.nx - 2 * periodic_overlap + i - 1
+                        BCState = txState[east_idx, j]
+                        BCState_Sed = self.State_Sed[east_idx, j].x
+                        periodic_boundary_cell = 1
+                    elif i == periodic_overlap:
+                        east_idx = self.nx - 2 * periodic_overlap + i - 1
+                        BCState[1] = 0.5 * (BCState[1] + txState[east_idx, j][1])
+                        periodic_boundary_cell = 1
+                if self.bcEast == 3:
+                    if i >= self.nx - periodic_overlap:
+                        west_idx = 2 * periodic_overlap - ((self.nx - 1) - i)
+                        BCState = txState[west_idx, j]
+                        BCState_Sed = self.State_Sed[west_idx, j].x
+                        periodic_boundary_cell = 1
+                    elif i == self.nx - periodic_overlap - 1:
+                        west_idx = 2 * periodic_overlap - ((self.nx - 1) - i)
+                        BCState[1] = 0.5 * (BCState[1] + txState[west_idx, j][1])
+                        periodic_boundary_cell = 1
+                if self.bcSouth == 3:
+                    if j <= periodic_overlap - 1:
+                        north_idx = self.ny - 2 * periodic_overlap + j - 1
+                        BCState = txState[i, north_idx]
+                        BCState_Sed = self.State_Sed[i, north_idx].x
+                        periodic_boundary_cell = 1
+                    elif j == periodic_overlap:
+                        north_idx = self.ny - 2 * periodic_overlap + j - 1
+                        BCState[2] = 0.5 * (BCState[2] + txState[i, north_idx][2])
+                        periodic_boundary_cell = 1
+                if self.bcNorth == 3:
+                    if j >= self.ny - periodic_overlap:
+                        south_idx = 2 * periodic_overlap - ((self.ny - 1) - j)
+                        BCState = txState[i, south_idx]
+                        BCState_Sed = self.State_Sed[i, south_idx].x
+                        periodic_boundary_cell = 1
+                    elif j == self.ny - periodic_overlap - 1:
+                        south_idx = 2 * periodic_overlap - ((self.ny - 1) - j)
+                        BCState[2] = 0.5 * (BCState[2] + txState[i, south_idx][2])
+                        periodic_boundary_cell = 1
                 ### SPONGE LAYERS
                 if (self.bcWest ==1 and i <= 2 + self.bc.BoundaryWidth):
                     s = ti.cast(self.bc.BoundaryWidth + 2 - i, self.precision) / ti.cast(self.bc.BoundaryWidth, self.precision)
@@ -971,7 +1048,8 @@ class Solver:
                     else:
                         BCState = ti.Vector([B_here,0.0,0.0,0.0],self.precision)
 
-                BCState_Sed = 0.0
+                if periodic_boundary_cell == 0:
+                    BCState_Sed = 0.0
 
                 txState[i,j] = BCState
                 self.NewState_Sed[i,j].x = BCState_Sed
@@ -1763,7 +1841,13 @@ class Solver:
                     #        self.predictedF_G_star[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
                     #        self.current_stateUVstar[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
                     #        continue
-                    dry = (h_here <= h_cut) & (h_east <= h_cut) & (h_west <= h_cut)
+                    dry = (
+                        (h_here <= h_cut) &
+                        (h_north <= h_cut) &
+                        (h_east <= h_cut) &
+                        (h_south <= h_cut) &
+                        (h_west <= h_cut)
+                    )
                     #if dry:
                     #    self.NewState[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
                     #    self.dU_by_dt[i,j] = ti.Vector([0.0, 0.0, 0.0, 0.0],self.precision)
@@ -1783,6 +1867,27 @@ class Solver:
                     xflux_west = self.XFlux[i-1 , j]  # at i-1/2
                     yflux_here = self.YFlux[i , j]  # at j+1/2
                     yflux_south = self.YFlux[i , j-1]  # at j-1/2
+
+                    vorticity_dissipation = ti.Vector([0.0, 0.0, 0.0, 0.0], self.precision)
+                    if self.vort_friction_factor > 0.0:
+                        dPdxy = 0.25 * (
+                            self.State[i + 1, j + 1].y - self.State[i - 1, j + 1].y -
+                            self.State[i + 1, j - 1].y + self.State[i - 1, j - 1].y
+                        ) * self.one_over_dxdy
+                        dPdyy = (
+                            self.State[i, j + 1].y - 2.0 * in_state_here.y + self.State[i, j - 1].y
+                        ) * self.one_over_d2y
+                        dQdxx = (
+                            self.State[i + 1, j].z - 2.0 * in_state_here.z + self.State[i - 1, j].z
+                        ) * self.one_over_d2x
+                        dQdxy = 0.25 * (
+                            self.State[i + 1, j + 1].z - self.State[i - 1, j + 1].z -
+                            self.State[i + 1, j - 1].z + self.State[i - 1, j - 1].z
+                        ) * self.one_over_dxdy
+                        domegady = dPdyy - dQdxy
+                        domegadx = dPdxy - dQdxx
+                        vorticity_dissipation.y = self.vort_friction_factor * domegady
+                        vorticity_dissipation.z = -self.vort_friction_factor * domegadx
 
                     friction_here =  ti.max(self.friction, self.BottomFriction[i,j][0])
                     friction_ = FrictionCalc(in_state_here[1], in_state_here[2], h_here, self.base_depth, self.delta, self.isManning, self.g, friction_here,self.differentiability)
@@ -1843,7 +1948,12 @@ class Solver:
 
                     source_term = ti.Vector([overflow_dry, -self.g * h_here * detadx - in_state_here.y * friction_+press_x, -self.g * h_here * detady - in_state_here.z * friction_+press_y, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation],self.precision)
 
-                    d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
+                    d_by_dt = (
+                        (xflux_west - xflux_here) * self.one_over_dx +
+                        (yflux_south - yflux_here) * self.one_over_dy +
+                        source_term +
+                        vorticity_dissipation
+                    )
 
                     # previous derivatives
                     oldies = self.oldGradients[i , j]
@@ -2050,9 +2160,12 @@ class Solver:
 
                     d_here = -B_here #
                     near_dry = Bottom[3,i,j]
+                    periodic_bc_fix = -1
+                    if self.bcWest == 3 and (i >= self.nx - 3 or i <= 2):
+                        periodic_bc_fix = 1
 
-                    # OPTIMIZ: only proceed if not near an initially dry cell
-                    if near_dry>0.:
+                    # OPTIMIZ: only proceed if not near an initially dry cell.
+                    if near_dry > 0.0 and periodic_bc_fix < 0:
                         d2_here = d_here * d_here
                         d3_here = d2_here * d_here
 
@@ -2266,6 +2379,27 @@ class Solver:
                     yflux_here = self.YFlux[i,j]  # at j+1/2
                     yflux_south = self.YFlux[i,j-1]  # at j-1/2
 
+                    vorticity_dissipation = ti.Vector([0.0, 0.0, 0.0, 0.0], self.precision)
+                    if self.vort_friction_factor > 0.0:
+                        dPdxy = 0.25 * (
+                            self.State[i + 1, j + 1].y - self.State[i - 1, j + 1].y -
+                            self.State[i + 1, j - 1].y + self.State[i - 1, j - 1].y
+                        ) * self.one_over_dxdy
+                        dPdyy = (
+                            self.State[i, j + 1].y - 2.0 * in_state_here.y + self.State[i, j - 1].y
+                        ) * self.one_over_d2y
+                        dQdxx = (
+                            self.State[i + 1, j].z - 2.0 * in_state_here.z + self.State[i - 1, j].z
+                        ) * self.one_over_d2x
+                        dQdxy = 0.25 * (
+                            self.State[i + 1, j + 1].z - self.State[i - 1, j + 1].z -
+                            self.State[i + 1, j - 1].z + self.State[i - 1, j - 1].z
+                        ) * self.one_over_dxdy
+                        domegady = dPdyy - dQdxy
+                        domegadx = dPdxy - dQdxx
+                        vorticity_dissipation.y = self.vort_friction_factor * domegady
+                        vorticity_dissipation.z = -self.vort_friction_factor * domegadx
+
                     detadx = 0.5*(eta_east - eta_west) * self.one_over_dx
                     detady = 0.5*(eta_north - eta_south) * self.one_over_dy
 
@@ -2278,9 +2412,14 @@ class Solver:
 
                     d_here = -B_here #
                     near_dry = self.Bottom[3,i,j]
+                    periodic_bc_fix = -1
+                    if self.bcWest == 3 and (i >= self.nx - 3 or i <= 2):
+                        periodic_bc_fix = 1
+                    if self.bcSouth == 3 and (j >= self.ny - 3 or j <= 2):
+                        periodic_bc_fix = 1
 
-                    # OPTIMIZ: only proceed if not near an initially dry cell
-                    if near_dry>0.:
+                    # OPTIMIZ: only proceed if not near an initially dry cell.
+                    if near_dry > 0.0 and periodic_bc_fix < 0:
                         d2_here = d_here * d_here
                         d3_here = d2_here * d_here
 
@@ -2450,7 +2589,12 @@ class Solver:
                     sy = -self.g * h_here * detady - in_state_here[2] * friction_ + breaking_y + (Psi1y + Psi2y) + press_y
 
                     source_term = ti.Vector([overflow_dry, sx, sy, hc_by_dx_dx + hc_by_dy_dy + 2.0 * hc_by_dx_dy + c_dissipation],self.precision)
-                    d_by_dt = (xflux_west - xflux_here) * self.one_over_dx + (yflux_south - yflux_here) * self.one_over_dy + source_term
+                    d_by_dt = (
+                        (xflux_west - xflux_here) * self.one_over_dx +
+                        (yflux_south - yflux_here) * self.one_over_dy +
+                        source_term +
+                        vorticity_dissipation
+                    )
 
                     # previous derivatives
                     oldies = self.oldGradients[i,j]

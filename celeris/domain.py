@@ -170,6 +170,39 @@ class BoundaryConditions:
         >>> from celeris.domain import BoundaryConditions
         >>> bc = BoundaryConditions(celeris=True,path='./examples/DuckFRF_NC',precision=precision)
     """
+    @staticmethod
+    def _normalize_periodic_pairs(north, south, east, west):
+        """
+        Ensures periodic boundaries are configured as opposite-side pairs.
+
+        If either side of an axis is marked periodic (type 3), both sides on that
+        axis are forced to periodic. This avoids ill-defined one-sided periodic
+        setups.
+        """
+        if west == 3 or east == 3:
+            west = 3
+            east = 3
+        if south == 3 or north == 3:
+            south = 3
+            north = 3
+        return north, south, east, west
+
+    def validate_periodic_dimensions(self, nx, ny):
+        """
+        Validates that periodic boundaries have enough cells along their axis.
+
+        Periodic boundaries use a two-cell overlap plus one adjacent interior cell
+        for momentum averaging, so the periodic axis must have at least five cells.
+        """
+        if (self.West == 3 or self.East == 3) and nx < 5:
+            raise ValueError(
+                f"Periodic west/east boundaries require nx >= 5, got nx={nx}."
+            )
+        if (self.South == 3 or self.North == 3) and ny < 5:
+            raise ValueError(
+                f"Periodic south/north boundaries require ny >= 5, got ny={ny}."
+            )
+
     def __init__(self,
                  celeris=True,
                  precision = ti.f32,
@@ -254,6 +287,13 @@ class BoundaryConditions:
             self.South = South
             self.West = West
             self.East = East
+
+        self.North, self.South, self.East, self.West = self._normalize_periodic_pairs(
+            self.North,
+            self.South,
+            self.East,
+            self.West
+        )
 
         if self.WaveType==-1:
             self.filename = os.path.join(path,filename)
