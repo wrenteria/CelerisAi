@@ -231,6 +231,7 @@ class Solver:
         self.BoundaryNy =self.domain.Ny - 1
         self.BoundaryNx =self.domain.Nx - 1
         self.bc.validate_periodic_dimensions(self.domain.Nx, self.domain.Ny)
+        self.bc.validate_river_configuration(self.domain.Nx, self.domain.Ny)
         self.dx  = self.domain.dx
         self.dy  = self.domain.dy
         self.nSL  = self.domain.north_sl
@@ -275,6 +276,22 @@ class Solver:
         self.bcSouth=self.bc.South
         self.bcEast=self.bc.East
         self.bcWest=self.bc.West
+        self.river_inflow_angle = self.bc.river_inflow_angle
+        self.mean_upstream_channel_elevation = self.bc.mean_upstream_channel_elevation
+        self.channel_bottom_width = self.bc.channel_bottom_width
+        self.channel_side_slope = self.bc.channel_side_slope
+        self.channel_bank_start_upstream = self.bc.channel_bank_start_upstream
+        self.channel_bank_end_upstream = self.bc.channel_bank_end_upstream
+        self.Q_10 = self.bc.Q_10
+        self.Q_50 = self.bc.Q_50
+        self.Q_100 = self.bc.Q_100
+        self.Q_200 = self.bc.Q_200
+        self.Q_500 = self.bc.Q_500
+        self.stage_10 = self.bc.stage_10
+        self.stage_50 = self.bc.stage_50
+        self.stage_100 = self.bc.stage_100
+        self.stage_200 = self.bc.stage_200
+        self.stage_500 = self.bc.stage_500
         # Breaking parameters
         self.T_star_coef = T_star_coef
         self.dzdt_F_coef = dzdt_F_coef
@@ -555,6 +572,30 @@ class Solver:
         hv = ti.sqrt(1.0 + 0.5 * amp / d_here) * eta * c * ti.sin(theta)
         return eta,hu,hv
 
+    @ti.func
+    def RiverFloodValues(self):
+        """
+        Maps the WebGPU flood-event selector (`WaveType` 10-14) to stage and discharge.
+        """
+        stage_c = self.precision(1.0)
+        Q_c = self.precision(0.0)
+        if self.bc.WaveType == 10:
+            stage_c = self.precision(self.stage_10)
+            Q_c = self.precision(self.Q_10)
+        elif self.bc.WaveType == 11:
+            stage_c = self.precision(self.stage_50)
+            Q_c = self.precision(self.Q_50)
+        elif self.bc.WaveType == 12:
+            stage_c = self.precision(self.stage_100)
+            Q_c = self.precision(self.Q_100)
+        elif self.bc.WaveType == 13:
+            stage_c = self.precision(self.stage_200)
+            Q_c = self.precision(self.Q_200)
+        elif self.bc.WaveType == 14:
+            stage_c = self.precision(self.stage_500)
+            Q_c = self.precision(self.Q_500)
+        return stage_c, Q_c
+
     @ti.kernel
     def BoundaryPass(self,time:ti.f32, txState: ti.template()):
         """
@@ -562,6 +603,8 @@ class Solver:
           - Sponge layers (type=1) 
           - Solid walls (type=0)
           - Incoming waves (type=2) including sine wave or solitary wave
+          - Periodic boundaries (type=3)
+          - River forcing boundaries (type=4, 2D west/east/north)
 
         This kernel is also responsible for handling near-dry logic and simple 
         wetting/drying checks at the domain edges. 
@@ -746,6 +789,10 @@ class Solver:
                 weight_sum = self.precision(0.0)
                 periodic_overlap = 2
                 periodic_boundary_cell = 0
+                stage_c, Q_c = self.RiverFloodValues()
+                river_angle = self.precision(self.river_inflow_angle)
+                cos_angle = ti.cos(river_angle)
+                sin_angle = ti.sin(river_angle)
                 ### PERIODIC BOUNDARIES
                 if self.bcWest == 3:
                     if i <= periodic_overlap - 1:
@@ -952,6 +999,44 @@ class Solver:
                         theta = -3.1415 / 2.0
                         eta,hu,hv = self.SolitaryWave(x0, y0, theta, i*self.dx, j*self.dy, time, d_here)
                         BCState = ti.Vector([eta,hu,hv,0.0],self.precision)
+                        BCState_Sed = 0.0
+                ### RIVER BOUNDARIES
+                Q_c = Q_c / cos_angle
+                stage_elevation = self.precision(self.mean_upstream_channel_elevation) + stage_c
+                stage_speed = Q_c / stage_c / (
+                    self.precision(self.channel_bottom_width) * cos_angle +
+                    stage_c / self.precision(self.channel_side_slope)
+                )
+                if self.bcWest == 4:
+                    loc_c = ti.cast(j, self.precision) * self.dy
+                    if i <= 1 and loc_c > self.precision(self.channel_bank_start_upstream) and loc_c < self.precision(self.channel_bank_end_upstream):
+                        flow_depth = ti.max(stage_elevation - self.Bottom[2, i, j], 0.0)
+                        hu = flow_depth * stage_speed * cos_angle
+                        hv = flow_depth * stage_speed * sin_angle
+                        conc = self.precision(0.0)
+                        if ti.cast(time / 30.0, ti.i32) % 2 == 0:
+                            conc = self.precision(1.0)
+                        BCState = ti.Vector([stage_elevation, hu, hv, conc], self.precision)
+                        BCState_Sed = 0.0
+                if self.bcEast == 4:
+                    loc_c = ti.cast(j, self.precision) * self.dy
+                    if i >= self.nx - 2 and loc_c > self.precision(self.channel_bank_start_upstream) and loc_c < self.precision(self.channel_bank_end_upstream):
+                        elev_downstream = stage_elevation - self.precision(5.0)
+                        flow_depth = ti.max(elev_downstream - self.Bottom[2, i, j], 0.0)
+                        hu = -flow_depth * stage_speed * cos_angle
+                        hv = -flow_depth * stage_speed * sin_angle
+                        BCState = ti.Vector([elev_downstream, hu, hv, 0.0], self.precision)
+                        BCState_Sed = 0.0
+                if self.bcNorth == 4:
+                    loc_c = ti.cast(i, self.precision) * self.dx
+                    if j >= self.ny - 2 and loc_c > self.precision(self.channel_bank_start_upstream) and loc_c < self.precision(self.channel_bank_end_upstream):
+                        flow_depth = ti.max(stage_elevation - self.Bottom[2, i, j], 0.0)
+                        hu = -flow_depth * stage_speed * sin_angle
+                        hv = -flow_depth * stage_speed * cos_angle
+                        conc = self.precision(0.0)
+                        if ti.cast(time / 30.0, ti.i32) % 2 == 0:
+                            conc = self.precision(1.0)
+                        BCState = ti.Vector([stage_elevation, hu, hv, conc], self.precision)
                         BCState_Sed = 0.0
             #Compute the coordinates of the neighbors
                 rightIdx = ti.min(i + 1, self.nx - 1)

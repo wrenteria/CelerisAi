@@ -146,6 +146,8 @@ class BoundaryConditions:
             - 0: Solid wall
             - 1: Sponge layer
             - 2: Incoming wave
+            - 3: Periodic boundary
+            - 4: River boundary
 
         South (int): Boundary type for the south face.
         East (int): Boundary type for the east face.
@@ -162,6 +164,14 @@ class BoundaryConditions:
         sine_wave (list of float): Parameters defining a sine wave if `WaveType` is not -1.
         celeris (bool): If True, boundary conditions are read from `config.json`.
         configfile (dict, optional): Loaded JSON configuration when `celeris=True`.
+        river_inflow_angle (float): Inflow angle for river boundaries (radians).
+        mean_upstream_channel_elevation (float): Mean upstream river-bed elevation.
+        channel_bottom_width (float): Bottom width used by the trapezoidal river section.
+        channel_side_slope (float): Side-slope rise/run used by the trapezoidal river section.
+        channel_bank_start_upstream (float): Start coordinate of the active river opening.
+        channel_bank_end_upstream (float): End coordinate of the active river opening.
+        Q_10/Q_50/Q_100/Q_200/Q_500 (float): Flood discharges used by river forcing.
+        stage_10/stage_50/stage_100/stage_200/stage_500 (float): Flood stages used by river forcing.
         data (numpy.ndarray): Placeholder array for wave data (size depends on `N_data`).
         N_data (int): Number of wave entries to read from file.
         W_data (None): Unused placeholder (could store wave data in some contexts).
@@ -203,6 +213,39 @@ class BoundaryConditions:
                 f"Periodic south/north boundaries require ny >= 5, got ny={ny}."
             )
 
+    def has_river_boundary(self):
+        """
+        Returns True when at least one boundary is configured as a river boundary (type=4).
+        """
+        return (self.West == 4) or (self.East == 4) or (self.South == 4) or (self.North == 4)
+
+    def validate_river_configuration(self, nx, ny):
+        """
+        Validates river-boundary settings used by the WebGPU-style type 4 forcing.
+
+        River forcing is only implemented for the 2D west/east/north boundaries and
+        uses flood-event selectors through `WaveType` values 10-14.
+        """
+        if not self.has_river_boundary():
+            return
+
+        if ny == 1:
+            raise ValueError("River boundary forcing (type=4) is only implemented for 2D cases (ny > 1).")
+        if self.South == 4:
+            raise ValueError("River boundary forcing (type=4) is not implemented for the south boundary.")
+        if self.WaveType not in (10, 11, 12, 13, 14):
+            raise ValueError(
+                "River boundary forcing (type=4) requires WaveType to select a flood event: "
+                "10, 11, 12, 13, or 14."
+            )
+        if self.channel_side_slope == 0.0:
+            raise ValueError("River boundary forcing requires `channel_side_slope != 0.0`.")
+        if abs(np.cos(self.river_inflow_angle)) < 1.0e-6:
+            raise ValueError(
+                "River boundary forcing requires `river_inflow_angle` away from pi/2 because "
+                "the discharge conversion divides by cos(river_inflow_angle)."
+            )
+
     def __init__(self,
                  celeris=True,
                  precision = ti.f32,
@@ -216,7 +259,23 @@ class BoundaryConditions:
                  filename='waves.txt',
                  BoundaryWidth= 20,
                  init_eta=5,
-                 sine_wave=None
+                 sine_wave=None,
+                 river_inflow_angle=0.0,
+                 mean_upstream_channel_elevation=0.0,
+                 channel_bottom_width=1.0,
+                 channel_side_slope=1.0,
+                 channel_bank_start_upstream=0.0,
+                 channel_bank_end_upstream=0.0,
+                 Q_10=0.0,
+                 Q_50=0.0,
+                 Q_100=0.0,
+                 Q_200=0.0,
+                 Q_500=0.0,
+                 stage_10=0.0,
+                 stage_50=0.0,
+                 stage_100=0.0,
+                 stage_200=0.0,
+                 stage_500=0.0
                  ):
         """
         Initializes the BoundaryConditions object with specified or default parameters.
@@ -238,6 +297,14 @@ class BoundaryConditions:
             BoundaryWidth (int, optional): Width of the sponge or boundary zone. Defaults to 20.
             sine_wave (list of float, optional): Parameters defining a sine wave if `WaveType` is not -1.
                 If None, defaults to `[0, 0, 0, 0]`.
+            river_inflow_angle (float, optional): Inflow angle for river boundaries. Defaults to 0.0.
+            mean_upstream_channel_elevation (float, optional): Mean upstream channel-bed elevation. Defaults to 0.0.
+            channel_bottom_width (float, optional): Bottom width used by river forcing. Defaults to 1.0.
+            channel_side_slope (float, optional): Side-slope rise/run used by river forcing. Defaults to 1.0.
+            channel_bank_start_upstream (float, optional): Start coordinate of the river opening. Defaults to 0.0.
+            channel_bank_end_upstream (float, optional): End coordinate of the river opening. Defaults to 0.0.
+            Q_10/Q_50/Q_100/Q_200/Q_500 (float, optional): River flood discharges. Defaults to 0.0.
+            stage_10/stage_50/stage_100/stage_200/stage_500 (float, optional): River flood stages. Defaults to 0.0.
         """
         if sine_wave is None:
             sine_wave = [0, 0, 0, 0]
@@ -257,6 +324,22 @@ class BoundaryConditions:
         self.path=path
         self.configfile=None
         self.celeris=celeris
+        self.river_inflow_angle = river_inflow_angle
+        self.mean_upstream_channel_elevation = mean_upstream_channel_elevation
+        self.channel_bottom_width = channel_bottom_width
+        self.channel_side_slope = channel_side_slope
+        self.channel_bank_start_upstream = channel_bank_start_upstream
+        self.channel_bank_end_upstream = channel_bank_end_upstream
+        self.Q_10 = Q_10
+        self.Q_50 = Q_50
+        self.Q_100 = Q_100
+        self.Q_200 = Q_200
+        self.Q_500 = Q_500
+        self.stage_10 = stage_10
+        self.stage_50 = stage_50
+        self.stage_100 = stage_100
+        self.stage_200 = stage_200
+        self.stage_500 = stage_500
         if self.celeris==True:
             filename='waves.txt'
             with open(os.path.join(self.path, 'config.json'),'r') as uf:
@@ -281,6 +364,40 @@ class BoundaryConditions:
                 self.West = int(self.configfile['west_boundary_type'])
             else:
                 self.West = West
+            if checjson('incident_wave_type',self.configfile)==1:
+                self.WaveType = int(float(self.configfile['incident_wave_type']))
+            if checjson('river_inflow_angle',self.configfile)==1:
+                self.river_inflow_angle = float(self.configfile['river_inflow_angle'])
+            if checjson('mean_upstream_channel_elevation',self.configfile)==1:
+                self.mean_upstream_channel_elevation = float(self.configfile['mean_upstream_channel_elevation'])
+            if checjson('channel_bottom_width',self.configfile)==1:
+                self.channel_bottom_width = float(self.configfile['channel_bottom_width'])
+            if checjson('channel_side_slope',self.configfile)==1:
+                self.channel_side_slope = float(self.configfile['channel_side_slope'])
+            if checjson('channel_bank_start_upstream',self.configfile)==1:
+                self.channel_bank_start_upstream = float(self.configfile['channel_bank_start_upstream'])
+            if checjson('channel_bank_end_upstream',self.configfile)==1:
+                self.channel_bank_end_upstream = float(self.configfile['channel_bank_end_upstream'])
+            if checjson('Q_10',self.configfile)==1:
+                self.Q_10 = float(self.configfile['Q_10'])
+            if checjson('Q_50',self.configfile)==1:
+                self.Q_50 = float(self.configfile['Q_50'])
+            if checjson('Q_100',self.configfile)==1:
+                self.Q_100 = float(self.configfile['Q_100'])
+            if checjson('Q_200',self.configfile)==1:
+                self.Q_200 = float(self.configfile['Q_200'])
+            if checjson('Q_500',self.configfile)==1:
+                self.Q_500 = float(self.configfile['Q_500'])
+            if checjson('stage_10',self.configfile)==1:
+                self.stage_10 = float(self.configfile['stage_10'])
+            if checjson('stage_50',self.configfile)==1:
+                self.stage_50 = float(self.configfile['stage_50'])
+            if checjson('stage_100',self.configfile)==1:
+                self.stage_100 = float(self.configfile['stage_100'])
+            if checjson('stage_200',self.configfile)==1:
+                self.stage_200 = float(self.configfile['stage_200'])
+            if checjson('stage_500',self.configfile)==1:
+                self.stage_500 = float(self.configfile['stage_500'])
         else:
             self.BoundaryWidth=BoundaryWidth
             self.North = North
