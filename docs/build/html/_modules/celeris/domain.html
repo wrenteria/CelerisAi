@@ -233,6 +233,8 @@
 <span class="sd">            - 0: Solid wall</span>
 <span class="sd">            - 1: Sponge layer</span>
 <span class="sd">            - 2: Incoming wave</span>
+<span class="sd">            - 3: Periodic boundary</span>
+<span class="sd">            - 4: River boundary</span>
 
 <span class="sd">        South (int): Boundary type for the south face.</span>
 <span class="sd">        East (int): Boundary type for the east face.</span>
@@ -249,6 +251,14 @@
 <span class="sd">        sine_wave (list of float): Parameters defining a sine wave if `WaveType` is not -1.</span>
 <span class="sd">        celeris (bool): If True, boundary conditions are read from `config.json`.</span>
 <span class="sd">        configfile (dict, optional): Loaded JSON configuration when `celeris=True`.</span>
+<span class="sd">        river_inflow_angle (float): Inflow angle for river boundaries (radians).</span>
+<span class="sd">        mean_upstream_channel_elevation (float): Mean upstream river-bed elevation.</span>
+<span class="sd">        channel_bottom_width (float): Bottom width used by the trapezoidal river section.</span>
+<span class="sd">        channel_side_slope (float): Side-slope rise/run used by the trapezoidal river section.</span>
+<span class="sd">        channel_bank_start_upstream (float): Start coordinate of the active river opening.</span>
+<span class="sd">        channel_bank_end_upstream (float): End coordinate of the active river opening.</span>
+<span class="sd">        Q_10/Q_50/Q_100/Q_200/Q_500 (float): Flood discharges used by river forcing.</span>
+<span class="sd">        stage_10/stage_50/stage_100/stage_200/stage_500 (float): Flood stages used by river forcing.</span>
 <span class="sd">        data (numpy.ndarray): Placeholder array for wave data (size depends on `N_data`).</span>
 <span class="sd">        N_data (int): Number of wave entries to read from file.</span>
 <span class="sd">        W_data (None): Unused placeholder (could store wave data in some contexts).</span>
@@ -257,6 +267,81 @@
 <span class="sd">        &gt;&gt;&gt; from celeris.domain import BoundaryConditions</span>
 <span class="sd">        &gt;&gt;&gt; bc = BoundaryConditions(celeris=True,path=&#39;./examples/DuckFRF_NC&#39;,precision=precision)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_periodic_pairs</span><span class="p">(</span><span class="n">north</span><span class="p">,</span> <span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">west</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensures periodic boundaries are configured as opposite-side pairs.</span>
+
+<span class="sd">        If either side of an axis is marked periodic (type 3), both sides on that</span>
+<span class="sd">        axis are forced to periodic. This avoids ill-defined one-sided periodic</span>
+<span class="sd">        setups.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">west</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">east</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">west</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">east</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">south</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">north</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">south</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">north</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">return</span> <span class="n">north</span><span class="p">,</span> <span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">west</span>
+
+<div class="viewcode-block" id="BoundaryConditions.validate_periodic_dimensions">
+<a class="viewcode-back" href="../../celeris.html#celeris.domain.BoundaryConditions.validate_periodic_dimensions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_periodic_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates that periodic boundaries have enough cells along their axis.</span>
+
+<span class="sd">        Periodic boundaries use a two-cell overlap plus one adjacent interior cell</span>
+<span class="sd">        for momentum averaging, so the periodic axis must have at least five cells.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">West</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">East</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Periodic west/east boundaries require nx &gt;= 5, got nx=</span><span class="si">{</span><span class="n">nx</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">South</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">North</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ny</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Periodic south/north boundaries require ny &gt;= 5, got ny=</span><span class="si">{</span><span class="n">ny</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BoundaryConditions.has_river_boundary">
+<a class="viewcode-back" href="../../celeris.html#celeris.domain.BoundaryConditions.has_river_boundary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_river_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns True when at least one boundary is configured as a river boundary (type=4).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">West</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">East</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">South</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">North</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BoundaryConditions.validate_river_configuration">
+<a class="viewcode-back" href="../../celeris.html#celeris.domain.BoundaryConditions.validate_river_configuration">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_river_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates river-boundary settings used by the WebGPU-style type 4 forcing.</span>
+
+<span class="sd">        River forcing is only implemented for the 2D west/east/north boundaries and</span>
+<span class="sd">        uses flood-event selectors through `WaveType` values 10-14.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_river_boundary</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;River boundary forcing (type=4) is only implemented for 2D cases (ny &gt; 1).&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">South</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;River boundary forcing (type=4) is not implemented for the south boundary.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">WaveType</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;River boundary forcing (type=4) requires WaveType to select a flood event: &quot;</span>
+                <span class="s2">&quot;10, 11, 12, 13, or 14.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_side_slope</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;River boundary forcing requires `channel_side_slope != 0.0`.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">river_inflow_angle</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1.0e-6</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;River boundary forcing requires `river_inflow_angle` away from pi/2 because &quot;</span>
+                <span class="s2">&quot;the discharge conversion divides by cos(river_inflow_angle).&quot;</span>
+            <span class="p">)</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">celeris</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                  <span class="n">precision</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">f32</span><span class="p">,</span>
@@ -270,7 +355,23 @@
                  <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;waves.txt&#39;</span><span class="p">,</span>
                  <span class="n">BoundaryWidth</span><span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
                  <span class="n">init_eta</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                 <span class="n">sine_wave</span><span class="o">=</span><span class="kc">None</span>
+                 <span class="n">sine_wave</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">river_inflow_angle</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">mean_upstream_channel_elevation</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">channel_bottom_width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">channel_side_slope</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">channel_bank_start_upstream</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">channel_bank_end_upstream</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">Q_10</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">Q_50</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">Q_100</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">Q_200</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">Q_500</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">stage_10</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">stage_50</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">stage_100</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">stage_200</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">stage_500</span><span class="o">=</span><span class="mf">0.0</span>
                  <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the BoundaryConditions object with specified or default parameters.</span>
@@ -292,6 +393,14 @@
 <span class="sd">            BoundaryWidth (int, optional): Width of the sponge or boundary zone. Defaults to 20.</span>
 <span class="sd">            sine_wave (list of float, optional): Parameters defining a sine wave if `WaveType` is not -1.</span>
 <span class="sd">                If None, defaults to `[0, 0, 0, 0]`.</span>
+<span class="sd">            river_inflow_angle (float, optional): Inflow angle for river boundaries. Defaults to 0.0.</span>
+<span class="sd">            mean_upstream_channel_elevation (float, optional): Mean upstream channel-bed elevation. Defaults to 0.0.</span>
+<span class="sd">            channel_bottom_width (float, optional): Bottom width used by river forcing. Defaults to 1.0.</span>
+<span class="sd">            channel_side_slope (float, optional): Side-slope rise/run used by river forcing. Defaults to 1.0.</span>
+<span class="sd">            channel_bank_start_upstream (float, optional): Start coordinate of the river opening. Defaults to 0.0.</span>
+<span class="sd">            channel_bank_end_upstream (float, optional): End coordinate of the river opening. Defaults to 0.0.</span>
+<span class="sd">            Q_10/Q_50/Q_100/Q_200/Q_500 (float, optional): River flood discharges. Defaults to 0.0.</span>
+<span class="sd">            stage_10/stage_50/stage_100/stage_200/stage_500 (float, optional): River flood stages. Defaults to 0.0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">sine_wave</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sine_wave</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
@@ -311,6 +420,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">=</span><span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="o">=</span><span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">celeris</span><span class="o">=</span><span class="n">celeris</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">river_inflow_angle</span> <span class="o">=</span> <span class="n">river_inflow_angle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_upstream_channel_elevation</span> <span class="o">=</span> <span class="n">mean_upstream_channel_elevation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_bottom_width</span> <span class="o">=</span> <span class="n">channel_bottom_width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_side_slope</span> <span class="o">=</span> <span class="n">channel_side_slope</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_bank_start_upstream</span> <span class="o">=</span> <span class="n">channel_bank_start_upstream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_bank_end_upstream</span> <span class="o">=</span> <span class="n">channel_bank_end_upstream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q_10</span> <span class="o">=</span> <span class="n">Q_10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q_50</span> <span class="o">=</span> <span class="n">Q_50</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q_100</span> <span class="o">=</span> <span class="n">Q_100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q_200</span> <span class="o">=</span> <span class="n">Q_200</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q_500</span> <span class="o">=</span> <span class="n">Q_500</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_10</span> <span class="o">=</span> <span class="n">stage_10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_50</span> <span class="o">=</span> <span class="n">stage_50</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_100</span> <span class="o">=</span> <span class="n">stage_100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_200</span> <span class="o">=</span> <span class="n">stage_200</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_500</span> <span class="o">=</span> <span class="n">stage_500</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">celeris</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
             <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;waves.txt&#39;</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;config.json&#39;</span><span class="p">),</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">uf</span><span class="p">:</span>
@@ -335,12 +460,53 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">West</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;west_boundary_type&#39;</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">West</span> <span class="o">=</span> <span class="n">West</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;incident_wave_type&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">WaveType</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;incident_wave_type&#39;</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;river_inflow_angle&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">river_inflow_angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;river_inflow_angle&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;mean_upstream_channel_elevation&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mean_upstream_channel_elevation</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;mean_upstream_channel_elevation&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;channel_bottom_width&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channel_bottom_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;channel_bottom_width&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;channel_side_slope&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channel_side_slope</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;channel_side_slope&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;channel_bank_start_upstream&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channel_bank_start_upstream</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;channel_bank_start_upstream&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;channel_bank_end_upstream&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channel_bank_end_upstream</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;channel_bank_end_upstream&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;Q_10&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Q_10</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;Q_10&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;Q_50&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Q_50</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;Q_50&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;Q_100&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Q_100</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;Q_100&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;Q_200&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Q_200</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;Q_200&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;Q_500&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Q_500</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;Q_500&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;stage_10&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stage_10</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;stage_10&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;stage_50&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stage_50</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;stage_50&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;stage_100&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stage_100</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;stage_100&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;stage_200&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stage_200</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;stage_200&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">checjson</span><span class="p">(</span><span class="s1">&#39;stage_500&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stage_500</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configfile</span><span class="p">[</span><span class="s1">&#39;stage_500&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">BoundaryWidth</span><span class="o">=</span><span class="n">BoundaryWidth</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">North</span> <span class="o">=</span> <span class="n">North</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">South</span> <span class="o">=</span> <span class="n">South</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">West</span> <span class="o">=</span> <span class="n">West</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">East</span> <span class="o">=</span> <span class="n">East</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">North</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">South</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">East</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">West</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_periodic_pairs</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">North</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">South</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">East</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">West</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">WaveType</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">filename</span><span class="p">)</span>

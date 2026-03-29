@@ -283,14 +283,16 @@
 <div class="viewcode-block" id="sineWave">
 <a class="viewcode-back" href="../../celeris.html#celeris.utils.sineWave">[docs]</a>
 <span class="nd">@ti</span><span class="o">.</span><span class="n">func</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">sineWave</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">amplitude</span><span class="p">,</span><span class="n">period</span><span class="p">,</span><span class="n">theta</span><span class="p">,</span><span class="n">phase</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">wave_type</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sineWave</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">amplitude</span><span class="p">,</span><span class="n">period</span><span class="p">,</span><span class="n">theta</span><span class="p">,</span><span class="n">phase</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">current_boundary</span><span class="p">,</span><span class="n">wave_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes a sine wave (and related momentum terms) at a given point (x, y) and time t.</span>
 
 <span class="sd">    This function uses a dispersion relation and hyperbolic tangent of wave depth</span>
 <span class="sd">    to approximate wave number (k) and phase speed (c). It then calculates free-surface</span>
-<span class="sd">    elevation (eta) and horizontal momentum components(hu, hv) based on wave parameters. An optional</span>
-<span class="sd">    decay term is applied for certain wave types.</span>
+<span class="sd">    elevation (eta) and horizontal momentum components (hu, hv) based on wave</span>
+<span class="sd">    parameters. A boundary-dependent phase shift is applied so incoming waves use</span>
+<span class="sd">    the correct orientation on west/south/east/north boundaries. An optional decay</span>
+<span class="sd">    term is applied for certain wave types.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        x (float): x-coordinate where the wave is evaluated.</span>
@@ -302,6 +304,8 @@
 <span class="sd">        theta (float): Wave propagation angle in radians.</span>
 <span class="sd">        phase (float): Additional phase offset.</span>
 <span class="sd">        g (float): Gravitational acceleration.</span>
+<span class="sd">        current_boundary (int): Boundary identifier used to orient the injected wave</span>
+<span class="sd">            phase shift for west/south/east/north boundaries.</span>
 <span class="sd">        wave_type (int): Wave type indicator. If `wave_type == 2`, a decay multiplier </span>
 <span class="sd">            is applied to the wave for demonstration/limiting purposes.</span>
 
@@ -316,6 +320,9 @@
 <span class="sd">          linear wave theory with a hyperbolic tangent term for finite depth.</span>
 <span class="sd">        - The term `ti.min(1.0, t / period)` is used to gradually ramp up the wave</span>
 <span class="sd">          from zero at t=0 (avoid sudden wave onset).</span>
+<span class="sd">        - `current_boundary` controls whether the origin modulation is applied in</span>
+<span class="sd">          the x-direction (south/north) or y-direction (west/east), matching the</span>
+<span class="sd">          WebGPU boundary forcing logic.</span>
 <span class="sd">        - If `wave_type == 2`, an additional decay factor is applied as `t` approaches </span>
 <span class="sd">          `num_waves * period` (here `num_waves` is hard-coded to 4 in the example). For a transient pulse</span>
 <span class="sd">        - The returned `hu` and `hv` are computed as a fraction of `g * eta / (c * k) * tanh(k * d)`,</span>
@@ -324,8 +331,15 @@
     <span class="n">omega</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">Vpi</span> <span class="o">/</span> <span class="n">period</span>
     <span class="n">k</span> <span class="o">=</span> <span class="n">omega</span> <span class="o">*</span> <span class="n">omega</span> <span class="o">/</span> <span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">ti</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="n">ti</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">omega</span> <span class="o">*</span> <span class="n">omega</span> <span class="o">*</span> <span class="n">d</span> <span class="o">/</span> <span class="n">g</span><span class="p">)))</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">omega</span> <span class="o">/</span> <span class="n">k</span>
-    <span class="n">kx</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">k</span>
-    <span class="n">ky</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">k</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">Vpi</span> <span class="o">/</span> <span class="n">k</span>
+    <span class="n">yshift</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">xshift</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">current_boundary</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">current_boundary</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">yshift</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">L</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">L</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">period</span>
+    <span class="k">if</span> <span class="n">current_boundary</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">current_boundary</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">xshift</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">L</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">L</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">period</span>
+    <span class="n">kx</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">xshift</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span>
+    <span class="n">ky</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">yshift</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span>
 
     <span class="c1"># Gradual wave ramp-up factor (t &lt; period =&gt; wave amplitude ramps up linearly in time)</span>
     <span class="n">eta</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">ti</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">omega</span> <span class="o">*</span> <span class="n">t</span> <span class="o">-</span> <span class="n">kx</span> <span class="o">-</span> <span class="n">ky</span> <span class="o">+</span> <span class="n">phase</span><span class="p">)</span><span class="o">*</span><span class="n">ti</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">t</span> <span class="o">/</span> <span class="n">period</span><span class="p">)</span>

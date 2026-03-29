@@ -51,6 +51,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#editable-install-recommended">Editable Install (Recommended)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-the-examples">Running the Examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#output-cadence-logs-and-saved-frames">Output cadence (logs and saved frames)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#boundary-types">Boundary Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#periodic-boundaries">Periodic boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#river-boundaries">River boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#solver-controls">Solver Controls</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Celeris Modules</a></li>
@@ -135,6 +139,76 @@ modifying <code class="docutils literal notranslate"><span class="pre">sys.path<
 </pre></div>
 </div>
 <p>If <code class="docutils literal notranslate"><span class="pre">saveimg=True</span></code>, images are saved at this same interval.</p>
+</section>
+<section id="boundary-types">
+<h2>Boundary Types<a class="headerlink" href="#boundary-types" title="Link to this heading"></a></h2>
+<p>For CelerisWebGPU-style cases loaded from <code class="docutils literal notranslate"><span class="pre">config.json</span></code>, the four domain faces
+use the following integer boundary types:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code>: solid wall</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code>: sponge layer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code>: incoming wave</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">3</span></code>: periodic boundary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">4</span></code>: river boundary</p></li>
+</ul>
+</section>
+<section id="periodic-boundaries">
+<h2>Periodic boundaries<a class="headerlink" href="#periodic-boundaries" title="Link to this heading"></a></h2>
+<p>Periodic boundaries are applied as opposite-side pairs. If either side of an axis
+is set to <code class="docutils literal notranslate"><span class="pre">3</span></code>, the opposite side is forced to <code class="docutils literal notranslate"><span class="pre">3</span></code> as well.</p>
+<p>The current implementation also requires at least five cells along the periodic axis:</p>
+<ul class="simple">
+<li><p>west/east periodic requires <code class="docutils literal notranslate"><span class="pre">nx</span> <span class="pre">&gt;=</span> <span class="pre">5</span></code></p></li>
+<li><p>south/north periodic requires <code class="docutils literal notranslate"><span class="pre">ny</span> <span class="pre">&gt;=</span> <span class="pre">5</span></code></p></li>
+</ul>
+</section>
+<section id="river-boundaries">
+<h2>River boundaries<a class="headerlink" href="#river-boundaries" title="Link to this heading"></a></h2>
+<p>River forcing follows the WebGPU <code class="docutils literal notranslate"><span class="pre">BoundaryPass</span></code> type <code class="docutils literal notranslate"><span class="pre">4</span></code> logic and is configured
+through <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p>
+<p>Flood-event selection is taken from <code class="docutils literal notranslate"><span class="pre">incident_wave_type</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">10</span></code>: 10-year flood</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">11</span></code>: 50-year flood</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">12</span></code>: 100-year flood</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">13</span></code>: 200-year flood</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">14</span></code>: 500-year flood</p></li>
+</ul>
+<p>The river hydraulics use the following parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">river_inflow_angle</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mean_upstream_channel_elevation</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_bottom_width</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_side_slope</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_bank_start_upstream</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_bank_end_upstream</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Q_10</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_50</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_100</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_200</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_500</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stage_10</span></code>, <code class="docutils literal notranslate"><span class="pre">stage_50</span></code>, <code class="docutils literal notranslate"><span class="pre">stage_100</span></code>, <code class="docutils literal notranslate"><span class="pre">stage_200</span></code>, <code class="docutils literal notranslate"><span class="pre">stage_500</span></code></p></li>
+</ul>
+<p>Current limitations in <code class="docutils literal notranslate"><span class="pre">CelerisAi</span></code>:</p>
+<ul class="simple">
+<li><p>river forcing is implemented only for 2D cases</p></li>
+<li><p>west, east, and north boundaries are supported</p></li>
+<li><p>south river forcing is not implemented</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">incident_wave_type</span></code> must be one of <code class="docutils literal notranslate"><span class="pre">10</span></code> to <code class="docutils literal notranslate"><span class="pre">14</span></code> when a type <code class="docutils literal notranslate"><span class="pre">4</span></code> boundary is active</p></li>
+</ul>
+</section>
+<section id="solver-controls">
+<h2>Solver Controls<a class="headerlink" href="#solver-controls" title="Link to this heading"></a></h2>
+<p>Several solver options commonly used in the WebGPU-derived workflows can be passed
+directly to <code class="docutils literal notranslate"><span class="pre">Solver(...)</span></code> or read from <code class="docutils literal notranslate"><span class="pre">config.json</span></code> when available.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">algochanges</span></code> adjusts the wet/dry cleanup near boundaries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vort_friction_factor</span></code> enables vorticity-based momentum mixing/dissipation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">showBreaking</span></code> injects breaking-derived foam/tracer into the fourth state channel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clearCon</span></code> clears that tracer/foam channel after <code class="docutils literal notranslate"><span class="pre">Pass3</span></code> updates when set to <code class="docutils literal notranslate"><span class="pre">1</span></code></p></li>
+</ul>
+<p>For breaking-enabled visualizations, persistent foam requires:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">useBreakingModel=True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">showBreaking=1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clearCon=0</span></code></p></li>
+</ul>
 </section>
 </section>
 

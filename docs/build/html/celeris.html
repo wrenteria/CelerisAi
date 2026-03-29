@@ -204,7 +204,7 @@ read.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">BoundaryConditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">celeris</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ti.f32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">North</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">South</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">East</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">West</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">WaveType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./scratch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'waves.txt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BoundaryWidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sine_wave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.domain.</span></span><span class="sig-name descname"><span class="pre">BoundaryConditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">celeris</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ti.f32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">North</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">South</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">East</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">West</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">WaveType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./scratch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'waves.txt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BoundaryWidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sine_wave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">river_inflow_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_upstream_channel_elevation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_bottom_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_side_slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_bank_start_upstream</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_bank_end_upstream</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_10</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_50</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_100</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_200</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_500</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage_10</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage_50</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage_100</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage_200</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage_500</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions" title="Link to this definition"></a></dt>
 <dd><p>Manages boundary conditions for a rectangular domain in the CelerisAi model.</p>
 <p>The domain has four faces: north, south, east, and west. Each face can be configured
 with different boundary types (e.g., sponge layer, solid wall, incoming wave).
@@ -237,6 +237,8 @@ from NumPy arrays to Taichi tensors.</p>
 <li><p>0: Solid wall</p></li>
 <li><p>1: Sponge layer</p></li>
 <li><p>2: Incoming wave</p></li>
+<li><p>3: Periodic boundary</p></li>
+<li><p>4: River boundary</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -371,6 +373,94 @@ from NumPy arrays to Taichi tensors.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.river_inflow_angle">
+<span class="sig-name descname"><span class="pre">river_inflow_angle</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.river_inflow_angle" title="Link to this definition"></a></dt>
+<dd><p>Inflow angle for river boundaries (radians).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.mean_upstream_channel_elevation">
+<span class="sig-name descname"><span class="pre">mean_upstream_channel_elevation</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.mean_upstream_channel_elevation" title="Link to this definition"></a></dt>
+<dd><p>Mean upstream river-bed elevation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.channel_bottom_width">
+<span class="sig-name descname"><span class="pre">channel_bottom_width</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.channel_bottom_width" title="Link to this definition"></a></dt>
+<dd><p>Bottom width used by the trapezoidal river section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.channel_side_slope">
+<span class="sig-name descname"><span class="pre">channel_side_slope</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.channel_side_slope" title="Link to this definition"></a></dt>
+<dd><p>Side-slope rise/run used by the trapezoidal river section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.channel_bank_start_upstream">
+<span class="sig-name descname"><span class="pre">channel_bank_start_upstream</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.channel_bank_start_upstream" title="Link to this definition"></a></dt>
+<dd><p>Start coordinate of the active river opening.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.channel_bank_end_upstream">
+<span class="sig-name descname"><span class="pre">channel_bank_end_upstream</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.channel_bank_end_upstream" title="Link to this definition"></a></dt>
+<dd><p>End coordinate of the active river opening.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Q_10/Q_50/Q_100/Q_200/Q_500</span></span></dt>
+<dd><p>Flood discharges used by river forcing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">stage_10/stage_50/stage_100/stage_200/stage_500</span></span></dt>
+<dd><p>Flood stages used by river forcing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.data">
 <span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#celeris.domain.BoundaryConditions.data" title="Link to this definition"></a></dt>
 <dd><p>Placeholder array for wave data (size depends on <cite>N_data</cite>).</p>
@@ -463,6 +553,12 @@ Converts the resulting NumPy array into a Taichi field and returns it.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.has_river_boundary">
+<span class="sig-name descname"><span class="pre">has_river_boundary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.has_river_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.has_river_boundary" title="Link to this definition"></a></dt>
+<dd><p>Returns True when at least one boundary is configured as a river boundary (type=4).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.load_data">
 <span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.load_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.load_data" title="Link to this definition"></a></dt>
 <dd><p>Loads wave parameters from <cite>waves.txt</cite> if <cite>WaveType</cite> is -1.</p>
@@ -498,6 +594,22 @@ wave data can be read from a file. Otherwise, False.</p>
 <dd class="field-even"><p>bool</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.validate_periodic_dimensions">
+<span class="sig-name descname"><span class="pre">validate_periodic_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.validate_periodic_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.validate_periodic_dimensions" title="Link to this definition"></a></dt>
+<dd><p>Validates that periodic boundaries have enough cells along their axis.</p>
+<p>Periodic boundaries use a two-cell overlap plus one adjacent interior cell
+for momentum averaging, so the periodic axis must have at least five cells.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.domain.BoundaryConditions.validate_river_configuration">
+<span class="sig-name descname"><span class="pre">validate_river_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/domain.html#BoundaryConditions.validate_river_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.domain.BoundaryConditions.validate_river_configuration" title="Link to this definition"></a></dt>
+<dd><p>Validates river-boundary settings used by the WebGPU-style type 4 forcing.</p>
+<p>River forcing is only implemented for the 2D west/east/north boundaries and
+uses flood-event selectors through <cite>WaveType</cite> values 10-14.</p>
 </dd></dl>
 
 </dd></dl>
@@ -985,7 +1097,7 @@ and returns it in a format suitable for use in the solver.</p>
 <span id="solver-module"></span><h2>Solver module<a class="headerlink" href="#module-celeris.solver" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="celeris.solver.Solver">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.solver.</span></span><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_conditions=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipation_threshold=0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeScheme=2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_or_corrector=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_window=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsteps=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bcoef=0.06666666666666667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model='SWE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useBreakingModel=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whiteWaterDecayRate=0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whiteWaterDispersion=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useSedTransModel=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sediment=&lt;celeris.solver.SedClass</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infiltrationRate=0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clearCon=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showBreaking=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_breaking=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_star_coef=5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzdt_I_coef=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzdt_F_coef=0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subgrid_viscosity=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">celeris.solver.</span></span><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_conditions=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipation_threshold=0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeScheme=2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_or_corrector=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_window=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsteps=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bcoef=0.06666666666666667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model='SWE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useBreakingModel=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whiteWaterDecayRate=0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whiteWaterDispersion=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useSedTransModel=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sediment=&lt;celeris.solver.SedClass</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infiltrationRate=0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clearCon=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showBreaking=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vort_friction_factor=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_breaking=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_star_coef=5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzdt_I_coef=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzdt_F_coef=0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subgrid_viscosity=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algochanges=1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver" title="Link to this definition"></a></dt>
 <dd><p>Main numerical solver class for the CelerisAi model.</p>
 <dl class="simple">
 <dt>This class manages the entire simulation process, including:</dt><dd><ul class="simple">
@@ -1231,18 +1343,21 @@ to manage the numerical solution.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="celeris.solver.Solver.BoundSineWaves">
-<span class="sig-name descname"><span class="pre">BoundSineWaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NumWaves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Waves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grav</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.BoundSineWaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.BoundSineWaves" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">BoundSineWaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NumWaves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Waves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_here</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grav</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_boundary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.BoundSineWaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.BoundSineWaves" title="Link to this definition"></a></dt>
 <dd><p>Computes boundary conditions for incoming sine waves at a domain boundary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>NumWaves</strong> (<em>int</em>) – Number of wave components in <cite>Waves</cite>.</p></li>
 <li><p><strong>Waves</strong> (<em>ti.field</em>) – Wave parameter array [numWaves, 4].</p></li>
-<li><p><strong>x</strong> (<em>float</em>) – x-coordinate at boundary cell.</p></li>
-<li><p><strong>y</strong> (<em>float</em>) – y-coordinate at boundary cell.</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – Boundary-relative x-coordinate at the boundary cell.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – Boundary-relative y-coordinate at the boundary cell.</p></li>
 <li><p><strong>t</strong> (<em>float</em>) – Current time.</p></li>
 <li><p><strong>d_here</strong> (<em>float</em>) – Local water depth if positive; 0 if dry.</p></li>
 <li><p><strong>grav</strong> (<em>float</em>) – Gravity constant.</p></li>
+<li><p><strong>current_boundary</strong> (<em>int</em>) – Boundary identifier used to orient the
+incoming-wave phase shift. The convention is west=1, south=2,
+east=3, north=4.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1262,6 +1377,8 @@ to manage the numerical solution.</p>
 <li><p>Sponge layers (type=1)</p></li>
 <li><p>Solid walls (type=0)</p></li>
 <li><p>Incoming waves (type=2) including sine wave or solitary wave</p></li>
+<li><p>Periodic boundaries (type=3)</p></li>
+<li><p>River forcing boundaries (type=4, 2D west/east/north)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1334,6 +1451,7 @@ numerical flux.</p></li>
 (bed slope, friction, infiltration, etc.).</p></li>
 <li><p>Uses an explicit time scheme (Euler,  predictor,  predictor/corrector).</p></li>
 <li><p>Optionally includes a foam/breaking parameter if showBreaking&gt;0.</p></li>
+<li><p>Can reset the tracer / foam channel when <cite>clearConc == 1</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1353,6 +1471,7 @@ numerical flux.</p></li>
 <li><p>Incorporates dispersion terms, bed slope, friction, infiltration,
 and wave breaking if enabled.</p></li>
 <li><p>Uses a predictor-corrector approach for higher-order accuracy.</p></li>
+<li><p>Can reset the tracer / foam channel when <cite>clearConc == 1</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1397,6 +1516,12 @@ dissipation flux and update the Breaking field.</p></li>
 <dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – Current simulation time.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="celeris.solver.Solver.RiverFloodValues">
+<span class="sig-name descname"><span class="pre">RiverFloodValues</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/solver.html#Solver.RiverFloodValues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.solver.Solver.RiverFloodValues" title="Link to this definition"></a></dt>
+<dd><p>Maps the WebGPU flood-event selector (<cite>WaveType</cite> 10-14) to stage and discharge.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1878,6 +2003,20 @@ internal taichi field <cite>self.ocean</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="celeris.runner.Evolve.SetRealisticFoamModulation">
+<span class="sig-name descname"><span class="pre">SetRealisticFoamModulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modulation_strength</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ti.f32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.SetRealisticFoamModulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.SetRealisticFoamModulation" title="Link to this definition"></a></dt>
+<dd><p>Controls the procedural whitewater modulation used by
+<cite>painting_h_realistic</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>modulation_strength</strong> (<em>float</em>) – <cite>0.0</cite> disables the procedural texture and
+uses the transported foam field directly. <cite>1.0</cite> applies the full
+procedural modulation. Intermediate values blend between both.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="celeris.runner.Evolve.bottom_paint">
 <span class="sig-name descname"><span class="pre">bottom_paint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/runner.html#Evolve.bottom_paint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.runner.Evolve.bottom_paint" title="Link to this definition"></a></dt>
 <dd><p>Fills <cite>bottom1D</cite> with x-normalized and y-normalized bottom values for 1D visualization.
@@ -2350,12 +2489,14 @@ use with matplotlib plotting functions or other visualization frameworks.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="celeris.utils.sineWave">
-<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">sineWave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#sineWave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.sineWave" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">celeris.utils.</span></span><span class="sig-name descname"><span class="pre">sineWave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_boundary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/celeris/utils.html#sineWave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#celeris.utils.sineWave" title="Link to this definition"></a></dt>
 <dd><p>Computes a sine wave (and related momentum terms) at a given point (x, y) and time t.</p>
 <p>This function uses a dispersion relation and hyperbolic tangent of wave depth
 to approximate wave number (k) and phase speed (c). It then calculates free-surface
-elevation (eta) and horizontal momentum components(hu, hv) based on wave parameters. An optional
-decay term is applied for certain wave types.</p>
+elevation (eta) and horizontal momentum components (hu, hv) based on wave
+parameters. A boundary-dependent phase shift is applied so incoming waves use
+the correct orientation on west/south/east/north boundaries. An optional decay
+term is applied for certain wave types.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2368,6 +2509,8 @@ decay term is applied for certain wave types.</p>
 <li><p><strong>theta</strong> (<em>float</em>) – Wave propagation angle in radians.</p></li>
 <li><p><strong>phase</strong> (<em>float</em>) – Additional phase offset.</p></li>
 <li><p><strong>g</strong> (<em>float</em>) – Gravitational acceleration.</p></li>
+<li><p><strong>current_boundary</strong> (<em>int</em>) – Boundary identifier used to orient the injected wave
+phase shift for west/south/east/north boundaries.</p></li>
 <li><p><strong>wave_type</strong> (<em>int</em>) – Wave type indicator. If <cite>wave_type == 2</cite>, a decay multiplier
 is applied to the wave for demonstration/limiting purposes.</p></li>
 </ul>
@@ -2394,6 +2537,9 @@ is applied to the wave for demonstration/limiting purposes.</p></li>
 linear wave theory with a hyperbolic tangent term for finite depth.</p></li>
 <li><p>The term <cite>ti.min(1.0, t / period)</cite> is used to gradually ramp up the wave
 from zero at t=0 (avoid sudden wave onset).</p></li>
+<li><p><cite>current_boundary</cite> controls whether the origin modulation is applied in
+the x-direction (south/north) or y-direction (west/east), matching the
+WebGPU boundary forcing logic.</p></li>
 <li><p>If <cite>wave_type == 2</cite>, an additional decay factor is applied as <cite>t</cite> approaches
 <cite>num_waves * period</cite> (here <cite>num_waves</cite> is hard-coded to 4 in the example). For a transient pulse</p></li>
 <li><p>The returned <cite>hu</cite> and <cite>hv</cite> are computed as a fraction of <cite>g * eta / (c * k) * tanh(k * d)</cite>,
