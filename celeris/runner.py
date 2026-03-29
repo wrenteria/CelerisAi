@@ -144,6 +144,10 @@ class Evolve:
         self.image = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx,self.solver.ny))
         self.image1D = ti.Vector.field(3, dtype=ti.f32, shape=(self.one_d_width, self.one_d_height))
         self.ocean = ti.Vector.field(3, dtype=ti.f16, shape=16)
+        self.overlay = ti.Vector.field(3, dtype=ti.f32, shape=(self.solver.nx, self.solver.ny))
+        self.realistic_palette = ti.Vector.field(3, dtype=ti.f32, shape=4)
+        self.realistic_light_dir = ti.Vector.field(3, dtype=ti.f32, shape=())
+        self.realistic_foam_modulation = ti.field(dtype=ti.f32, shape=())
         self.colormap_ocean = 'Blues_r'
         # To visualize 1D
         self.bottom1D = ti.Vector.field(2, dtype=ti.f32, shape = self.solver.nx)
@@ -152,6 +156,7 @@ class Evolve:
         self.x_scale = max(self.solver.dx, (self.solver.nx - 1) * self.solver.dx)
         self.plot_y_min = -float(self.solver.base_depth)
         self.plot_y_max = float(self.solver.base_depth)
+        self.realistic_foam_modulation[None] = 0.0
 
     def Evolve_0(self):
         """
@@ -338,6 +343,159 @@ class Evolve:
             self.ocean[i].x = arr[i,0]
             self.ocean[i].y = arr[i,1]
             self.ocean[i].z = arr[i,2]
+
+    @ti.kernel
+    def InitOverlay(self, arr: ti.types.ndarray(dtype=ti.f32, ndim=3)):
+        for i, j in self.overlay:
+            self.overlay[i, j].x = arr[i, j, 0]
+            self.overlay[i, j].y = arr[i, j, 1]
+            self.overlay[i, j].z = arr[i, j, 2]
+
+    @ti.kernel
+    def InitRealisticPalette(self, arr: ti.types.ndarray(dtype=ti.f32, ndim=2)):
+        for i in self.realistic_palette:
+            self.realistic_palette[i].x = arr[i, 0]
+            self.realistic_palette[i].y = arr[i, 1]
+            self.realistic_palette[i].z = arr[i, 2]
+
+    @ti.kernel
+    def InitRealisticLightDir(self, x: ti.f32, y: ti.f32, z: ti.f32):
+        self.realistic_light_dir[None] = ti.Vector([x, y, z], dt=ti.f32)
+
+    @ti.kernel
+    def SetRealisticFoamModulation(self, modulation_strength: ti.f32):
+        """
+        Controls the procedural whitewater modulation used by
+        `painting_h_realistic`.
+
+        Args:
+            modulation_strength (float): `0.0` disables the procedural texture and
+                uses the transported foam field directly. `1.0` applies the full
+                procedural modulation. Intermediate values blend between both.
+        """
+        self.realistic_foam_modulation[None] = ti.max(0.0, ti.min(1.0, modulation_strength))
+
+    @ti.func
+    def _clamp01(self, x):
+        return ti.min(1.0, ti.max(0.0, x))
+
+    @ti.func
+    def _mix3(self, a, b, t):
+        return a * (1.0 - t) + b * t
+
+    @ti.kernel
+    def painting_h_realistic(self, step: ti.i32, water_threshold: ti.f32):
+        for i, j in ti.ndrange(self.solver.nx, self.solver.ny):
+            right_idx = ti.min(i + 1, self.solver.nx - 1)
+            left_idx = ti.max(i - 1, 0)
+            up_idx = ti.min(j + 1, self.solver.ny - 1)
+            down_idx = ti.max(j - 1, 0)
+
+            eta_here = self.solver.State[i, j].x
+            eta_right = self.solver.State[right_idx, j].x
+            eta_left = self.solver.State[left_idx, j].x
+            eta_up = self.solver.State[i, up_idx].x
+            eta_down = self.solver.State[i, down_idx].x
+
+            bottom_here = self.solver.Bottom[2, i, j]
+            h = ti.max(eta_here - bottom_here, 0.0)
+
+            shallow_rgb = self.realistic_palette[0]
+            water_rgb = self.realistic_palette[1]
+            deep_rgb = self.realistic_palette[2]
+            sand_rgb = self.realistic_palette[3]
+
+            width = ti.max(1.0, (self.solver.nx - 1) * self.solver.dx)
+            length = ti.max(1.0, (self.solver.ny - 1) * self.solver.dy)
+            x_world = i * self.solver.dx
+            y_world = j * self.solver.dy
+            # chop coherent sinusuidal patterns. amp =0.006
+            chop_amp = 0.006 * ti.min(h, 0.5 * self.solver.base_depth) / ti.max(self.solver.base_depth, 1.0)
+            d_eta_dx = 0.5 * (eta_right - eta_left) * self.solver.one_over_dx + chop_amp * ti.sin(
+                0.11 * x_world + 0.07 * y_world + 0.035 * step
+            )
+            d_eta_dy = 0.5 * (eta_up - eta_down) * self.solver.one_over_dy + 0.75 * chop_amp * ti.cos(
+                0.09 * x_world - 0.13 * y_world - 0.031 * step
+            )
+
+            normal = ti.Vector([-d_eta_dx, -d_eta_dy, 1.0], dt=ti.f32)
+            normal = normal / ti.max(normal.norm(), 1e-6)
+            light_dir = self.realistic_light_dir[None]
+            view_dir = ti.Vector([0.0, 0.0, 1.0], dt=ti.f32)
+
+            diff = ti.max(normal.dot(light_dir), 0.0)
+            reflect_dir = 2.0 * normal.dot(light_dir) * normal - light_dir
+            spec = ti.pow(ti.max(reflect_dir.dot(view_dir), 0.0), 48.0)
+            fresnel = ti.pow(1.0 - ti.max(normal.z, 0.0), 3.0)
+            light_effects = 0.14 + 0.58 * diff + 0.55 * spec
+
+            color_wave = shallow_rgb
+            deep = 50.0
+            sand_depth = 1.0
+            if h > deep:
+                color_wave = deep_rgb
+            elif h > sand_depth:
+                ratio = self._clamp01((h - sand_depth) / ti.max(deep - sand_depth, 1e-6))
+                color_wave = self._mix3(shallow_rgb, deep_rgb, ratio)
+            else:
+                ratio = self._clamp01(ti.pow(h / ti.max(sand_depth, 1e-6), 0.25))
+                color_wave = self._mix3(sand_rgb, shallow_rgb, ratio)
+
+            h_right = ti.max(self.solver.State[right_idx, j].x - self.solver.Bottom[2, right_idx, j], 0.0)
+            h_left = ti.max(self.solver.State[left_idx, j].x - self.solver.Bottom[2, left_idx, j], 0.0)
+            h_up = ti.max(self.solver.State[i, up_idx].x - self.solver.Bottom[2, i, up_idx], 0.0)
+            h_down = ti.max(self.solver.State[i, down_idx].x - self.solver.Bottom[2, i, down_idx], 0.0)
+
+            u_up = 0.0
+            u_down = 0.0
+            v_right = 0.0
+            v_left = 0.0
+            if h_up > self.solver.delta:
+                u_up = self.solver.State[i, up_idx].y / h_up
+            if h_down > self.solver.delta:
+                u_down = self.solver.State[i, down_idx].y / h_down
+            if h_right > self.solver.delta:
+                v_right = self.solver.State[right_idx, j].z / h_right
+            if h_left > self.solver.delta:
+                v_left = self.solver.State[left_idx, j].z / h_left
+
+            vorticity_mag = ti.min(
+                0.25,
+                0.5 * ti.abs(0.5 * (u_up - u_down) * self.solver.one_over_dy - 0.5 * (v_right - v_left) * self.solver.one_over_dx)
+            )
+            color_wave = self._mix3(color_wave, sand_rgb, vorticity_mag)
+
+            shoreline_blend = self._clamp01(1.0 - h / 1.5)
+            color_wave = self._mix3(color_wave, sand_rgb, shoreline_blend)
+
+            foam = ti.min(1.0, ti.max(self.solver.State[i, j].w, 0.0))
+            foam_phase = 0.025 * step
+            # Sinusoid frequencies
+            foam_tex_coarse = 0.5 + 0.5 * ti.sin(0.041 * x_world + 0.052 * y_world + foam_phase)
+            foam_tex_fine = 0.5 + 0.5 * ti.sin(0.097 * x_world - 0.083 * y_world - 1.7 * foam_phase)
+            foam_tex_cross = 0.5 + 0.5 * ti.cos(0.058 * x_world + 0.071 * y_world + 0.6 * foam_phase)
+            
+            foam_texture = 0.45 * foam_tex_coarse + 0.35 * foam_tex_fine + 0.20 * foam_tex_cross
+            foam_texture = ti.min(1.0, ti.max(0.0, foam_texture))
+            foam_gain = self._mix3(
+                ti.Vector([1.0, 1.0, 1.0], dt=ti.f32),
+                ti.Vector([0.75 + 0.35 * foam_texture, 0.75 + 0.35 * foam_texture, 0.75 + 0.35 * foam_texture], dt=ti.f32),
+                self.realistic_foam_modulation[None]
+            )
+            foam_visible = ti.min(1.0, foam * foam_gain.x)
+
+            water_color = ti.min(
+                ti.Vector([1.0, 1.0, 1.0], dt=ti.f32),
+                color_wave * light_effects + ti.Vector([0.22 * fresnel, 0.22 * fresnel, 0.22 * fresnel], dt=ti.f32)
+            )
+            water_color = self._mix3(water_color, ti.Vector([1.0, 1.0, 1.0], dt=ti.f32), 0.85 * foam_visible)
+
+            background = self.overlay[i, j]
+            if h > water_threshold:
+                wet_alpha = self._clamp01(h / ti.max(0.5, 0.15 * self.solver.base_depth))
+                self.image[i, j] = self._mix3(background, water_color, wet_alpha)
+            else:
+                self.image[i, j] = background
 
     @ti.kernel
     def painting_h(self):

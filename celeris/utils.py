@@ -193,14 +193,16 @@ def cosh(x):
         return 0.5*(ti.exp(x)+ti.exp(-1*x))
 
 @ti.func
-def sineWave(x,y,t,d,amplitude,period,theta,phase,g,wave_type):
+def sineWave(x,y,t,d,amplitude,period,theta,phase,g,current_boundary,wave_type):
     """
     Computes a sine wave (and related momentum terms) at a given point (x, y) and time t.
 
     This function uses a dispersion relation and hyperbolic tangent of wave depth
     to approximate wave number (k) and phase speed (c). It then calculates free-surface
-    elevation (eta) and horizontal momentum components(hu, hv) based on wave parameters. An optional
-    decay term is applied for certain wave types.
+    elevation (eta) and horizontal momentum components (hu, hv) based on wave
+    parameters. A boundary-dependent phase shift is applied so incoming waves use
+    the correct orientation on west/south/east/north boundaries. An optional decay
+    term is applied for certain wave types.
 
     Args:
         x (float): x-coordinate where the wave is evaluated.
@@ -212,6 +214,8 @@ def sineWave(x,y,t,d,amplitude,period,theta,phase,g,wave_type):
         theta (float): Wave propagation angle in radians.
         phase (float): Additional phase offset.
         g (float): Gravitational acceleration.
+        current_boundary (int): Boundary identifier used to orient the injected wave
+            phase shift for west/south/east/north boundaries.
         wave_type (int): Wave type indicator. If `wave_type == 2`, a decay multiplier 
             is applied to the wave for demonstration/limiting purposes.
 
@@ -226,6 +230,9 @@ def sineWave(x,y,t,d,amplitude,period,theta,phase,g,wave_type):
           linear wave theory with a hyperbolic tangent term for finite depth.
         - The term `ti.min(1.0, t / period)` is used to gradually ramp up the wave
           from zero at t=0 (avoid sudden wave onset).
+        - `current_boundary` controls whether the origin modulation is applied in
+          the x-direction (south/north) or y-direction (west/east), matching the
+          WebGPU boundary forcing logic.
         - If `wave_type == 2`, an additional decay factor is applied as `t` approaches 
           `num_waves * period` (here `num_waves` is hard-coded to 4 in the example). For a transient pulse
         - The returned `hu` and `hv` are computed as a fraction of `g * eta / (c * k) * tanh(k * d)`,
@@ -234,8 +241,15 @@ def sineWave(x,y,t,d,amplitude,period,theta,phase,g,wave_type):
     omega = 2.0 * Vpi / period
     k = omega * omega / (g * ti.sqrt( ti.tanh(omega * omega * d / g)))
     c = omega / k
-    kx = ti.cos(theta) * x * k
-    ky = ti.sin(theta) * y * k
+    L = 2.0 * Vpi / k
+    yshift = 0.0
+    xshift = 0.0
+    if current_boundary == 1 or current_boundary == 3:
+        yshift = 5.0 * L + 0.05 * L * t / period
+    if current_boundary == 2 or current_boundary == 4:
+        xshift = 5.0 * L + 0.05 * L * t / period
+    kx = ti.cos(theta) * (x + xshift) * k
+    ky = ti.sin(theta) * (y + yshift) * k
 
     # Gradual wave ramp-up factor (t < period => wave amplitude ramps up linearly in time)
     eta = amplitude * ti.sin(omega * t - kx - ky + phase)*ti.min(1.0, t / period)
