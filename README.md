@@ -105,12 +105,17 @@ CelerisAi is an open-source project. Contributions from the community are welcom
 If you find this version of CelerisAI useful for your research, consider citing:
 
 ```
-@article{Renteria_2025,
-title={CelerisAi: A Nearshore Wave Modeling Framework for Integrated AI Applications},
-url={http://dx.doi.org/10.22541/essoar.174129311.11936719/v1},
-DOI={10.22541/essoar.174129311.11936719/v1},
-publisher={Authorea, Inc.},
-author={Renteria, Willington and Lynett, Patrick and Bonus, Justin and Mccann, Maile and Ebrahimi, Behzad},
-year={2025},
-month=mar }
+@article{renteria_differentiable_2026,
+	title = {A {Differentiable} {Solver} for {Phase}-resolved {Nearshore} {Wave} {Modelling}},
+	issn = {00104655},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S0010465526002134},
+	doi = {10.1016/j.cpc.2026.110231},
+	language = {en},
+	urldate = {2026-05-19},
+	journal = {Computer Physics Communications},
+	author = {Renteria, Willington and McCann, Maile and Bonus, Justin and Ebrahimi, Behzad and Lynett, Patrick},
+	month = may,
+	year = {2026},
+	pages = {110231},
+}
 ```
